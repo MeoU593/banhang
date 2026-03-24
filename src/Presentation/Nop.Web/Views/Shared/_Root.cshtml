@@ -1,16 +1,16 @@
 ﻿@{
     Layout = "_Root.Head";
+    var isAuthStandalone = ViewData["AuthStandalone"] as bool? ?? false;
 }
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BodyStartHtmlTagAfter })
 @{ await Html.RenderPartialAsync("_Notifications"); }
 @{ await Html.RenderPartialAsync("_JavaScriptDisabledWarning"); }
-<div class="master-wrapper-page">
-    @await Component.InvokeAsync(typeof(AdminHeaderLinksViewComponent))
-    @{ await Html.RenderPartialAsync("_Header"); }
-    <div class="header-menu">
-        @await Component.InvokeAsync(typeof(MainMenuViewComponent))
-    </div>
-    <main class="master-wrapper-content" id="main">
+<div class="master-wrapper-page min-h-[100dvh] bg-slate-100 text-slate-900">
+    @if (!isAuthStandalone)
+    {
+        await Html.RenderPartialAsync("_Header");
+    }
+    <main class="master-wrapper-content min-h-[100dvh]" id="main">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ContentBefore })
 
         @if (IsSectionDefined("Breadcrumb"))
@@ -22,7 +22,12 @@
         </div>
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ContentAfter })
     </main>
-    @await Component.InvokeAsync(typeof(FooterViewComponent))
+    @if (!isAuthStandalone)
+    {
+        <div class="ml-72 border-t border-slate-200 bg-white/80 px-6 py-6 text-sm text-slate-500 backdrop-blur lg:px-8">
+            @await Component.InvokeAsync(typeof(FooterViewComponent))
+        </div>
+    }
 </div>
 @await Component.InvokeAsync(typeof(EuCookieLawViewComponent))
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BodyEndHtmlTagBefore })

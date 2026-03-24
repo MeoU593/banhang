@@ -24,18 +24,210 @@
 
     //page class
     NopHtml.AppendPageCssClassParts("html-home-page");
+
+    var displayName = Context.User.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(Context.User.Identity?.Name)
+        ? Context.User.Identity!.Name!
+        : "đồng chí phụ trách";
 }
 <div class="page home-page">
-    <div class="page-body">
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageTop })        
-        @await Component.InvokeAsync(typeof(TopicBlockViewComponent), new { systemName = "HomepageText" })
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageBeforeCategories })
-        @await Component.InvokeAsync(typeof(HomepageCategoriesViewComponent))
-        @await Component.InvokeAsync(typeof(FilterLevelValueSearchViewComponent))
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageBeforeProducts })
-        @await Component.InvokeAsync(typeof(HomepageProductsViewComponent))
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageBeforeBestSellers })
-        @await Component.InvokeAsync(typeof(HomepageBestSellersViewComponent))
+    <div class="page-body space-y-8">
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageTop })
+
+        <section class="overflow-hidden rounded-[28px] bg-military-green text-white shadow-[0_24px_60px_-30px_rgba(45,58,34,0.85)]">
+            <div class="grid gap-8 px-8 py-10 lg:grid-cols-[1.2fr_0.8fr] lg:px-10 lg:py-12">
+                <div class="space-y-6">
+                    <span class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-military-gold shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
+                        HỆ THỐNG QUẢN LÝ THÔNG TIN QUÂN SỰ
+                    </span>
+                    <div class="space-y-3">
+                        <h1 class="max-w-3xl text-4xl font-black tracking-tight md:text-5xl">Chào mừng, @displayName</h1>
+                        <p class="text-base text-slate-200 md:text-lg">Đơn vị: Bộ Tư lệnh Tăng Thiết Giáp</p>
+                        <p class="max-w-2xl text-sm leading-7 text-slate-300 md:text-base">Bảng điều phối tập trung cho kho bãi, văn bản nghiệp vụ và thông tin sản phẩm chiến lược trong toàn mạng lưới hậu cần - quân nhu.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="/customer/info" class="inline-flex items-center justify-center rounded-2xl border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 active:scale-[0.98]">Xem hồ sơ đơn vị</a>
+                        <a href="/catalog" class="inline-flex items-center justify-center rounded-2xl bg-military-red px-5 py-3 text-sm font-semibold text-white shadow-[0_20px_40px_-25px_rgba(185,28,28,0.9)] transition hover:-translate-y-[1px] active:scale-[0.98]">Quản lý kho bãi</a>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 rounded-[24px] border border-white/10 bg-white/10 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
+                    <div class="rounded-2xl border border-white/10 bg-slate-950/20 p-4">
+                        <div class="text-sm text-slate-300">Trạng thái sẵn sàng</div>
+                        <div class="mt-2 flex items-end justify-between gap-4">
+                            <div>
+                                <div class="text-3xl font-black text-military-gold">94.7%</div>
+                                <div class="text-sm text-slate-300">Kho chiến dịch đạt ngưỡng an toàn</div>
+                            </div>
+                            <span class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">+12 lô hàng</span>
+                        </div>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div class="text-xs uppercase tracking-[0.2em] text-slate-300">Điều phối hôm nay</div>
+                            <div class="mt-2 text-2xl font-bold">27 nhiệm vụ</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div class="text-xs uppercase tracking-[0.2em] text-slate-300">Văn bản khẩn</div>
+                            <div class="mt-2 text-2xl font-bold">03 chỉ thị</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <a href="/catalog" class="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] transition hover:-translate-y-[2px] hover:shadow-[0_26px_55px_-30px_rgba(15,23,42,0.35)] active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[30px] text-military-red">add_circle</span>
+                <h2 class="mt-5 text-lg font-bold tracking-tight text-slate-900">Đăng sản phẩm</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Bổ sung năng lực vật tư, khí tài và cập nhật mức sẵn sàng chiến đấu.</p>
+            </a>
+            <a href="/news" class="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] transition hover:-translate-y-[2px] hover:shadow-[0_26px_55px_-30px_rgba(15,23,42,0.35)] active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[30px] text-military-red">edit_note</span>
+                <h2 class="mt-5 text-lg font-bold tracking-tight text-slate-900">Đăng tin tức</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Phát hành bản tin điều lệnh, điều động lực lượng và thông báo huấn luyện.</p>
+            </a>
+            <a href="/news" class="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] transition hover:-translate-y-[2px] hover:shadow-[0_26px_55px_-30px_rgba(15,23,42,0.35)] active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[30px] text-military-red">description</span>
+                <h2 class="mt-5 text-lg font-bold tracking-tight text-slate-900">Xem văn bản</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Truy cập kho tài liệu nghiệp vụ, chỉ thị và công văn mới ban hành.</p>
+            </a>
+            <a href="/catalog" class="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] transition hover:-translate-y-[2px] hover:shadow-[0_26px_55px_-30px_rgba(15,23,42,0.35)] active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[30px] text-military-red">category</span>
+                <h2 class="mt-5 text-lg font-bold tracking-tight text-slate-900">Xem danh mục</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Dò theo phân hệ quân nhu, phương tiện thiết giáp và vật tư bảo đảm.</p>
+            </a>
+        </section>
+
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]">
+            <div class="space-y-6">
+                <article class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_45px_-30px_rgba(15,23,42,0.3)]">
+                    <div class="mb-5 flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Tin tức &amp; Thông báo mới</h2>
+                            <p class="mt-1 text-sm text-slate-500">Cập nhật điều phối và nhiệm vụ mới nhất từ tuyến chỉ huy.</p>
+                        </div>
+                        <a href="/news" class="text-sm font-semibold text-military-red">Xem tất cả</a>
+                    </div>
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <article class="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
+                            <div class="h-48 bg-[linear-gradient(135deg,#334155_0%,#2d3a22_100%)]"></div>
+                            <div class="space-y-3 p-5">
+                                <span class="inline-flex rounded-full bg-military-red/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-military-red">Điều động</span>
+                                <h3 class="text-lg font-bold tracking-tight text-slate-900">Kích hoạt chuỗi bảo đảm vật tư cho đợt huấn luyện hiệp đồng binh chủng quý II.</h3>
+                                <p class="text-sm leading-6 text-slate-500">Các kho trung chuyển phía Bắc hoàn tất lệnh điều phối trước 18:00, ưu tiên tuyến cơ giới số 4.</p>
+                                <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">24.03.2026</div>
+                            </div>
+                        </article>
+                        <article class="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
+                            <div class="h-48 bg-[linear-gradient(135deg,#1e293b_0%,#7f1d1d_100%)]"></div>
+                            <div class="space-y-3 p-5">
+                                <span class="inline-flex rounded-full bg-amber-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">Thông báo</span>
+                                <h3 class="text-lg font-bold tracking-tight text-slate-900">Lịch kiểm kê khí tài niêm cất tại trung tâm hậu cần số 7 được cập nhật.</h3>
+                                <p class="text-sm leading-6 text-slate-500">Các đơn vị bàn giao hồ sơ số hóa trước 16:30 để đồng bộ vào kho dữ liệu dùng chung.</p>
+                                <div class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">23.03.2026</div>
+                            </div>
+                        </article>
+                    </div>
+                </article>
+
+                <article class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_45px_-30px_rgba(15,23,42,0.3)]">
+                    <div class="mb-5">
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Văn bản mới ban hành</h2>
+                        <p class="mt-1 text-sm text-slate-500">Hệ thống lưu chuyển công văn và hướng dẫn tác nghiệp vừa được cập nhật.</p>
+                    </div>
+                    <div class="overflow-hidden rounded-[24px] border border-slate-200">
+                        <table class="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                <tr>
+                                    <th class="px-4 py-3">Số hiệu</th>
+                                    <th class="px-4 py-3">Nội dung</th>
+                                    <th class="px-4 py-3">Ngày</th>
+                                    <th class="px-4 py-3 text-right">Tải về</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 bg-white text-slate-700">
+                                <tr>
+                                    <td class="px-4 py-4 font-semibold">TTG-14/2026</td>
+                                    <td class="px-4 py-4">Quy định tiêu chuẩn tiếp nhận, niêm cất và cấp phát vật tư tăng thiết giáp.</td>
+                                    <td class="px-4 py-4">22.03.2026</td>
+                                    <td class="px-4 py-4 text-right"><span class="material-symbols-outlined align-middle text-military-red">download</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-4 font-semibold">QH-07/2026</td>
+                                    <td class="px-4 py-4">Hướng dẫn kiểm tra nhanh số lượng dự trữ cho các phân đội cơ động.</td>
+                                    <td class="px-4 py-4">21.03.2026</td>
+                                    <td class="px-4 py-4 text-right"><span class="material-symbols-outlined align-middle text-military-red">download</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-4 font-semibold">HC-31/2026</td>
+                                    <td class="px-4 py-4">Danh mục vật tư cần ưu tiên bảo quản trong mùa mưa khu vực Đông Bắc.</td>
+                                    <td class="px-4 py-4">20.03.2026</td>
+                                    <td class="px-4 py-4 text-right"><span class="material-symbols-outlined align-middle text-military-red">download</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+
+            <div class="space-y-6">
+                <article class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_45px_-30px_rgba(15,23,42,0.3)]">
+                    <div class="mb-5">
+                        <h2 class="text-xl font-bold tracking-tight text-slate-900">Sản phẩm tiêu biểu</h2>
+                        <p class="mt-1 text-sm text-slate-500">Danh mục nổi bật đang được các đơn vị tra cứu nhiều nhất.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="h-[60px] w-[60px] rounded-2xl bg-[linear-gradient(135deg,#2d3a22_0%,#475569_100%)]"></div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="truncate text-sm font-semibold text-slate-900">Bộ lọc gió động cơ T54 cải tiến</h3>
+                                <span class="mt-1 inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700">Sẵn sàng cấp phát</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="h-[60px] w-[60px] rounded-2xl bg-[linear-gradient(135deg,#7f1d1d_0%,#334155_100%)]"></div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="truncate text-sm font-semibold text-slate-900">Bộ cơ số y tế xe chỉ huy trung đội</h3>
+                                <span class="mt-1 inline-flex rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700">Đang rà soát</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="h-[60px] w-[60px] rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#2d3a22_100%)]"></div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="truncate text-sm font-semibold text-slate-900">Thiết bị chuẩn đoán điện hệ thống thủy lực</h3>
+                                <span class="mt-1 inline-flex rounded-full bg-sky-500/10 px-2.5 py-1 text-xs font-semibold text-sky-700">Đề nghị bổ sung</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_45px_-30px_rgba(15,23,42,0.3)]">
+                    <div class="mb-5">
+                        <h2 class="text-xl font-bold tracking-tight text-slate-900">Hoạt động diễn đàn</h2>
+                        <p class="mt-1 text-sm text-slate-500">Trao đổi nghiệp vụ mới nhất giữa các đầu mối quân nhu.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-sm font-semibold text-slate-900">Kinh nghiệm kiểm kê nhanh vật tư theo biên chế đại đội xe tăng</div>
+                            <div class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">Thiếu tá An Nghiêm • 14 phản hồi</div>
+                        </div>
+                        <div class="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-sm font-semibold text-slate-900">Đề xuất chuẩn hóa mã danh mục phụ tùng niêm cất cấp chiến thuật</div>
+                            <div class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">Thượng úy Trần Hải • 09 phản hồi</div>
+                        </div>
+                        <div class="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-sm font-semibold text-slate-900">Mẫu biểu số hóa cho bàn giao quân trang giữa các trung tâm hậu cần</div>
+                            <div class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">Đại úy Khánh Toàn • 17 phản hồi</div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageBottom })
+
+        <footer class="rounded-[24px] border border-slate-200 bg-white px-6 py-5 text-sm text-slate-500 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)]">
+            © 2024 Bộ Tư lệnh Tăng Thiết Giáp - Binh chủng Tăng Thiết Giáp
+        </footer>
     </div>
 </div>

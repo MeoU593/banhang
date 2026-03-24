@@ -1,26 +1,104 @@
-﻿<header class="header">
-    <a class="skip" href="#main">@T("Header.SkipNavigation.Text")</a>
+﻿@{
+    var currentPath = Context.Request.Path.Value ?? "/";
+    var displayName = Context.User.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(Context.User.Identity?.Name)
+        ? Context.User.Identity!.Name!
+        : "Sĩ quan trực ban";
+    var avatarInitial = displayName.Substring(0, 1).ToUpperInvariant();
+
+    string NavClasses(string path)
+    {
+        var isActive = currentPath.Equals(path, StringComparison.OrdinalIgnoreCase)
+            || (path != "/" && currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase));
+
+        return isActive
+            ? "sidebar-active flex items-center gap-3 rounded-r-xl py-3 pl-5 pr-4 text-sm font-semibold text-white transition"
+            : "flex items-center gap-3 rounded-r-xl border-l-4 border-transparent py-3 pl-5 pr-4 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]";
+    }
+}
+
+<header>
+    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900" href="#main">@T("Header.SkipNavigation.Text")</a>
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderBefore })
-    <div class="header-upper">
-        <div class="header-selectors-wrapper">
-            @await Component.InvokeAsync(typeof(TaxTypeSelectorViewComponent))
-            @await Component.InvokeAsync(typeof(CurrencySelectorViewComponent))
-            @await Component.InvokeAsync(typeof(LanguageSelectorViewComponent))
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderSelectors })
+
+    <aside class="fixed left-0 top-0 z-50 flex h-screen w-72 flex-col overflow-hidden bg-sidebar-bg text-white shadow-[18px_0_45px_-28px_rgba(15,23,42,0.85)]">
+        <div class="border-b border-slate-800 px-6 py-6">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
+                    <span class="material-symbols-outlined text-[28px] text-military-gold">shield</span>
+                </div>
+                <div>
+                    <div class="text-lg font-extrabold tracking-tight text-white">Hậu cần - Quân nhu</div>
+                    <p class="mt-1 text-sm text-slate-400">Cổng thông tin toàn quân</p>
+                </div>
+            </div>
         </div>
-        <div class="header-links-wrapper">
-            @await Component.InvokeAsync(typeof(HeaderLinksViewComponent))
-            @await Component.InvokeAsync(typeof(FlyoutShoppingCartViewComponent))
+
+        <nav class="flex-1 px-0 py-6" aria-label="Điều hướng quân nhu">
+            <div class="space-y-1 pr-4">
+                <a href="/" class="@NavClasses("/")">
+                    <span class="material-symbols-outlined text-[20px]">home</span>
+                    <span>Trang chủ</span>
+                </a>
+                <a href="/catalog" class="@NavClasses("/catalog")">
+                    <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                    <span>Sản phẩm / Năng lực</span>
+                </a>
+                <a href="/news" class="@NavClasses("/news")">
+                    <span class="material-symbols-outlined text-[20px]">article</span>
+                    <span>Tin tức - Văn bản</span>
+                </a>
+                <a href="/boards" class="@NavClasses("/boards")">
+                    <span class="material-symbols-outlined text-[20px]">forum</span>
+                    <span>Diễn đàn</span>
+                </a>
+                <a href="/" class="@NavClasses("/units")">
+                    <span class="material-symbols-outlined text-[20px]">corporate_fare</span>
+                    <span>Đơn vị</span>
+                </a>
+                <a href="/customer/info" class="@NavClasses("/customer/info")">
+                    <span class="material-symbols-outlined text-[20px]">account_circle</span>
+                    <span>Hồ sơ cá nhân</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="border-t border-slate-800 px-4 py-5">
+            <a href="/settings" class="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span>Cài đặt hệ thống</span>
+            </a>
+            <a href="/logout" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/10 hover:text-rose-300 active:scale-[0.99]">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="ml-72 sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
+        <div class="flex h-16 items-center justify-between gap-4 px-6 lg:px-8">
+            <form asp-route="@NopRouteNames.General.SEARCH" method="get" class="w-full max-w-md">
+                <label class="relative block">
+                    <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">search</span>
+                    <input type="search" name="q" class="h-11 w-full rounded-2xl border border-slate-200 bg-slate-100 pl-12 pr-4 text-sm text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:shadow-[0_18px_35px_-24px_rgba(15,23,42,0.35)]" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
+                </label>
+            </form>
+
+            <div class="flex items-center gap-4">
+                <button type="button" class="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-[0_14px_32px_-24px_rgba(15,23,42,0.5)] transition hover:-translate-y-[1px] hover:text-slate-900 active:scale-[0.98]" aria-label="Thông báo">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span>
+                    <span class="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-military-red"></span>
+                </button>
+
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-[0_14px_32px_-24px_rgba(15,23,42,0.5)]">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-military-green text-sm font-bold text-military-gold">@avatarInitial</div>
+                    <div class="hidden text-right sm:block">
+                        <div class="text-sm font-semibold text-slate-900">@displayName</div>
+                        <div class="text-xs text-slate-500">Sĩ quan điều phối hậu cần</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderMiddle })
-    <div class="header-lower">
-        <div class="header-logo">
-            @await Component.InvokeAsync(typeof(LogoViewComponent))
-        </div>
-        <div role="search" class="search-box store-search-box">
-            @await Component.InvokeAsync(typeof(SearchBoxViewComponent))
-        </div>
-    </div>
+
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderAfter })
 </header>

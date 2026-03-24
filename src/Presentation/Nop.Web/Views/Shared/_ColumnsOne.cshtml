@@ -1,11 +1,23 @@
 ﻿@{
     Layout = "_Root";
+    var isAuthStandalone = ViewData["AuthStandalone"] as bool? ?? false;
 }
 
 @await RenderSectionAsync("Breadcrumb", false)
 
-<section class="center-1">
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
-    @RenderBody()
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })
-</section>
+@if (isAuthStandalone)
+{
+    <section class="center-1 min-h-[100dvh] bg-slate-100">
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
+        @RenderBody()
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })
+    </section>
+}
+else
+{
+    <section class="center-1 ml-72 min-h-[calc(100dvh-4rem)] bg-slate-50 px-6 py-8 lg:px-8">
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
+        @RenderBody()
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })
+    </section>
+}
