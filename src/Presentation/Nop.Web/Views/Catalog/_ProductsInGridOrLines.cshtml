@@ -1,43 +1,197 @@
-﻿@model CatalogProductsModel
+@model CatalogProductsModel
+
+<style>
+    .catalog-products-refined .catalog-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
+    .catalog-products-refined .product-grid,
+    .catalog-products-refined .product-list {
+        margin: 0;
+    }
+
+    .catalog-products-refined .item-grid.catalog-grid {
+        width: 100%;
+    }
+
+    .catalog-products-refined .item-box {
+        float: none;
+        width: 100%;
+        margin: 0;
+    }
+
+    .catalog-products-refined .product-list .item-box {
+        margin: 0;
+    }
+
+    .catalog-products-refined .product-list .item-box .picture {
+        float: none;
+        width: 100%;
+        margin: 0;
+    }
+
+    .catalog-products-refined .product-list .item-box .picture + .details {
+        margin: 0;
+    }
+
+    .catalog-products-refined .product-list .item-box .product-item::after {
+        display: none;
+    }
+
+    .catalog-products-refined .product-list .item-box .product-title {
+        padding: 0;
+        font-size: inherit;
+    }
+
+    .catalog-products-refined .product-list .item-box .description {
+        margin: 0;
+        line-height: inherit;
+    }
+
+    .catalog-products-refined .product-list .item-box .buttons {
+        margin-top: auto;
+    }
+
+    .catalog-products-refined .catalog-pagination-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .catalog-products-refined .catalog-pagination-summary {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .catalog-products-refined .pager {
+        margin: 0;
+    }
+
+    .catalog-products-refined .pager ul {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .catalog-products-refined .pager li {
+        margin: 0;
+    }
+
+    .catalog-products-refined .pager a,
+    .catalog-products-refined .pager span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 10px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        background: transparent;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .catalog-products-refined .pager a:hover {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+    .catalog-products-refined .pager .current-page span {
+        border-color: #1152d4;
+        background: #1152d4;
+        color: #ffffff;
+    }
+
+    .catalog-products-refined .pager .individual-page a,
+    .catalog-products-refined .pager .next-page a,
+    .catalog-products-refined .pager .previous-page a,
+    .catalog-products-refined .pager .first-page a,
+    .catalog-products-refined .pager .last-page a {
+        border-color: #e2e8f0;
+        background: #ffffff;
+    }
+
+    @@media (min-width: 768px) {
+        .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (min-width: 1024px) {
+        .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (min-width: 1280px) {
+        .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+</style>
 
 @if (!string.IsNullOrEmpty(Model.WarningMessage))
 {
-    <div class="warning">
+    <div class="warning mb-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
         @Model.WarningMessage
     </div>
 }
 
 @if (Model.Products.Count > 0)
 {
-    <div class="@(Model.ViewMode == "list" ? "product-list" : "product-grid")">
-        <div class="item-grid">
-            @foreach (var product in Model.Products)
-            {
-                <div class="item-box">
-                    @await Html.PartialAsync("_ProductBox", product)
+    <div class="catalog-products-refined space-y-6">
+        <div class="@(Model.ViewMode == "list" ? "product-list" : "product-grid")">
+            <div class="item-grid catalog-grid @(Model.ViewMode == "list" ? "grid-cols-1" : string.Empty)">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="item-box h-full">
+                        @await Html.PartialAsync("_ProductBox", product)
+                    </div>
+                }
+            </div>
+        </div>
+
+        @{
+            var pager = Html.Pager(Model)
+                .QueryParam("pagenumber")
+                .BooleanParameterName("advs")
+                .BooleanParameterName("isc")
+                .BooleanParameterName("sid")
+                .RenderEmptyParameters(true);
+        }
+
+        @if (!await pager.IsEmpty())
+        {
+            <div class="catalog-pagination-row">
+                <p class="catalog-pagination-summary">Hiển thị @Model.FirstItem-@Model.LastItem trong số @Model.TotalItems sản phẩm trong danh mục này</p>
+                <div class="pager">
+                    @pager
                 </div>
-            }
-        </div>
+            </div>
+        }
     </div>
-
-    var pager = Html.Pager(Model)
-        .QueryParam("pagenumber")
-        // for search page
-        .BooleanParameterName("advs")
-        .BooleanParameterName("isc")
-        .BooleanParameterName("sid")
-        .RenderEmptyParameters(true);
-
-    @if (!await pager.IsEmpty())
-    {
-        <div class="pager">
-            @pager
-        </div>
-    }
 }
 else if (!string.IsNullOrEmpty(Model.NoResultMessage))
 {
-    <div class="no-result">
-        @Model.NoResultMessage
+    <div class="no-result border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
+        <div class="text-lg font-bold tracking-tight text-slate-900">Không tìm thấy sản phẩm phù hợp</div>
+        <div class="mt-2 text-sm leading-7 text-slate-500">
+            @Model.NoResultMessage
+        </div>
     </div>
 }

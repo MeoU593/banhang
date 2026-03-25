@@ -1,33 +1,63 @@
 ﻿@model HomepageNewsItemsModel
 
+<link href="~/Plugins/Misc.News/Content/styles.css" rel="stylesheet">
+
 @if (Model.NewsItems.Any())
 {
-    <link href="~/Plugins/Misc.News/Content/styles.css" rel="stylesheet">
-    <section class="news-list-homepage">
-        <h2 class="title">
-            @T("Plugins.Misc.News.Title")
-        </h2>
-        <div class="news-items">
-            @foreach (var item in Model.NewsItems)
+    var previewNews = Model.NewsItems.Take(2).ToList();
+    var hiddenNewsCount = Model.NewsItems.Count - previewNews.Count;
+
+    <div class="space-y-4">
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach (var item in previewNews)
             {
-                <article class="news-item">
-                    <header class="news-head">
-                        <a class="news-title" href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))">
-                            <h3>@item.Title</h3>
-                        </a>
-                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="news-date">-@item.CreatedOn.ToString("D")</time>
-                    </header>
-                    <section class="news-body">
-                        @Html.Raw(item.Short)
-                    </section>
-                    <footer class="buttons">
-                        <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))" class="read-more">@T("Plugins.Misc.News.MoreInfo")</a>
-                    </footer>
+                var newsUrl = await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName });
+
+                <article class="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_20px_45px_-30px_rgba(15,23,42,0.22)] transition hover:-translate-y-[2px] hover:shadow-[0_28px_60px_-34px_rgba(45,58,34,0.22)]">
+                    <div class="flex h-full flex-col p-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="inline-flex rounded-full bg-military-green px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_14px_30px_-22px_rgba(45,58,34,0.9)]">Tin cập nhật</span>
+                            <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">@item.CreatedOn.ToString("dd/MM/yyyy")</time>
+                        </div>
+                        <h3 class="mt-4 line-clamp-2 text-lg font-bold tracking-tight text-slate-900">
+                            <a class="transition hover:text-military-red" href="@newsUrl">@item.Title</a>
+                        </h3>
+                        <div class="news-body mt-3 line-clamp-4 text-sm leading-6 text-slate-600">
+                            @Html.Raw(item.Short)
+                        </div>
+                        <div class="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                            <a href="@newsUrl" class="inline-flex items-center text-sm font-semibold text-military-green transition hover:text-military-red">
+                                @T("Plugins.Misc.News.MoreInfo")
+                            </a>
+                            <span class="text-xs text-slate-400">Nguồn dữ liệu plugin</span>
+                        </div>
+                    </div>
                 </article>
             }
         </div>
-        <div class="view-all">
-            <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)">@T("Plugins.Misc.News.ViewAll")</a>
+
+        <div class="flex flex-col gap-3 rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+            <span>
+                @if (hiddenNewsCount > 0)
+                {
+                    <text>Còn @hiddenNewsCount bản tin khác trong kho lưu trữ.</text>
+                }
+                else
+                {
+                    <text>Đây là toàn bộ bản tin hiện có trên khu vực trang chủ.</text>
+                }
+            </span>
+            <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green active:scale-[0.98]">
+                @T("Plugins.Misc.News.ViewAll")
+            </a>
         </div>
-    </section>
+    </div>
+}
+else
+{
+    <div class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Tin tức trang chủ</p>
+        <h3 class="mt-2 text-lg font-bold tracking-tight text-slate-900">Chưa có bản tin nào để hiển thị</h3>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Khu vực này vẫn lấy dữ liệu trực tiếp từ plugin tin tức. Khi có bản ghi được xuất bản, teaser tin sẽ xuất hiện tại đây mà không cần thêm nội dung mẫu.</p>
+    </div>
 }

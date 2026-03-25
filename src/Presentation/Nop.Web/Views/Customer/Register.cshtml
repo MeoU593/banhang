@@ -59,7 +59,7 @@
                             <label asp-for="FirstName" asp-postfix=":"></label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">person</span>
-                                <input asp-for="FirstName" class="pl-12" />
+                                <input asp-for="FirstName" style="padding-left: 2.75rem !important" />
                             </div>
                             @if (Model.FirstNameRequired)
                             {
@@ -74,7 +74,7 @@
                             <label asp-for="LastName" asp-postfix=":"></label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">badge</span>
-                                <input asp-for="LastName" class="pl-12" />
+                                <input asp-for="LastName" style="padding-left: 2.75rem !important" />
                             </div>
                             @if (Model.LastNameRequired)
                             {
@@ -107,7 +107,7 @@
                         <label asp-for="Email" asp-postfix=":"></label>
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">mail</span>
-                            <input asp-for="Email" class="pl-12" />
+                            <input asp-for="Email" style="padding-left: 2.75rem !important" />
                         </div>
                         <nop-required />
                         <span asp-validation-for="Email"></span>
@@ -118,7 +118,7 @@
                             <label asp-for="ConfirmEmail" asp-postfix=":"></label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">alternate_email</span>
-                                <input asp-for="ConfirmEmail" class="pl-12" />
+                                <input asp-for="ConfirmEmail" style="padding-left: 2.75rem !important" />
                             </div>
                             <nop-required />
                             <span asp-validation-for="ConfirmEmail"></span>
@@ -130,7 +130,7 @@
                             <label asp-for="Username" asp-postfix=":"></label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">badge</span>
-                                <input asp-for="Username" class="pl-12" />
+                                <input asp-for="Username" style="padding-left: 2.75rem !important" />
                             </div>
                             <nop-required />
                             <span asp-validation-for="Username"></span>
@@ -156,7 +156,7 @@
                                 <label asp-for="Company" asp-postfix=":"></label>
                                 <div class="relative">
                                     <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">account_balance</span>
-                                    <input asp-for="Company" class="pl-12" />
+                                    <input asp-for="Company" style="padding-left: 2.75rem !important" />
                                 </div>
                                 @if (Model.CompanyRequired)
                                 {
@@ -298,7 +298,7 @@
                                 <label asp-for="Phone" asp-postfix=":"></label>
                                 <div class="relative">
                                     <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">call</span>
-                                    <input asp-for="Phone" class="pl-12" />
+                                    <input asp-for="Phone" style="padding-left: 2.75rem !important" />
                                 </div>
                                 @if (Model.PhoneRequired)
                                 {
@@ -381,7 +381,7 @@
                         <label asp-for="Password" asp-postfix=":"></label>
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">lock</span>
-                            <input asp-for="Password" class="pl-12" />
+                            <input asp-for="Password" style="padding-left: 2.75rem !important" />
                         </div>
                         <nop-required />
                         <span asp-validation-for="Password"></span>
@@ -390,7 +390,7 @@
                         <label asp-for="ConfirmPassword" asp-postfix=":"></label>
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">lock_reset</span>
-                            <input asp-for="ConfirmPassword" class="pl-12" />
+                            <input asp-for="ConfirmPassword" style="padding-left: 2.75rem !important" />
                         </div>
                         <nop-required />
                         <span asp-validation-for="ConfirmPassword"></span>

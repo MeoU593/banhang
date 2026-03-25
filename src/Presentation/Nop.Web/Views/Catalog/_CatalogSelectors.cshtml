@@ -1,4 +1,4 @@
-﻿@model CatalogProductsModel
+@model CatalogProductsModel
 
 @if (Model.Products.Count <= 0 &&
      !Model.PriceRangeFilter.Enabled &&
@@ -8,20 +8,122 @@
     return;
 }
 
-<div class="product-selectors">
-    @*view mode*@
-    @if (Model.AllowProductViewModeChanging)
-    {
-        <div class="product-viewmode">
-            <span>@T("Catalog.ViewMode")</span>
-            @if (Model.AvailableViewModes.Count > 1)
-            {
-                var gridMode = Model.AvailableViewModes[0];
-                var listMode = Model.AvailableViewModes[1];
+<style>
+    .product-selectors-refined {
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        padding: 16px;
+        box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.22);
+    }
 
-                <a class="viewmode-icon grid @if (gridMode.Selected){<text>selected</text>}" data-viewmode="@gridMode.Value" title="@gridMode.Text" tabindex="0" role="button" href="#">@gridMode.Text</a>
-                <a class="viewmode-icon list @if (listMode.Selected){<text>selected</text>}" data-viewmode="@listMode.Value" title="@listMode.Text" tabindex="0" role="button" href="#">@listMode.Text</a>
-            }
+    .product-selectors-refined .selector-label {
+        margin-bottom: 6px;
+        display: block;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+    }
+
+    .product-selectors-refined .selector-field,
+    .product-selectors-refined .selector-static,
+    .product-selectors-refined .selector-actions {
+        min-height: 100%;
+    }
+
+    .product-selectors-refined .selector-panel {
+        display: flex;
+        min-height: 42px;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 0 12px;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .product-selectors-refined .selector-panel.readonly {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .product-selectors-refined .selector-panel.actions {
+        gap: 8px;
+        padding: 4px;
+    }
+
+    .product-selectors-refined .selector-panel.actions .viewmode-icon {
+        display: inline-flex;
+        flex: 1 1 0;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        background: transparent;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .product-selectors-refined .selector-panel.actions .viewmode-icon:hover {
+        background: #ffffff;
+        color: #0f172a;
+    }
+
+    .product-selectors-refined .selector-panel.actions .viewmode-icon.selected {
+        border-color: #1152d4;
+        background: #1152d4;
+        color: #ffffff;
+    }
+
+    .product-selectors-refined select {
+        min-height: 42px;
+    }
+
+    .product-selectors-refined .selector-search {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 0 12px;
+        color: #0f172a;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .product-selectors-refined .selector-search:focus {
+        border-color: #1152d4;
+        background: #ffffff;
+    }
+</style>
+
+<div class="product-selectors product-selectors-refined grid gap-4 md:grid-cols-2 xl:grid-cols-4 xl:items-end" id="category-toolbar">
+    <div class="selector-field">
+        <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
+        <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm..." autocomplete="off" />
+    </div>
+
+    <div class="selector-static">
+        <div class="selector-label">Chức năng</div>
+        <div class="selector-panel readonly">Sản phẩm / Năng lực</div>
+    </div>
+
+    @if (Model.AllowProductViewModeChanging && Model.AvailableViewModes.Count > 1)
+    {
+        var gridMode = Model.AvailableViewModes[0];
+        var listMode = Model.AvailableViewModes[1];
+
+        <div class="product-viewmode selector-actions">
+            <div class="selector-label">Chế độ hiển thị</div>
+            <div class="selector-panel actions">
+                <a class="viewmode-icon @if (gridMode.Selected){<text>selected</text>}" data-viewmode="@gridMode.Value" title="@gridMode.Text" tabindex="0" role="button" href="#">@gridMode.Text</a>
+                <a class="viewmode-icon @if (listMode.Selected){<text>selected</text>}" data-viewmode="@listMode.Value" title="@listMode.Text" tabindex="0" role="button" href="#">@listMode.Text</a>
+            </div>
         </div>
         <script asp-location="Footer">
             $(function() {
@@ -44,12 +146,19 @@
             });
         </script>
     }
+    else
+    {
+        <div class="selector-static">
+            <div class="selector-label">Chế độ hiển thị</div>
+            <div class="selector-panel readonly">Lưới</div>
+        </div>
+    }
 
     @if (Model.AllowProductSorting)
     {
-        <div class="product-sorting">
-            <span>@T("Catalog.OrderBy")</span>
-            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label") })
+        <div class="product-sorting selector-field">
+            <label class="selector-label" for="products-orderby">Sắp xếp</label>
+            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1152d4] focus:bg-white" })
         </div>
         <script asp-location="Footer">
             $(function() {
@@ -65,26 +174,29 @@
             });
         </script>
     }
-
-    @if (Model.AllowCustomersToSelectPageSize)
+    else
     {
-        <div class="product-page-size">
-            <span>@T("Catalog.PageSize")</span>
-            @Html.DropDownList("products-pagesize", Model.PageSizeOptions, new { aria_label = T("Catalog.PageSize.Label") })
-            <span>@T("Catalog.PageSize.PerPage")</span>
+        <div class="selector-static">
+            <div class="selector-label">Sắp xếp</div>
+            <div class="selector-panel readonly">Mặc định</div>
         </div>
-        <script asp-location="Footer">
-            $(function() {
-                var $pageSizeEl = $('#products-pagesize');
-                $pageSizeEl.on('change', function () {
-                    CatalogProducts.getProducts();
-                });
-
-                $(CatalogProducts).on('before', function (e) {
-                    e.payload.urlBuilder
-                        .addParameter('pagesize', $pageSizeEl.val());
-                });
-            });
-        </script>
     }
 </div>
+
+<script asp-location="Footer">
+    $(function() {
+        var $quickSearch = $('#products-quick-search');
+
+        function applyQuickSearch() {
+            var searchTerm = ($quickSearch.val() || '').toString().toLowerCase().trim();
+            $('.products-wrapper .item-box').each(function() {
+                var $card = $(this).find('[data-product-search]').first();
+                var haystack = ($card.data('product-search') || '').toString().toLowerCase();
+                $(this).toggle(searchTerm.length === 0 || haystack.indexOf(searchTerm) > -1);
+            });
+        }
+
+        $quickSearch.on('input', applyQuickSearch);
+        $(CatalogProducts).on('loaded', applyQuickSearch);
+    });
+</script>

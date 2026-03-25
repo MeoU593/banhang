@@ -1,155 +1,147 @@
-﻿@model ProductOverviewModel
+@model ProductOverviewModel
 
 @using Nop.Core
 @using Nop.Core.Domain.Catalog
-@using Nop.Core.Domain.Orders
-@using Nop.Core.Domain.Tax
+@using Nop.Web.Models.Catalog
 
 @inject CatalogSettings catalogSettings
-@inject IWorkContext workContext
 
 @{
-    //prepare "Add to cart" AJAX link
-    var addtocartlink = "";
-    var shoppingCartTypeId = (int)ShoppingCartType.ShoppingCart;
-    var quantity = 1;
-    if (Model.ProductPrice.ForceRedirectionAfterAddingToCart)
-    {
-        addtocartlink = Url.RouteUrl(NopRouteNames.Ajax.ADD_PRODUCT_TO_CART_CATALOG, new { productId = Model.Id, shoppingCartTypeId = shoppingCartTypeId, quantity = quantity, forceredirection = Model.ProductPrice.ForceRedirectionAfterAddingToCart });
-    }
-    else
-    {
-        addtocartlink = Url.RouteUrl(NopRouteNames.Ajax.ADD_PRODUCT_TO_CART_CATALOG, new { productId = Model.Id, shoppingCartTypeId = shoppingCartTypeId, quantity = quantity });
-    }
+    var productUrl = await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName });
+    var picture = Model.PictureModels.FirstOrDefault();
+    var hasPrice = !string.IsNullOrWhiteSpace(Model.ProductPrice.Price);
+    var hasShortDescription = catalogSettings.ShowShortDescriptionOnCatalogPages && !string.IsNullOrWhiteSpace(Model.ShortDescription);
+    var hasSku = !string.IsNullOrWhiteSpace(Model.Sku);
+    var hasBasePrice = !string.IsNullOrWhiteSpace(Model.ProductPrice.BasePricePAngV);
+    var leftBadge = hasSku ? Model.Sku : Model.ProductType.ToString();
+    var rightBadge = Model.ProductPrice.AvailableForPreOrder
+        ? "Đặt trước"
+        : Model.ProductPrice.DisableBuyButton || Model.ProductPrice.CallForPrice || Model.ProductPrice.HidePrices
+            ? "Liên hệ"
+            : hasPrice
+                ? "Có sẵn"
+                : "Cập nhật";
+    var rightBadgeClass = rightBadge == "Đặt trước"
+        ? "bg-amber-500 text-white"
+        : rightBadge == "Liên hệ"
+            ? "bg-slate-700 text-white"
+            : rightBadge == "Có sẵn"
+                ? "bg-[#1152d4] text-white"
+                : "bg-slate-200 text-slate-700";
+    var descriptionText = hasShortDescription ? Model.ShortDescription : Model.FullDescription;
+    var metaRows = new List<(string Label, string Value)>();
 
-    var addtowishlistlink = Url.RouteUrl(NopRouteNames.Ajax.ADD_PRODUCT_TO_CART_CATALOG, new { productId = Model.Id, shoppingCartTypeId = (int)ShoppingCartType.Wishlist, quantity = quantity });
-    var addtocomparelink = Url.RouteUrl(NopRouteNames.Ajax.ADD_PRODUCT_TO_COMPARE, new { productId = Model.Id });
-}
-<article class="product-item group flex h-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] transition hover:-translate-y-[2px] hover:shadow-[0_28px_60px_-30px_rgba(15,23,42,0.35)]" data-productid="@Model.Id">
-    <div class="picture relative h-48 overflow-hidden bg-slate-100">
-        <div class="absolute left-4 top-4 z-10 inline-flex rounded-full bg-military-green px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_14px_30px_-22px_rgba(45,58,34,0.9)]">
-            @(string.IsNullOrWhiteSpace(Model.Sku) ? "Danh mục quân nhu" : Model.Sku)
-        </div>
-        <div class="absolute right-4 top-4 z-10 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] @(Model.ProductPrice.DisableBuyButton ? "bg-amber-500/10 text-amber-700" : "bg-emerald-500/10 text-emerald-700")">
-            @(Model.ProductPrice.DisableBuyButton ? "Rà soát" : "Sẵn sàng")
-        </div>
-        @if (Model.PictureModels.Count > 1)
+    foreach (var group in Model.ProductSpecificationModel.Groups ?? Enumerable.Empty<ProductSpecificationAttributeGroupModel>())
+    {
+        foreach (var attribute in group.Attributes ?? Enumerable.Empty<ProductSpecificationAttributeModel>())
         {
-            <div class="swiper h-full" id="swiper-@Model.Id" dir="@Html.GetUIDirection(!await Html.ShouldUseRtlThemeAsync())">
-                <div class="swiper-wrapper">
-                    @foreach (var picture in Model.PictureModels)
-                    {
-                        <a class="swiper-slide block h-48" href="@(await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }))" title="@picture.Title">
-                            <img class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" alt="@picture.AlternateText" src="@picture.ImageUrl" title="@picture.Title" />
-                        </a>
-                    }
-                </div>
-                <div class="swiper-pagination"></div>
-            </div>
+            var firstValue = attribute.Values?.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value.ValueRaw))?.ValueRaw;
+            if (string.IsNullOrWhiteSpace(attribute.Name) || string.IsNullOrWhiteSpace(firstValue))
+                continue;
 
-            <script asp-location="Footer">
-                new Swiper('#swiper-@(Model.Id)', {
-                    pagination: {
-                        clickable: true,
-                        el: '.swiper-pagination',
-                    },
-                });
-            </script>
-        }
-        else
-        {
-            var picture = Model.PictureModels.FirstOrDefault();
-            <a class="block h-48" href="@(await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }))" title="@picture?.Title">
-                <img class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" alt="@picture?.AlternateText" src="@picture?.ImageUrl" title="@picture?.Title" />
-            </a>
-        }
-    </div>
-    <div class="details flex flex-1 flex-col p-5">
-        <h2 class="product-title text-lg font-bold tracking-tight text-slate-900">
-            <a class="transition hover:text-military-red" href="@(await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }))">@Model.Name</a>
-        </h2>
-        @if (Model.ReviewOverviewModel.AllowCustomerReviews)
-        {
-            var ratingPercent = 0;
-            if (Model.ReviewOverviewModel.TotalReviews != 0)
+            metaRows.Add((attribute.Name, firstValue));
+            if (metaRows.Count == 2)
             {
-                ratingPercent = ((Model.ReviewOverviewModel.RatingSum * 100) / Model.ReviewOverviewModel.TotalReviews) / 5;
+                break;
             }
-            <div class="product-rating-box mt-3" title="@string.Format(T("Reviews.TotalReviews").Text, Model.ReviewOverviewModel.TotalReviews)">
-                <div class="rating h-2 overflow-hidden rounded-full bg-slate-200">
-                    <div class="h-full rounded-full bg-military-gold" style="width: @(ratingPercent)%">
-                    </div>
-                </div>
+        }
+
+        if (metaRows.Count == 2)
+        {
+            break;
+        }
+    }
+
+    if (metaRows.Count < 2 && hasSku)
+    {
+        metaRows.Add(("Mã sản phẩm", Model.Sku));
+    }
+
+    if (metaRows.Count < 2 && hasPrice)
+    {
+        metaRows.Add(("Mức giá", Model.ProductPrice.Price));
+    }
+
+    if (metaRows.Count < 2 && hasBasePrice)
+    {
+        metaRows.Add(("Đơn vị", Model.ProductPrice.BasePricePAngV));
+    }
+
+    if (metaRows.Count < 2)
+    {
+        metaRows.Add(("Loại", Model.ProductType.ToString()));
+    }
+
+    var searchData = string.Join(" ", new[]
+    {
+        Model.Name,
+        leftBadge,
+        descriptionText,
+        string.Join(" ", metaRows.Select(meta => $"{meta.Label} {meta.Value}"))
+    }.Where(value => !string.IsNullOrWhiteSpace(value)));
+}
+
+<article class="product-item group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_28px_-24px_rgba(15,23,42,0.22)] transition duration-300 hover:shadow-[0_18px_36px_-24px_rgba(15,23,42,0.24)]" data-productid="@Model.Id" data-product-search="@searchData">
+    <div class="picture relative h-48 overflow-hidden bg-slate-100">
+        @if (!string.IsNullOrWhiteSpace(leftBadge))
+        {
+            <div class="absolute left-3 top-3 z-10 rounded-sm border border-slate-200 bg-white/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-700">
+                @leftBadge
             </div>
         }
-        <div class="description mt-3 text-xs leading-6 text-slate-500" @(catalogSettings.ShowShortDescriptionOnCatalogPages ? "" : "data-short-description=none")>
-            @Html.Raw(Model.ShortDescription)
-        </div>
-        <div class="add-info mt-5 flex flex-1 flex-col">
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoBefore, additionalData = Model })
-            <div class="space-y-3 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-                <div class="flex items-center gap-3 text-sm text-slate-600">
-                    <span class="material-symbols-outlined text-[18px] text-slate-400">domain</span>
-                    <span>@(string.IsNullOrWhiteSpace(Model.Sku) ? "Kho chiến lược" : $"Mã năng lực: {Model.Sku}")</span>
-                </div>
-                <div class="flex items-center gap-3 text-sm text-slate-600">
-                    <span class="material-symbols-outlined text-[18px] text-slate-400">inventory_2</span>
-                    <span>@(Model.ReviewOverviewModel.TotalReviews > 0 ? $"{Model.ReviewOverviewModel.TotalReviews} lượt đánh giá" : "Sẵn sàng cấp phát")</span>
-                </div>
+        @if (!string.IsNullOrWhiteSpace(rightBadge))
+        {
+            <div class="absolute right-3 top-3 z-10 rounded-sm px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] @rightBadgeClass">
+                @rightBadge
             </div>
+        }
+        <a class="block h-full w-full" href="@productUrl" title="@picture?.Title">
+            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" alt="@picture?.AlternateText" src="@picture?.ImageUrl" title="@picture?.Title" />
+        </a>
+    </div>
 
-            <div class="prices mt-4 flex flex-wrap items-end gap-2">
-                @if (!string.IsNullOrEmpty(Model.ProductPrice.OldPrice))
+    <div class="details flex flex-1 flex-col gap-4 p-5">
+        <div class="space-y-1">
+            <h2 class="product-title text-lg font-bold leading-tight text-slate-900">
+                <a class="transition group-hover:text-[#1152d4]" href="@productUrl">@Model.Name</a>
+            </h2>
+
+            @if (!string.IsNullOrWhiteSpace(descriptionText))
+            {
+                <div class="description line-clamp-2 text-xs font-medium leading-5 text-slate-500">
+                    @Html.Raw(descriptionText)
+                </div>
+            }
+        </div>
+
+        <div class="add-info flex flex-1 flex-col">
+            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoBefore, additionalData = Model })
+
+            <div class="space-y-2 text-sm text-slate-600">
+                @foreach (var meta in metaRows.Take(2))
                 {
-                    <span class="price old-price text-sm text-slate-400 line-through">@Model.ProductPrice.OldPrice</span>
-                }
-                <span class="price actual-price text-xl font-bold text-slate-900">@Model.ProductPrice.Price</span>
-                @if (Model.ProductPrice.DisplayTaxShippingInfo)
-                {
-                    var inclTax = await workContext.GetTaxDisplayTypeAsync() == TaxDisplayType.IncludingTax;
-                    <span class="tax-shipping-info text-xs text-slate-500">
-                        @T(inclTax ? "Products.Price.TaxShipping.InclTax" : "Products.Price.TaxShipping.ExclTax", await NopUrl.RouteTopicUrlAsync("shippinginfo"))
-                    </span>
-                }
-                @if (!string.IsNullOrEmpty(Model.ProductPrice.BasePricePAngV))
-                {
-                    <div class="base-price-pangv text-xs text-slate-500">
-                        @Model.ProductPrice.BasePricePAngV
+                    <div class="flex items-start gap-2">
+                        <span aria-hidden="true" class="mt-1 inline-flex h-2 w-2 flex-none rounded-full bg-slate-300"></span>
+                        <div class="min-w-0">
+                            <span class="text-slate-500">@meta.Label:</span>
+                            <span class="ml-1 font-medium text-slate-900">@Html.Raw(meta.Value)</span>
+                        </div>
                     </div>
                 }
             </div>
+
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoMiddle, additionalData = Model })
-            <div class="buttons mt-5 space-y-3">
-                <a href="@(await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }))" class="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-military-green hover:text-white active:scale-[0.98]">
-                    Xem chi tiết →
+
+            <div class="buttons mt-4 pt-2">
+                <a href="@productUrl" class="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-bold text-slate-900 transition hover:bg-[#1152d4] hover:text-white active:scale-[0.98]">
+                    <span>Xem chi tiết</span>
+                    <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3.33334 8H12.6667" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                        <path d="M8.66669 4L12.6667 8L8.66669 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                    </svg>
                 </a>
-
-                <div class="grid gap-3 sm:grid-cols-@(Model.ProductPrice.DisableBuyButton ? 2 : 3)">
-                @if (!Model.ProductPrice.DisableBuyButton)
-                {
-                    var addToCartText = T("ShoppingCart.AddToCart").Text;
-                    if (Model.ProductPrice.IsRental)
-                    {
-                        addToCartText = T("ShoppingCart.Rent").Text;
-                    }
-                    if (Model.ProductPrice.AvailableForPreOrder)
-                    {
-                        addToCartText = T("ShoppingCart.PreOrder").Text;
-                    }
-                    <button type="button" class="button-2 product-box-add-to-cart-button inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]" onclick="AjaxCart.addproducttocart_catalog('@addtocartlink');return false;">@(addToCartText)</button>
-                }
-                @if (!Model.ProductPrice.DisableAddToCompareListButton)
-                {
-                    <button type="button" class="button-2 add-to-compare-list-button inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]" title="@T("ShoppingCart.AddToCompareList")" onclick="AjaxCart.addproducttocomparelist('@addtocomparelink');return false;">@T("ShoppingCart.AddToCompareList")</button>
-                }
-                @if (!Model.ProductPrice.DisableWishlistButton)
-                {
-                    @await Html.PartialAsync("_MoveToWishlistModal", Model.ProductToWishlist)
-
-                    <button type="button" class="button-2 add-to-wishlist-button inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]" title="@T("ShoppingCart.AddToWishlist")" onclick="AjaxCart.addproducttocart_catalog('@addtowishlistlink');return false;">@T("ShoppingCart.AddToWishlist")</button>
-                }
-                </div>
             </div>
+
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoAfter, additionalData = Model })
         </div>
     </div>

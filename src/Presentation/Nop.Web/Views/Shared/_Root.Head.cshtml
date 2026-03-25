@@ -103,6 +103,17 @@
         }
 
         .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
@@ -143,6 +154,11 @@
         .page-title,
         .header-menu {
             display: none;
+        }
+
+        /* Đảm bảo input với icon không bị theme ghi đè padding */
+        .login-page .relative input[style*="padding-left"] {
+            padding-left: 2.75rem !important;
         }
 
         .message-error ul,
