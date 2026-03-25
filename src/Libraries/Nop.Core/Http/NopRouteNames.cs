@@ -85,6 +85,8 @@ public static partial class NopRouteNames
         /// </summary>
         public const string MANUFACTURERS = "ManufacturerList";
 
+        public const string CATEGORIES = "CategoryList";
+
         /// <summary>
         /// Gets the vendors route name
         /// </summary>

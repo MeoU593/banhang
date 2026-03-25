@@ -210,6 +210,11 @@ public partial class CatalogController : BasePublicController
         return View(model);
     }
 
+    public virtual IActionResult CategoryAll()
+    {
+        return View();
+    }
+
     #endregion
 
     #region Vendors

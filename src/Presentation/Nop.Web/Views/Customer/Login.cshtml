@@ -50,6 +50,78 @@
                         <p class="text-sm leading-6 text-slate-500">Sử dụng tài khoản nghiệp vụ được cấp để truy cập cổng hậu cần - quân nhu.</p>
                     </div>
 
+                    <style>
+                        .login-input-wrap { position: relative; }
+                        .login-input-icon {
+                            position: absolute;
+                            top: 50%;
+                            left: 12px;
+                            transform: translateY(-50%);
+                            z-index: 3;
+                            pointer-events: none;
+                            display: flex;
+                            align-items: center;
+                            color: #94a3b8;
+                        }
+                        .login-input-icon .material-symbols-outlined {
+                            font-size: 20px !important;
+                            font-family: 'Material Symbols Outlined' !important;
+                            line-height: 1;
+                        }
+                        .login-field {
+                            position: relative;
+                            z-index: 1;
+                            display: block !important;
+                            width: 100% !important;
+                            height: 48px !important;
+                            padding: 0 1rem 0 2.5rem !important;
+                            border: 1px solid #e2e8f0 !important;
+                            border-radius: 16px !important;
+                            background: #f8fafc !important;
+                            font-size: 14px !important;
+                            color: #334155 !important;
+                            outline: none !important;
+                            box-shadow: none !important;
+                            transition: border-color 0.15s, background 0.15s !important;
+                            -webkit-appearance: none !important;
+                        }
+                        .login-field:focus {
+                            border-color: #94a3b8 !important;
+                            background: #ffffff !important;
+                        }
+                        /* Chặn Chrome autofill phủ màu lên icon */
+                        .login-field:-webkit-autofill,
+                        .login-field:-webkit-autofill:hover,
+                        .login-field:-webkit-autofill:focus {
+                            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+                            box-shadow: 0 0 0px 1000px #ffffff inset !important;
+                            -webkit-text-fill-color: #334155 !important;
+                            transition: background-color 0s 9999s !important;
+                        }
+                        .login-field-password-wrap { position: relative; }
+                        .login-password-eye {
+                            position: absolute;
+                            top: 50%;
+                            right: 14px;
+                            transform: translateY(-50%);
+                            z-index: 3;
+                            display: flex;
+                            align-items: center;
+                            background: none;
+                            border: none;
+                            padding: 0;
+                            cursor: pointer;
+                            color: #94a3b8;
+                            transition: color 0.15s;
+                        }
+                        .login-password-eye:hover { color: #475569; }
+                        .login-password-eye .material-symbols-outlined {
+                            font-size: 20px !important;
+                            font-family: 'Material Symbols Outlined' !important;
+                        }
+                        .login-field-password { padding-right: 3rem !important; }
+                    </style>
+
                     <form asp-route="@NopRouteNames.General.LOGIN" asp-route-returnurl="@Context.Request.Query["ReturnUrl"]" method="post" autocomplete="off" class="mt-8 space-y-5">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">@T("Account.Login.Unsuccessful")</div>
@@ -58,9 +130,9 @@
                         {
                             <div class="space-y-2">
                                 <label asp-for="Username" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
-                                <div class="relative">
-                                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center"><span class="material-symbols-outlined text-slate-400" style="font-size:20px">person</span></span>
-                                    <input asp-for="Username" class="username h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white" style="padding-left:2.75rem !important; padding-right:1rem !important;" autofocus="autofocus" placeholder="Ví dụ: btl_ttg_admin" />
+                                <div class="login-input-wrap">
+                                    <span class="login-input-icon"><span class="material-symbols-outlined">person</span></span>
+                                    <input asp-for="Username" class="login-field" autofocus="autofocus" placeholder="Ví dụ: btl_ttg_admin" />
                                 </div>
                                 <span asp-validation-for="Username" class="text-sm text-rose-600"></span>
                             </div>
@@ -69,9 +141,9 @@
                         {
                             <div class="space-y-2">
                                 <label asp-for="Email" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
-                                <div class="relative">
-                                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center"><span class="material-symbols-outlined text-slate-400" style="font-size:20px">person</span></span>
-                                    <input asp-for="Email" class="email h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white" style="padding-left:2.75rem !important; padding-right:1rem !important;" autofocus="autofocus" placeholder="Ví dụ: btl_ttg_admin" />
+                                <div class="login-input-wrap">
+                                    <span class="login-input-icon"><span class="material-symbols-outlined">mail</span></span>
+                                    <input asp-for="Email" class="login-field" autofocus="autofocus" placeholder="example@btl-ttg.mil.vn" />
                                 </div>
                                 <span asp-validation-for="Email" class="text-sm text-rose-600"></span>
                             </div>
@@ -79,11 +151,11 @@
 
                         <div class="space-y-2">
                             <label asp-for="Password" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
-                            <div class="relative login-password">
-                                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center"><span class="material-symbols-outlined text-slate-400" style="font-size:20px">lock</span></span>
-                                <input asp-for="Password" class="password h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-700 transition focus:border-slate-300 focus:bg-white" style="padding-left:2.75rem !important; padding-right:3.5rem !important;" placeholder="Nhập mật khẩu" />
-                                <button type="button" class="password-eye absolute inset-y-0 right-4 flex items-center text-slate-400 transition hover:text-slate-700" aria-label="Ẩn hoặc hiện mật khẩu">
-                                    <span class="material-symbols-outlined text-[20px] password-eye-icon">visibility</span>
+                            <div class="login-input-wrap login-field-password-wrap">
+                                <span class="login-input-icon"><span class="material-symbols-outlined">lock</span></span>
+                                <input asp-for="Password" class="login-field login-field-password" placeholder="Nhập mật khẩu" />
+                                <button type="button" class="login-password-eye" aria-label="Ẩn hoặc hiện mật khẩu">
+                                    <span class="material-symbols-outlined password-eye-icon">visibility</span>
                                 </button>
                             </div>
                             <span asp-validation-for="Password" class="text-sm text-rose-600"></span>

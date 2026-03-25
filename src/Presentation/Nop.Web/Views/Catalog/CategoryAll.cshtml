@@ -1,0 +1,329 @@
+@using Nop.Core.Domain.Catalog
+@using Nop.Services.Catalog
+@using Nop.Services.Seo
+@using Nop.Services.Media
+
+@inject ICategoryService categoryService
+@inject IUrlRecordService urlRecordService
+@inject IProductService productService
+@inject IPictureService pictureService
+
+@{
+    Layout = "_ColumnsOne";
+
+    NopHtml.AddTitleParts("Danh mục sản phẩm");
+    NopHtml.AppendPageCssClassParts("html-category-all-page");
+
+    var allCategories = await categoryService.GetAllCategoriesAsync();
+    var topLevelCategories = allCategories.Where(c => c.ParentCategoryId == 0).OrderBy(c => c.DisplayOrder).ToList();
+
+    var categoryUrls = new Dictionary<int, string>();
+    foreach (var cat in topLevelCategories)
+    {
+        var seName = await urlRecordService.GetSeNameAsync(cat);
+        var url = await NopUrl.RouteGenericUrlAsync<Category>(new { SeName = seName });
+        categoryUrls[cat.Id] = url;
+    }
+
+    var subCategoryCounts = new Dictionary<int, int>();
+    foreach (var cat in topLevelCategories)
+    {
+        var subs = allCategories.Where(c => c.ParentCategoryId == cat.Id).Count();
+        subCategoryCounts[cat.Id] = subs;
+    }
+
+    // Lấy ảnh đại diện cho từng category (1 sản phẩm đầu tiên)
+    var categoryImages = new Dictionary<int, string>();
+    foreach (var cat in topLevelCategories)
+    {
+        var products = await productService.SearchProductsAsync(
+            categoryIds: new List<int> { cat.Id },
+            pageSize: 1,
+            visibleIndividuallyOnly: true);
+        var firstProduct = products.FirstOrDefault();
+        if (firstProduct != null)
+        {
+            var pictures = await pictureService.GetPicturesByProductIdAsync(firstProduct.Id, 1);
+            var firstPicture = pictures.FirstOrDefault();
+            if (firstPicture != null)
+            {
+                var (pictureUrl, _) = await pictureService.GetPictureUrlAsync(firstPicture, targetSize: 400);
+                if (!string.IsNullOrWhiteSpace(pictureUrl))
+                    categoryImages[cat.Id] = pictureUrl;
+            }
+        }
+    }
+}
+
+<style>
+    .category-all-page-wrap {
+        padding: 24px;
+        background: #f1f5f9;
+        min-height: calc(100vh - 4rem);
+    }
+
+    .category-all-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .category-all-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 6px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .category-all-breadcrumb a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+
+    .category-all-breadcrumb a:hover {
+        color: #0f172a;
+    }
+
+    .category-all-breadcrumb .sep {
+        color: #cbd5e1;
+    }
+
+    .category-all-title {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    .category-all-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
+    @@media (min-width: 640px) {
+        .category-all-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (min-width: 1024px) {
+        .category-all-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (min-width: 1280px) {
+        .category-all-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .category-card {
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 4px 16px -8px rgba(15, 23, 42, 0.12);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .category-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.22);
+        border-color: #1152d4;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .category-card-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-card-icon-wrap::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.02) 10px,
+            rgba(255, 255, 255, 0.02) 20px
+        );
+    }
+
+    .category-card-icon {
+        font-size: 36px;
+        color: #eab308;
+        font-family: 'Material Symbols Outlined' !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    .category-card-body {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .category-card-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .category-card:hover .category-card-name {
+        color: #1152d4;
+    }
+
+    .category-card-meta {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .category-card-arrow {
+        margin-top: auto;
+        padding-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1152d4;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .category-card:hover .category-card-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .category-card-arrow .material-symbols-outlined {
+        font-size: 16px;
+        font-family: 'Material Symbols Outlined' !important;
+    }
+
+    .category-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .category-card-img {
+        transform: scale(1.05);
+    }
+
+    .category-all-empty {
+        padding: 60px 24px;
+        text-align: center;
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+
+    .category-all-empty p {
+        color: #64748b;
+        font-size: 14px;
+        margin: 8px 0 0;
+    }
+</style>
+
+<div class="page category-all-page category-all-page-wrap">
+    <div class="category-all-header">
+        <div>
+            <nav class="category-all-breadcrumb" aria-label="Breadcrumb">
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)">Trang chủ</a>
+                <span class="sep material-symbols-outlined" style="font-size:14px; font-family:'Material Symbols Outlined'!important;">chevron_right</span>
+                <span>Danh mục sản phẩm</span>
+            </nav>
+            <h1 class="category-all-title">Danh mục sản phẩm &amp; Năng lực</h1>
+        </div>
+        <a href="@Url.RouteUrl(NopRouteNames.General.SEARCH)" style="display:inline-flex;align-items:center;gap:8px;padding:0 20px;height:44px;background:#b91c1c;color:#fff;font-size:13px;font-weight:700;border-radius:8px;text-decoration:none;box-shadow:0 8px 24px -12px rgba(185,28,28,0.6);transition:background 0.2s;">
+            <span class="material-symbols-outlined" style="font-size:18px;font-family:'Material Symbols Outlined'!important;">search</span>
+            Tìm kiếm sản phẩm
+        </a>
+    </div>
+
+    @if (!topLevelCategories.Any())
+    {
+        <div class="category-all-empty">
+            <span class="material-symbols-outlined" style="font-size:48px;color:#94a3b8;font-family:'Material Symbols Outlined'!important;">inventory_2</span>
+            <p>Chưa có danh mục nào được cấu hình.</p>
+        </div>
+    }
+    else
+    {
+        <div class="category-all-grid">
+            @{
+                var icons = new[] { "inventory_2", "agriculture", "restaurant", "kitchen", "warehouse", "local_shipping", "precision_manufacturing", "science", "park", "devices" };
+                var iconIndex = 0;
+            }
+            @foreach (var cat in topLevelCategories)
+            {
+                var catUrl = categoryUrls.GetValueOrDefault(cat.Id, "#");
+                var subCount = subCategoryCounts.GetValueOrDefault(cat.Id, 0);
+                var icon = icons[iconIndex % icons.Length];
+                var imgUrl = categoryImages.GetValueOrDefault(cat.Id, null);
+                iconIndex++;
+
+                <a class="category-card" href="@catUrl">
+                    <div class="category-card-icon-wrap">
+                        @if (!string.IsNullOrWhiteSpace(imgUrl))
+                        {
+                            <img src="@imgUrl" alt="@cat.Name" class="category-card-img" />
+                        }
+                        else
+                        {
+                            <span class="category-card-icon material-symbols-outlined">@icon</span>
+                        }
+                    </div>
+                    <div class="category-card-body">
+                        <h2 class="category-card-name">@cat.Name</h2>
+                        @if (subCount > 0)
+                        {
+                            <div class="category-card-meta">@subCount danh mục con</div>
+                        }
+                        <div class="category-card-arrow">
+                            Xem sản phẩm
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>

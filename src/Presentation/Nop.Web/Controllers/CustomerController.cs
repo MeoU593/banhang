@@ -599,7 +599,7 @@ public partial class CustomerController : BasePublicController
             TempData[$"{NopCookieDefaults.Prefix}{NopCookieDefaults.IgnoreEuCookieLawWarning}"] = true;
         }
 
-        return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
+        return RedirectToRoute(NopRouteNames.General.LOGIN);
     }
 
     #endregion

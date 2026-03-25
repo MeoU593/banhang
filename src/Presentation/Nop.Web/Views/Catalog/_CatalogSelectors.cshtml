@@ -1,5 +1,14 @@
 @model CatalogProductsModel
 
+@using System.Globalization
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Nop.Services.Catalog
+@using Nop.Services.Seo
+
+@inject ICategoryService categoryService
+@inject IManufacturerService manufacturerService
+@inject IUrlRecordService urlRecordService
+
 @if (Model.Products.Count <= 0 &&
      !Model.PriceRangeFilter.Enabled &&
      !Model.SpecificationFilter.Enabled &&
@@ -8,12 +17,53 @@
     return;
 }
 
+@{
+    var allCategories = await categoryService.GetAllCategoriesAsync();
+    var categorySelectItems = allCategories
+        .Select(cat => new SelectListItem { Text = cat.Name, Value = cat.Id.ToString() })
+        .ToList();
+
+    var allManufacturers = await manufacturerService.GetAllManufacturersAsync();
+    var manufacturerSelectItems = allManufacturers
+        .Select(m => new SelectListItem { Text = m.Name, Value = m.Id.ToString() })
+        .ToList();
+
+    var categorySeoUrls = new Dictionary<int, string>();
+    foreach (var cat in allCategories)
+    {
+        var seName = await urlRecordService.GetSeNameAsync(cat);
+        if (!string.IsNullOrWhiteSpace(seName))
+        {
+            var catUrl = await NopUrl.RouteGenericUrlAsync<Nop.Core.Domain.Catalog.Category>(new { SeName = seName });
+            categorySeoUrls[cat.Id] = catUrl;
+        }
+    }
+
+    var manufacturerSeoUrls = new Dictionary<int, string>();
+    foreach (var manufacturer in allManufacturers)
+    {
+        var seName = await urlRecordService.GetSeNameAsync(manufacturer);
+        if (!string.IsNullOrWhiteSpace(seName))
+        {
+            var manufacturerUrl = await NopUrl.RouteGenericUrlAsync<Nop.Core.Domain.Catalog.Manufacturer>(new { SeName = seName });
+            manufacturerSeoUrls[manufacturer.Id] = manufacturerUrl;
+        }
+    }
+
+}
+
 <style>
     .product-selectors-refined {
         border: 1px solid #e2e8f0;
+        border-radius: 12px;
         background: #ffffff;
         padding: 16px;
         box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.22);
+    }
+
+    .product-selectors-refined .selector-field,
+    .product-selectors-refined .selector-static {
+        min-height: 100%;
     }
 
     .product-selectors-refined .selector-label {
@@ -24,141 +74,79 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.14em;
+        padding: 0 4px;
     }
 
-    .product-selectors-refined .selector-field,
-    .product-selectors-refined .selector-static,
-    .product-selectors-refined .selector-actions {
-        min-height: 100%;
-    }
-
-    .product-selectors-refined .selector-panel {
-        display: flex;
-        min-height: 42px;
-        align-items: center;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        padding: 0 12px;
-        color: #334155;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .product-selectors-refined .selector-panel.readonly {
-        color: #0f172a;
-        font-weight: 600;
-    }
-
-    .product-selectors-refined .selector-panel.actions {
-        gap: 8px;
-        padding: 4px;
-    }
-
-    .product-selectors-refined .selector-panel.actions .viewmode-icon {
-        display: inline-flex;
-        flex: 1 1 0;
-        min-height: 34px;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid transparent;
-        background: transparent;
-        color: #475569;
-        font-size: 13px;
-        font-weight: 700;
-        text-decoration: none;
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .product-selectors-refined .selector-panel.actions .viewmode-icon:hover {
-        background: #ffffff;
-        color: #0f172a;
-    }
-
-    .product-selectors-refined .selector-panel.actions .viewmode-icon.selected {
-        border-color: #1152d4;
-        background: #1152d4;
-        color: #ffffff;
-    }
-
+    .product-selectors-refined .selector-panel,
+    .product-selectors-refined .selector-search,
     .product-selectors-refined select {
-        min-height: 42px;
-    }
-
-    .product-selectors-refined .selector-search {
         width: 100%;
         min-height: 42px;
         border: 1px solid #e2e8f0;
+        border-radius: 8px;
         background: #f8fafc;
         padding: 0 12px;
         color: #0f172a;
         font-size: 14px;
+        font-weight: 500;
         outline: none;
         transition: border-color 0.2s ease, background-color 0.2s ease;
     }
 
-    .product-selectors-refined .selector-search:focus {
+    .product-selectors-refined .selector-panel {
+        display: flex;
+        align-items: center;
+        color: #334155;
+    }
+
+    .product-selectors-refined .selector-panel.readonly {
+        font-weight: 600;
+    }
+
+    .product-selectors-refined .selector-search:focus,
+    .product-selectors-refined select:focus {
         border-color: #1152d4;
         background: #ffffff;
     }
 </style>
 
-<div class="product-selectors product-selectors-refined grid gap-4 md:grid-cols-2 xl:grid-cols-4 xl:items-end" id="category-toolbar">
+<div class="product-selectors product-selectors-refined grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end" id="category-toolbar">
     <div class="selector-field">
         <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
         <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm..." autocomplete="off" />
     </div>
 
-    <div class="selector-static">
-        <div class="selector-label">Chức năng</div>
-        <div class="selector-panel readonly">Sản phẩm / Năng lực</div>
+    <div class="selector-field">
+        <label class="selector-label" for="products-category-select">Danh mục</label>
+        <select id="products-category-select" aria-label="Danh mục">
+            <option value="">Tất cả danh mục</option>
+            @foreach (var cat in categorySelectItems)
+            {
+                var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
+                var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
+                <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
+            }
+        </select>
     </div>
 
-    @if (Model.AllowProductViewModeChanging && Model.AvailableViewModes.Count > 1)
-    {
-        var gridMode = Model.AvailableViewModes[0];
-        var listMode = Model.AvailableViewModes[1];
-
-        <div class="product-viewmode selector-actions">
-            <div class="selector-label">Chế độ hiển thị</div>
-            <div class="selector-panel actions">
-                <a class="viewmode-icon @if (gridMode.Selected){<text>selected</text>}" data-viewmode="@gridMode.Value" title="@gridMode.Text" tabindex="0" role="button" href="#">@gridMode.Text</a>
-                <a class="viewmode-icon @if (listMode.Selected){<text>selected</text>}" data-viewmode="@listMode.Value" title="@listMode.Text" tabindex="0" role="button" href="#">@listMode.Text</a>
-            </div>
-        </div>
-        <script asp-location="Footer">
-            $(function() {
-                var $viewModeEls = $('[data-viewmode]');
-                $viewModeEls.on('click', function () {
-                    if (!$(this).hasClass('selected')) {
-                        $viewModeEls.toggleClass('selected');
-                        CatalogProducts.getProducts();
-                    }
-                    return false;
-                });
-
-                $(CatalogProducts).on('before', function (e) {
-                    var $viewModeEl = $('[data-viewmode].selected');
-                    if ($viewModeEl) {
-                        e.payload.urlBuilder
-                            .addParameter('viewmode', $viewModeEl.data('viewmode'));
-                    }
-                });
-            });
-        </script>
-    }
-    else
-    {
-        <div class="selector-static">
-            <div class="selector-label">Chế độ hiển thị</div>
-            <div class="selector-panel readonly">Lưới</div>
-        </div>
-    }
+    <div class="selector-field">
+        <label class="selector-label" for="products-manufacturer-select">Đơn vị cung cấp</label>
+        <select id="products-manufacturer-select" aria-label="Đơn vị cung cấp">
+            <option value="">Tất cả đơn vị</option>
+            @foreach (var manufacturer in manufacturerSelectItems)
+            {
+                var manufacturerId = int.Parse(manufacturer.Value, CultureInfo.InvariantCulture);
+                var manufacturerUrl = manufacturerSeoUrls.GetValueOrDefault(manufacturerId, "#");
+                <option value="@manufacturer.Value" data-url="@manufacturerUrl">@manufacturer.Text</option>
+            }
+        </select>
+    </div>
 
     @if (Model.AllowProductSorting)
     {
         <div class="product-sorting selector-field">
-            <label class="selector-label" for="products-orderby">Sắp xếp</label>
-            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1152d4] focus:bg-white" })
+            <label class="selector-label" for="products-orderby">Trạng thái / Sắp xếp</label>
+            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1152d4] focus:bg-white rounded-lg" })
         </div>
         <script asp-location="Footer">
             $(function() {
@@ -177,7 +165,7 @@
     else
     {
         <div class="selector-static">
-            <div class="selector-label">Sắp xếp</div>
+            <div class="selector-label">Trạng thái / Sắp xếp</div>
             <div class="selector-panel readonly">Mặc định</div>
         </div>
     }
@@ -186,6 +174,8 @@
 <script asp-location="Footer">
     $(function() {
         var $quickSearch = $('#products-quick-search');
+        var $categorySelect = $('#products-category-select');
+        var $manufacturerSelect = $('#products-manufacturer-select');
 
         function applyQuickSearch() {
             var searchTerm = ($quickSearch.val() || '').toString().toLowerCase().trim();
@@ -195,6 +185,20 @@
                 $(this).toggle(searchTerm.length === 0 || haystack.indexOf(searchTerm) > -1);
             });
         }
+
+        $categorySelect.on('change', function() {
+            var url = $(this).find(':selected').data('url');
+            if (url && url !== '#') {
+                window.location.href = url;
+            }
+        });
+
+        $manufacturerSelect.on('change', function() {
+            var url = $(this).find(':selected').data('url');
+            if (url && url !== '#') {
+                window.location.href = url;
+            }
+        });
 
         $quickSearch.on('input', applyQuickSearch);
         $(CatalogProducts).on('loaded', applyQuickSearch);

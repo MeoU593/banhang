@@ -1,11 +1,6 @@
-@using Nop.Core.Domain.Catalog
-@using Nop.Services.Seo
-@using Nop.Services.Catalog
 @using Nop.Services.Localization
 @using Nop.Core
 @inject ILocalizationService localizationService
-@inject ICategoryService categoryService
-@inject IUrlRecordService urlRecordService
 @inject IStoreContext storeContext
 
 @{
@@ -31,10 +26,7 @@
         ? Context.User.Identity!.Name!
         : "đồng chí phụ trách";
     var blogArchiveUrl = Url.RouteUrl(NopRouteNames.General.BLOG);
-    var topLevelCategory = (await categoryService.GetAllCategoriesByParentCategoryIdAsync(0)).FirstOrDefault();
-    var productListingUrl = topLevelCategory is null
-        ? Url.RouteUrl(NopRouteNames.General.SEARCH)
-        : await NopUrl.RouteGenericUrlAsync<Category>(new { SeName = await urlRecordService.GetSeNameAsync(topLevelCategory) });
+    var productListingUrl = Url.RouteUrl(NopRouteNames.General.CATEGORIES);
 }
 
 <div class="page home-page">

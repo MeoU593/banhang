@@ -28,8 +28,7 @@
 
 <style>
     .category-page-refined {
-        border: 1px solid #e2e8f0;
-        background: #f6f6f8;
+        background: #f1f5f9;
         padding: 24px;
     }
 
@@ -71,7 +70,7 @@
     .category-page-refined .category-title {
         margin: 0;
         color: #0f172a;
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
         line-height: 1.1;
         letter-spacing: -0.03em;
@@ -125,7 +124,9 @@
             @if (Model.DisplayCategoryBreadcrumb)
             {
                 <nav class="category-breadcrumbs" aria-label="Breadcrumb">
-                    <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" title="@T("Categories.Breadcrumb.Top")">@T("Categories.Breadcrumb.Top")</a>
+                    <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)">Trang chủ</a>
+                    <span class="category-breadcrumb-separator">@breadcrumbDelimiter</span>
+                    <a href="@Url.RouteUrl(NopRouteNames.General.CATEGORIES)">Sản phẩm &amp; Năng lực</a>
                     @foreach (var cat in Model.CategoryBreadcrumb)
                     {
                         var isLastCategory = cat.Id == Model.Id;
@@ -135,7 +136,6 @@
                         if (isLastCategory)
                         {
                             <span>@cat.Name</span>
-                            <span id="@(await NopUrl.RouteGenericUrlAsync<Category>(new { SeName = cat.SeName }))"></span>
                         }
                         else
                         {
@@ -144,15 +144,16 @@
                     }
                 </nav>
             }
-            <h1 class="category-title">Sản phẩm / Năng lực</h1>
+            <h1 class="category-title">@Model.Name</h1>
         </div>
-        <a class="category-header-action" href="#category-products">Mở danh sách</a>
+        <a class="category-header-action" href="#category-products">@(Model.CatalogProductsModel.TotalItems > 0 ? $"Xem {Model.CatalogProductsModel.TotalItems} sản phẩm" : "Mở danh sách")</a>
     </div>
 
     <div class="category-page-flow" id="category-products">
         @{
             var catalogProductsViewData = new ViewDataDictionary(ViewData);
             catalogProductsViewData["fetchUrl"] = Html.Raw(Url.RouteUrl(NopRouteNames.Ajax.GET_CATEGORY_PRODUCTS, new { categoryId = Model.Id }));
+            catalogProductsViewData["categoryName"] = Model.Name;
         }
 
         @await Html.PartialAsync("_CatalogSelectors", Model.CatalogProductsModel)
