@@ -48,26 +48,9 @@ public partial class RewardPointService : IRewardPointService
     /// A task that represents the asynchronous operation
     /// The task result contains the query to load reward points history
     /// </returns>
-    protected virtual async Task<IQueryable<RewardPointsHistory>> GetRewardPointsQueryAsync(int customerId, int? storeId, bool showNotActivated = false)
+    protected virtual Task<IQueryable<RewardPointsHistory>> GetRewardPointsQueryAsync(int customerId, int? storeId, bool showNotActivated = false)
     {
-        var query = _rewardPointsHistoryRepository.Table;
-
-        //filter by customer
-        if (customerId > 0)
-            query = query.Where(historyEntry => historyEntry.CustomerId == customerId);
-
-        //filter by store
-        if (!_rewardPointsSettings.PointsAccumulatedForAllStores && storeId > 0)
-            query = query.Where(historyEntry => historyEntry.StoreId == storeId);
-
-        //whether to show only the points that already activated
-        if (!showNotActivated)
-            query = query.Where(historyEntry => historyEntry.CreatedOnUtc < DateTime.UtcNow);
-
-        //update points balance
-        await UpdateRewardPointsBalanceAsync(query);
-
-        return query;
+        return Task.FromResult(Enumerable.Empty<RewardPointsHistory>().AsQueryable());
     }
 
     /// <summary>
@@ -151,19 +134,10 @@ public partial class RewardPointService : IRewardPointService
     /// A task that represents the asynchronous operation
     /// The task result contains the reward point history records
     /// </returns>
-    public virtual async Task<IPagedList<RewardPointsHistory>> GetRewardPointsHistoryAsync(int customerId = 0, int? storeId = null,
+    public virtual Task<IPagedList<RewardPointsHistory>> GetRewardPointsHistoryAsync(int customerId = 0, int? storeId = null,
         bool showNotActivated = false, Guid? orderGuid = null, int pageIndex = 0, int pageSize = int.MaxValue)
     {
-        var query = await GetRewardPointsQueryAsync(customerId, storeId, showNotActivated);
-
-        if (orderGuid.HasValue)
-            query = query.Where(historyEntry => historyEntry.UsedWithOrder == orderGuid.Value);
-
-        query = query.OrderByDescending(historyEntry => historyEntry.CreatedOnUtc)
-            .ThenByDescending(historyEntry => historyEntry.Id);
-
-        //return paged reward points history
-        return await query.ToPagedListAsync(pageIndex, pageSize);
+        return Task.FromResult<IPagedList<RewardPointsHistory>>(new PagedList<RewardPointsHistory>(new List<RewardPointsHistory>(), pageIndex, pageSize));
     }
 
     /// <summary>
@@ -175,13 +149,9 @@ public partial class RewardPointService : IRewardPointService
     /// A task that represents the asynchronous operation
     /// The task result contains the balance
     /// </returns>
-    public virtual async Task<int> GetRewardPointsBalanceAsync(int customerId, int storeId)
+    public virtual Task<int> GetRewardPointsBalanceAsync(int customerId, int storeId)
     {
-        var query = (await GetRewardPointsQueryAsync(customerId, storeId))
-            .OrderByDescending(historyEntry => historyEntry.CreatedOnUtc).ThenByDescending(historyEntry => historyEntry.Id);
-
-        //return point balance of the first actual history entry
-        return (await query.FirstOrDefaultAsync())?.PointsBalance ?? 0;
+        return Task.FromResult(0);
     }
 
     /// <summary>
@@ -199,52 +169,10 @@ public partial class RewardPointService : IRewardPointService
     /// A task that represents the asynchronous operation
     /// The task result contains the reward points history entry identifier
     /// </returns>
-    public virtual async Task<int> AddRewardPointsHistoryEntryAsync(Customer customer, int points, int storeId, string message = "",
+    public virtual Task<int> AddRewardPointsHistoryEntryAsync(Customer customer, int points, int storeId, string message = "",
         Order usedWithOrder = null, decimal usedAmount = 0M, DateTime? activatingDate = null, DateTime? endDate = null)
     {
-        ArgumentNullException.ThrowIfNull(customer);
-
-        if (storeId == 0)
-            throw new ArgumentException("Store ID should be valid");
-
-        if (points < 0 && endDate.HasValue)
-            throw new ArgumentException("End date is available only for positive points amount");
-
-        //insert new history entry
-        var newHistoryEntry = new RewardPointsHistory
-        {
-            CustomerId = customer.Id,
-            StoreId = storeId,
-            Points = points,
-            PointsBalance = activatingDate.HasValue ? null : (int?)(await GetRewardPointsBalanceAsync(customer.Id, storeId) + points),
-            UsedAmount = usedAmount,
-            Message = message,
-            CreatedOnUtc = activatingDate ?? DateTime.UtcNow,
-            EndDateUtc = endDate,
-            ValidPoints = points > 0 ? (int?)points : null,
-            UsedWithOrder = usedWithOrder?.OrderGuid
-        };
-        await InsertRewardPointsHistoryEntryAsync(newHistoryEntry);
-
-        //reduce valid points of previous entries
-        if (points >= 0)
-            return newHistoryEntry.Id;
-
-        var withValidPoints = await (await GetRewardPointsQueryAsync(customer.Id, storeId))
-            .Where(historyEntry => historyEntry.ValidPoints > 0)
-            .OrderBy(historyEntry => historyEntry.CreatedOnUtc).ThenBy(historyEntry => historyEntry.Id).ToListAsync();
-
-        foreach (var historyEntry in withValidPoints)
-        {
-            points += historyEntry.ValidPoints.Value;
-            historyEntry.ValidPoints = Math.Max(points, 0);
-            await UpdateRewardPointsHistoryEntryAsync(historyEntry);
-
-            if (points >= 0)
-                break;
-        }
-
-        return newHistoryEntry.Id;
+        return Task.FromResult(0);
     }
 
     /// <summary>
@@ -255,9 +183,9 @@ public partial class RewardPointService : IRewardPointService
     /// A task that represents the asynchronous operation
     /// The task result contains the reward point history entry
     /// </returns>
-    public virtual async Task<RewardPointsHistory> GetRewardPointsHistoryEntryByIdAsync(int rewardPointsHistoryId)
+    public virtual Task<RewardPointsHistory> GetRewardPointsHistoryEntryByIdAsync(int rewardPointsHistoryId)
     {
-        return await _rewardPointsHistoryRepository.GetByIdAsync(rewardPointsHistoryId);
+        return Task.FromResult<RewardPointsHistory>(null);
     }
 
     /// <summary>

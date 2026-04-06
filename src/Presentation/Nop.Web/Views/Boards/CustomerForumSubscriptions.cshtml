@@ -13,14 +13,15 @@
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent),new { selectedTabId = CustomerNavigationEnum.ForumSubscriptions })
 }
 <div class="page account-page forum-subscriptions-page">
-    <div class="page-title">
-        <h1>@T("Account.MyAccount") - @T("Account.ForumSubscriptions")</h1>
+    <div class="page-title mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8" style="display:block !important;">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-military-gold">Tai khoan ca nhan</p>
+        <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">@T("Account.ForumSubscriptions")</h1>
     </div>
-    <div class="page-body">
+    <div class="page-body space-y-5">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerForumSubscriptionsTop, additionalData = Model })
         @if (Model.ForumSubscriptions.Count > 0)
         {
-            <div class="description">
+            <div class="description rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
                 @T("Account.ForumSubscriptions.Description")
             </div>
             <script asp-location="Footer">
@@ -37,19 +38,19 @@
                 });
             </script>
             <form asp-route="@NopRouteNames.Standard.CUSTOMER_FORUM_SUBSCRIPTIONS" method="post">
-                <div class="subscription-list">
-                    <div class="table-wrapper">
-                        <table class="data-table">
+                <div class="subscription-list overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="table-wrapper overflow-x-auto">
+                        <table class="data-table min-w-full">
                             <colgroup>
                                 <col width="1" />
                                 <col />
                             </colgroup>
-                            <thead>
+                            <thead class="bg-slate-50">
                             <tr>
-                                <th class="select-boxes">
+                                <th class="select-boxes px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                                     <input type="checkbox" id="selectall" aria-labelledby="info-col-caption" />
                                 </th>
-                                <th class="info" id="info-col-caption">
+                                <th class="info px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500" id="info-col-caption">
                                     @T("Account.ForumSubscriptions.InfoColumn")
                                 </th>
                             </tr>
@@ -58,18 +59,18 @@
                             @for (var i = 0; i < Model.ForumSubscriptions.Count; i++)
                             {
                                 var item = Model.ForumSubscriptions[i];
-                                <tr @(i % 2 == 0 ? Html.Raw(" class=\"odd\"") : Html.Raw(" class=\"even\""))>
-                                    <td class="select-boxes">
+                                <tr class="border-t border-slate-100 hover:bg-slate-50/70">
+                                    <td class="select-boxes px-4 py-3 align-top">
                                         <input type="checkbox" name="fs@(item.Id)" class="rowcheckbox" aria-labelledby="info-col-caption" />
                                     </td>
-                                    <td class="info">
+                                    <td class="info px-4 py-3 align-top">
                                         @if (item.TopicSubscription)
                                         {
-                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.TOPIC_SLUG, new { Id = item.ForumTopicId, slug = item.Slug })
+                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.TOPIC_SLUG, new { Id = item.ForumTopicId, slug = item.Slug }, new { @class = "text-sm font-semibold text-slate-800 transition hover:text-military-green" })
                                         }
                                         else
                                         {
-                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.FORUM_SLUG, new { Id = item.ForumId, slug = item.Slug })
+                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.FORUM_SLUG, new { Id = item.ForumId, slug = item.Slug }, new { @class = "text-sm font-semibold text-slate-800 transition hover:text-military-green" })
                                         }
                                     </td>
                                 </tr>
@@ -82,19 +83,19 @@
                     }
                     @if (!string.IsNullOrEmpty(await pager.RenderHtmlContentAsync()))
                     {
-                        <div class="pager">
+                        <div class="pager border-t border-slate-100 px-4 py-3">
                             @pager
                         </div>
                     }
-                    <div class="buttons">
-                        <button type="submit" class="button-1 delete-selected-fs-button">@T("Account.ForumSubscriptions.DeleteSelected")</button>
+                    <div class="buttons border-t border-slate-100 p-4">
+                        <button type="submit" class="button-1 delete-selected-fs-button inline-flex h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100">@T("Account.ForumSubscriptions.DeleteSelected")</button>
                     </div>
                 </div>
             </form>
         }
         else
         {
-            <div class="no-data">
+            <div class="no-data rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-500 shadow-sm">
                 @T("Account.ForumSubscriptions.NoSubscriptions")
             </div>
         }

@@ -42,7 +42,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
     protected readonly IPaymentService _paymentService;
     protected readonly IPickupPluginManager _pickupPluginManager;
     protected readonly IPriceFormatter _priceFormatter;
-    protected readonly IRewardPointService _rewardPointService;
     protected readonly IShippingPluginManager _shippingPluginManager;
     protected readonly IShippingService _shippingService;
     protected readonly IShoppingCartService _shoppingCartService;
@@ -53,7 +52,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
     protected readonly IWorkContext _workContext;
     protected readonly OrderSettings _orderSettings;
     protected readonly PaymentSettings _paymentSettings;
-    protected readonly RewardPointsSettings _rewardPointsSettings;
     protected readonly ShippingSettings _shippingSettings;
     protected readonly TaxSettings _taxSettings;
 
@@ -77,7 +75,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
         IPaymentService paymentService,
         IPickupPluginManager pickupPluginManager,
         IPriceFormatter priceFormatter,
-        IRewardPointService rewardPointService,
         IShippingPluginManager shippingPluginManager,
         IShippingService shippingService,
         IShoppingCartService shoppingCartService,
@@ -88,7 +85,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
         IWorkContext workContext,
         OrderSettings orderSettings,
         PaymentSettings paymentSettings,
-        RewardPointsSettings rewardPointsSettings,
         ShippingSettings shippingSettings,
         TaxSettings taxSettings)
     {
@@ -108,7 +104,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
         _paymentService = paymentService;
         _pickupPluginManager = pickupPluginManager;
         _priceFormatter = priceFormatter;
-        _rewardPointService = rewardPointService;
         _shippingPluginManager = shippingPluginManager;
         _shippingService = shippingService;
         _shoppingCartService = shoppingCartService;
@@ -119,7 +114,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
         _workContext = workContext;
         _orderSettings = orderSettings;
         _paymentSettings = paymentSettings;
-        _rewardPointsSettings = rewardPointsSettings;
         _shippingSettings = shippingSettings;
         _taxSettings = taxSettings;
     }
@@ -465,22 +459,6 @@ public partial class CheckoutModelFactory : ICheckoutModelFactory
 
         var customer = await _workContext.GetCurrentCustomerAsync();
         var store = await _storeContext.GetCurrentStoreAsync();
-
-        //reward points
-        if (_rewardPointsSettings.Enabled && !await _shoppingCartService.ShoppingCartIsRecurringAsync(cart))
-        {
-            var shoppingCartTotal = await _orderTotalCalculationService.GetShoppingCartTotalAsync(cart, true, false);
-            if (shoppingCartTotal.redeemedRewardPoints > 0)
-            {
-                model.DisplayRewardPoints = true;
-                model.RewardPointsToUseAmount = await _priceFormatter.FormatPriceAsync(shoppingCartTotal.redeemedRewardPointsAmount, true, false);
-                model.RewardPointsToUse = shoppingCartTotal.redeemedRewardPoints;
-                model.RewardPointsBalance = await _rewardPointService.GetRewardPointsBalanceAsync(customer.Id, store.Id);
-
-                //are points enough to pay for entire order? like if this option (to use them) was selected
-                model.RewardPointsEnoughToPayForOrder = !await _orderProcessingService.IsPaymentWorkflowRequiredAsync(cart, true);
-            }
-        }
 
         //filter by country
         var paymentMethods = await (await _paymentPluginManager

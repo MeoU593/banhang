@@ -93,6 +93,7 @@ public class NewsModelFactory
         model.MetaDescription = newsItem.MetaDescription;
         model.MetaKeywords = newsItem.MetaKeywords;
         model.SeName = await _urlRecordService.GetSeNameAsync(newsItem, newsItem.LanguageId, ensureTwoPublishedLanguages: false);
+        model.NewsItemTypeId = newsItem.NewsItemTypeId;
         model.Title = newsItem.Title;
         model.Short = newsItem.Short;
         model.Full = newsItem.Full;
@@ -179,11 +180,12 @@ public class NewsModelFactory
 
         var language = await _workContext.GetWorkingLanguageAsync();
         var store = await _storeContext.GetCurrentStoreAsync();
-        var newsItems = await _newsService.GetAllNewsAsync(language.Id, store.Id, command.PageNumber - 1, command.PageSize);
+        var newsItems = await _newsService.GetAllNewsAsync(language.Id, store.Id, command.PageNumber - 1, command.PageSize, newsItemTypeId: command.Type);
 
         var model = new NewsItemListModel
         {
             WorkingLanguageId = language.Id,
+            ActiveType = command.Type,
             NewsItems = await newsItems.SelectAwait(async newsItem =>
             {
                 var newsModel = new NewsItemModel();

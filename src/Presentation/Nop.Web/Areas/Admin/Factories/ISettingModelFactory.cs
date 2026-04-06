@@ -122,16 +122,6 @@ public partial interface ISettingModelFactory
     Task<SortOptionListModel> PrepareSortOptionListModelAsync(SortOptionSearchModel searchModel);
 
     /// <summary>
-    /// Prepare reward points settings model
-    /// </summary>
-    ///<param name="model">Reward points settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the reward points settings model
-    /// </returns>
-    Task<RewardPointsSettingsModel> PrepareRewardPointsSettingsModelAsync(RewardPointsSettingsModel model = null);
-
-    /// <summary>
     /// Prepare order settings model
     /// </summary>
     /// <param name="model">Order settings model</param>
@@ -140,16 +130,6 @@ public partial interface ISettingModelFactory
     /// The task result contains the order settings model
     /// </returns>
     Task<OrderSettingsModel> PrepareOrderSettingsModelAsync(OrderSettingsModel model = null);
-
-    /// <summary>
-    /// Prepare shopping cart settings model
-    /// </summary>
-    /// <param name="model">Shopping cart settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the shopping cart settings model
-    /// </returns>
-    Task<ShoppingCartSettingsModel> PrepareShoppingCartSettingsModelAsync(ShoppingCartSettingsModel model = null);
 
     /// <summary>
     /// Prepare media settings model

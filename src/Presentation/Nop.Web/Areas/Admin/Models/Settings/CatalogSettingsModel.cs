@@ -320,10 +320,6 @@ public partial record CatalogSettingsModel : BaseNopModel, ISettingsModel
     public bool ExportImportProductSpecificationAttributes { get; set; }
     public bool ExportImportProductSpecificationAttributes_OverrideForStore { get; set; }
 
-    [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ExportImportTierPrices")]
-    public bool ExportImportTierPrices { get; set; }
-    public bool ExportImportTierPrices_OverrideForStore { get; set; }
-
     [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ExportImportProductCategoryBreadcrumb")]
     public bool ExportImportProductCategoryBreadcrumb { get; set; }
     public bool ExportImportProductCategoryBreadcrumb_OverrideForStore { get; set; }
@@ -355,9 +351,6 @@ public partial record CatalogSettingsModel : BaseNopModel, ISettingsModel
     [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ExportImportCategoryUseLimitedToStores")]
     public bool ExportImportCategoryUseLimitedToStores { get; set; }
     public bool ExportImportCategoryUseLimitedToStores_OverrideForStore { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.IgnoreDiscounts")]
-    public bool IgnoreDiscounts { get; set; }
 
     [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.IgnoreFeaturedProducts")]
     public bool IgnoreFeaturedProducts { get; set; }

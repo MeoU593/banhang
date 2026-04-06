@@ -267,51 +267,12 @@ public partial class CustomerService : ICustomerService
     /// A task that represents the asynchronous operation
     /// The task result contains the customers
     /// </returns>
-    public virtual async Task<IPagedList<Customer>> GetCustomersWithShoppingCartsAsync(ShoppingCartType? shoppingCartType = null,
+    public virtual Task<IPagedList<Customer>> GetCustomersWithShoppingCartsAsync(ShoppingCartType? shoppingCartType = null,
         int storeId = 0, int? productId = null,
         DateTime? createdFromUtc = null, DateTime? createdToUtc = null, int? countryId = null,
         int pageIndex = 0, int pageSize = int.MaxValue)
     {
-        //get all shopping cart items
-        var items = _shoppingCartRepository.Table;
-
-        //filter by type
-        if (shoppingCartType.HasValue)
-            items = items.Where(item => item.ShoppingCartTypeId == (int)shoppingCartType.Value);
-
-        //filter shopping cart items by store
-        if (storeId > 0 && !_shoppingCartSettings.CartsSharedBetweenStores)
-            items = items.Where(item => item.StoreId == storeId);
-
-        //filter shopping cart items by product
-        if (productId > 0)
-            items = items.Where(item => item.ProductId == productId);
-
-        //filter shopping cart items by date
-        if (createdFromUtc.HasValue)
-            items = items.Where(item => createdFromUtc.Value <= item.CreatedOnUtc);
-        if (createdToUtc.HasValue)
-            items = items.Where(item => createdToUtc.Value >= item.CreatedOnUtc);
-
-        //get all active customers
-        var customers = _customerRepository.Table.Where(customer => customer.Active && !customer.Deleted);
-
-        //filter customers by billing country
-        if (countryId > 0)
-        {
-            customers = from c in customers
-                join a in _customerAddressRepository.Table on c.BillingAddressId equals a.Id
-                where a.CountryId == countryId
-                select c;
-        }
-
-        var customersWithCarts = from c in customers
-            join item in items on c.Id equals item.CustomerId
-            //we change ordering for the MySQL engine to avoid problems with the ONLY_FULL_GROUP_BY server property that is set by default since the 5.7.5 version
-            orderby _dataProvider.ConfigurationName == "MySql" ? c.CreatedOnUtc : item.CreatedOnUtc descending
-            select c;
-
-        return await customersWithCarts.Distinct().ToPagedListAsync(pageIndex, pageSize);
+        return Task.FromResult<IPagedList<Customer>>(new PagedList<Customer>(new List<Customer>(), pageIndex, pageSize));
     }
 
     /// <summary>

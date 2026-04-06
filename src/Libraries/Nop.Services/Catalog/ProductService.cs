@@ -2055,19 +2055,9 @@ public partial class ProductService : IProductService
     /// <param name="customer">Customer</param>
     /// <param name="store">Store</param>
     /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task<IList<TierPrice>> GetTierPricesAsync(Product product, Customer customer, Store store)
+    public virtual Task<IList<TierPrice>> GetTierPricesAsync(Product product, Customer customer, Store store)
     {
-        ArgumentNullException.ThrowIfNull(product);
-        ArgumentNullException.ThrowIfNull(customer);
-
-        //get actual tier prices
-        return (await GetTierPricesByProductAsync(product.Id))
-            .OrderBy(price => price.Quantity)
-            .FilterByStore(store)
-            .FilterByCustomerRole(await _customerService.GetCustomerRoleIdsAsync(customer))
-            .FilterByDate()
-            .RemoveDuplicatedQuantities()
-            .ToList();
+        return Task.FromResult<IList<TierPrice>>(new List<TierPrice>());
     }
 
     /// <summary>
@@ -2075,11 +2065,9 @@ public partial class ProductService : IProductService
     /// </summary>
     /// <param name="productId">Product identifier</param>
     /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task<IList<TierPrice>> GetTierPricesByProductAsync(int productId)
+    public virtual Task<IList<TierPrice>> GetTierPricesByProductAsync(int productId)
     {
-        return await _staticCacheManager.GetAsync(
-            _staticCacheManager.PrepareKeyForDefaultCache(NopCatalogDefaults.TierPricesByProductCacheKey, productId),
-            async () => await _tierPriceRepository.Table.Where(tp => tp.ProductId == productId).ToListAsync());
+        return Task.FromResult<IList<TierPrice>>(new List<TierPrice>());
     }
 
     /// <summary>
@@ -2473,9 +2461,9 @@ public partial class ProductService : IProductService
     /// </summary>
     /// <param name="productId">Product identifier</param>
     /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task<IList<DiscountProductMapping>> GetAllDiscountsAppliedToProductAsync(int productId)
+    public virtual Task<IList<DiscountProductMapping>> GetAllDiscountsAppliedToProductAsync(int productId)
     {
-        return await _discountProductMappingRepository.GetAllAsync(query => query.Where(dcm => dcm.EntityId == productId));
+        return Task.FromResult<IList<DiscountProductMapping>>(new List<DiscountProductMapping>());
     }
 
     /// <summary>
@@ -2487,10 +2475,9 @@ public partial class ProductService : IProductService
     /// A task that represents the asynchronous operation
     /// The task result contains the result
     /// </returns>
-    public virtual async Task<DiscountProductMapping> GetDiscountAppliedToProductAsync(int productId, int discountId)
+    public virtual Task<DiscountProductMapping> GetDiscountAppliedToProductAsync(int productId, int discountId)
     {
-        return await _discountProductMappingRepository.Table
-            .FirstOrDefaultAsync(dcm => dcm.EntityId == productId && dcm.DiscountId == discountId);
+        return Task.FromResult<DiscountProductMapping>(null);
     }
 
     /// <summary>

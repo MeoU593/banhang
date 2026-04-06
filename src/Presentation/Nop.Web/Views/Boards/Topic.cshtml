@@ -44,18 +44,19 @@
     @await Component.InvokeAsync(typeof(ForumBreadcrumbViewComponent), new { forumTopicId = Model.Id })
     @await Html.PartialAsync("_ForumHeader")
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsTopicAfterHeader, additionalData = Model })
-    <div class="topic-name">
+    <div class="topic-name mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-military-gold">Chu de thao luan</p>
         <h1>@Model.Subject</h1>
     </div>
-    <div class="topic-actions upper">
-        <div class="actions">
+    <div class="topic-actions upper rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="actions flex flex-wrap items-center gap-2">
             @if (Model.IsCustomerAllowedToEditTopic)
             {
-                @Html.RouteLink(T("Forum.EditTopic").Text, NopRouteNames.Standard.TOPIC_EDIT, new { id = Model.Id }, new { @class = "edit-topic-button" })
+                @Html.RouteLink(T("Forum.EditTopic").Text, NopRouteNames.Standard.TOPIC_EDIT, new { id = Model.Id }, new { @class = "edit-topic-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
             }
             @if (Model.IsCustomerAllowedToDeleteTopic)
             {
-                <a href="#" class="delete-topic-button" onclick="return deletetopic(@(Model.Id))">@T("Forum.DeleteTopic").Text</a>
+                <a href="#" class="delete-topic-button inline-flex h-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-100" onclick="return deletetopic(@(Model.Id))">@T("Forum.DeleteTopic").Text</a>
                 <script asp-location="Footer">
                     function deletetopic(topicId) {
                         if (confirm('@T("Common.AreYouSure")')) {
@@ -83,12 +84,12 @@
             }
             @if (Model.IsCustomerAllowedToMoveTopic)
             {
-                @Html.RouteLink(T("Forum.MoveTopic").Text, NopRouteNames.Standard.TOPIC_MOVE, new { id = Model.Id }, new { @class = "move-topic-button" })
+                @Html.RouteLink(T("Forum.MoveTopic").Text, NopRouteNames.Standard.TOPIC_MOVE, new { id = Model.Id }, new { @class = "move-topic-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
             }
-            @Html.RouteLink(T("Forum.Reply").Text, NopRouteNames.Standard.POST_CREATE, new { id = Model.Id }, new { @class = "reply-topic-button" })
+            @Html.RouteLink(T("Forum.Reply").Text, NopRouteNames.Standard.POST_CREATE, new { id = Model.Id }, new { @class = "reply-topic-button inline-flex h-10 items-center justify-center rounded-xl bg-military-green px-4 text-sm font-semibold text-white transition hover:brightness-110" })
             @if (Model.IsCustomerAllowedToSubscribe)
             {
-                <a class="watch-topic-button" href="#" id="watch-topic-top">@Model.WatchTopicText</a>
+                <a class="watch-topic-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" href="#" id="watch-topic-top">@Model.WatchTopicText</a>
                 <script asp-location="Footer">
                     $(function() {
                         $('#watch-topic-top').on('click', function () {
@@ -134,7 +135,7 @@
         }
     </div>
 
-    <div class="topic-posts">
+    <div class="topic-posts mt-5 space-y-4">
         @if (Model.ForumEditor == EditorType.MarkdownEditor)
         {
             <script asp-location="Footer" src="~/lib_npm/marked/marked.umd.js"></script>
@@ -155,12 +156,12 @@
         }
     </div>
 
-    <div class="topic-actions lower">
-        <div class="actions">
-            @Html.RouteLink(T("Forum.Reply").Text, NopRouteNames.Standard.POST_CREATE, new { id = Model.Id }, new { @class = "reply-topic-button" })
+    <div class="topic-actions lower rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mt-5">
+        <div class="actions flex flex-wrap items-center gap-2">
+            @Html.RouteLink(T("Forum.Reply").Text, NopRouteNames.Standard.POST_CREATE, new { id = Model.Id }, new { @class = "reply-topic-button inline-flex h-10 items-center justify-center rounded-xl bg-military-green px-4 text-sm font-semibold text-white transition hover:brightness-110" })
             @if (Model.IsCustomerAllowedToSubscribe)
             {
-                <a class="watch-topic-button" href="#" id="watch-topic-bottom">@Model.WatchTopicText</a>
+                <a class="watch-topic-button inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" href="#" id="watch-topic-bottom">@Model.WatchTopicText</a>
                 <script asp-location="Footer">
                     $(function() {
                         $('#watch-topic-bottom').on('click', function() {

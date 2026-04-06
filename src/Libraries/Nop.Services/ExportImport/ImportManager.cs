@@ -189,7 +189,7 @@ public partial class ImportManager : IImportManager
 
     #region Utilities
 
-    protected virtual ExportedAdditionalProductInfoType GetTypeOfExportedAdditionalProductInfo(IXLWorksheet defaultWorksheet, List<IXLWorksheet> localizedWorksheets, PropertyManager<ExportProductAttribute> productAttributeManager, PropertyManager<ExportSpecificationAttribute> specificationAttributeManager, PropertyManager<ExportTierPrice> tierPriceManager, int iRow)
+    protected virtual ExportedAdditionalProductInfoType GetTypeOfExportedAdditionalProductInfo(IXLWorksheet defaultWorksheet, List<IXLWorksheet> localizedWorksheets, PropertyManager<ExportProductAttribute> productAttributeManager, PropertyManager<ExportSpecificationAttribute> specificationAttributeManager, int iRow)
     {
         productAttributeManager.ReadDefaultFromXlsx(defaultWorksheet, iRow, ExportImportDefaults.ProductAdditionalInfoCellOffset);
 
@@ -210,11 +210,6 @@ public partial class ImportManager : IImportManager
 
             return ExportedAdditionalProductInfoType.SpecificationAttribute;
         }
-
-        tierPriceManager.ReadDefaultFromXlsx(defaultWorksheet, iRow, ExportImportDefaults.ProductAdditionalInfoCellOffset);
-
-        if (tierPriceManager.IsCaption)
-            return ExportedAdditionalProductInfoType.TierPrices;
 
         return ExportedAdditionalProductInfoType.NotSpecified;
     }
@@ -1057,53 +1052,6 @@ public partial class ImportManager : IImportManager
     }
 
     /// <returns>A task that represents the asynchronous operation</returns>
-    protected virtual async Task ImportTierPriceAsync(ImportProductMetadata metadata, Product lastLoadedProduct, IList<Language> languages, int iRow)
-    {
-        var tierPriceManager = metadata.TierPriceManager;
-
-        if (!_catalogSettings.ExportImportTierPrices || lastLoadedProduct == null || tierPriceManager.IsCaption)
-            return;
-
-        var id = tierPriceManager.GetDefaultProperty("TierPriceId").IntValue;
-        var storeId = tierPriceManager.GetDefaultProperty("Store").IntValue;
-        var customerRoleId = tierPriceManager.GetDefaultProperty("CustomerRole").IntValue;
-        var quantity = tierPriceManager.GetDefaultProperty("Quantity").IntValue;
-        var price = tierPriceManager.GetDefaultProperty("Price").DecimalValue;
-        var startDateTimeUtc = tierPriceManager.GetDefaultProperty("StartDateTimeUtc").DateTimeNullable;
-        var endDateTimeUtc = tierPriceManager.GetDefaultProperty("EndDateTimeUtc").DateTimeNullable;
-
-        if (id == 0)
-        {
-            var tierPrice = new TierPrice
-            {
-                CustomerRoleId = customerRoleId != 0 ? customerRoleId : null,
-                EndDateTimeUtc = endDateTimeUtc,
-                Price = price,
-                ProductId = lastLoadedProduct.Id,
-                Quantity = quantity,
-                StartDateTimeUtc = startDateTimeUtc,
-                StoreId = storeId
-            };
-
-            await _productService.InsertTierPriceAsync(tierPrice);
-        }
-        else
-        {
-            var tierPrice = await _productService.GetTierPriceByIdAsync(id);
-
-            tierPrice.CustomerRoleId = customerRoleId != 0 ? customerRoleId : null;
-            tierPrice.EndDateTimeUtc = endDateTimeUtc;
-            tierPrice.Price = price;
-            tierPrice.ProductId = lastLoadedProduct.Id;
-            tierPrice.Quantity = quantity;
-            tierPrice.StartDateTimeUtc = startDateTimeUtc;
-            tierPrice.StoreId = storeId;
-
-            await _productService.UpdateTierPriceAsync(tierPrice);
-        }
-    }
-
-    /// <returns>A task that represents the asynchronous operation</returns>
     protected virtual async Task<string> DownloadFileAsync(string urlString, IList<string> downloadedFiles)
     {
         if (string.IsNullOrEmpty(urlString))
@@ -1210,19 +1158,6 @@ public partial class ImportManager : IImportManager
 
         var specificationAttributeManager = new PropertyManager<ExportSpecificationAttribute>(specificationAttributeProperties, _catalogSettings, specificationAttributeLocalizedProperties, languages);
 
-        var tierPriceProperties = new[]
-        {
-            new PropertyByName<ExportTierPrice>("TierPriceId"),
-            new PropertyByName<ExportTierPrice>("Store"),
-            new PropertyByName<ExportTierPrice>("CustomerRole"),
-            new PropertyByName<ExportTierPrice>("Quantity"),
-            new PropertyByName<ExportTierPrice>("Price"),
-            new PropertyByName<ExportTierPrice>("StartDateTimeUtc"),
-            new PropertyByName<ExportTierPrice>("EndDateTimeUtc")
-        };
-
-        var tierPriceManager = new PropertyManager<ExportTierPrice>(tierPriceProperties, _catalogSettings, languages: languages);
-
         var endRow = 2;
         var allCategories = new List<string>();
         var allSku = new List<string>();
@@ -1251,9 +1186,6 @@ public partial class ImportManager : IImportManager
         
         if (_catalogSettings.ExportImportUseDropdownlistsForAssociatedEntities)
         {
-            tierPriceManager.SetSelectList("Store", (await _storeService.GetAllStoresAsync()).ToSelectList(p => (p as Store)?.Name ?? string.Empty));
-            tierPriceManager.SetSelectList("CustomerRole", (await _customerService.GetAllCustomerRolesAsync()).ToSelectList(p => (p as CustomerRole)?.Name ?? string.Empty));
-
             productAttributeManager.SetSelectList("AttributeControlType", await AttributeControlType.TextBox.ToSelectListAsync(useLocalization: false));
             productAttributeManager.SetSelectList("AttributeValueType", await AttributeValueType.Simple.ToSelectListAsync(useLocalization: false));
 
@@ -1331,7 +1263,7 @@ public partial class ImportManager : IImportManager
 
             if (defaultWorksheet.Row(endRow).OutlineLevel != 0)
             {
-                var newTypeOfExportedAttribute = GetTypeOfExportedAdditionalProductInfo(defaultWorksheet, metadata.LocalizedWorksheets, productAttributeManager, specificationAttributeManager, tierPriceManager, endRow);
+                var newTypeOfExportedAttribute = GetTypeOfExportedAdditionalProductInfo(defaultWorksheet, metadata.LocalizedWorksheets, productAttributeManager, specificationAttributeManager, endRow);
 
                 //skip caption row
                 if (newTypeOfExportedAttribute != ExportedAdditionalProductInfoType.NotSpecified && newTypeOfExportedAttribute != typeOfExportedAttribute)
@@ -1456,7 +1388,6 @@ public partial class ImportManager : IImportManager
             DefaultWorksheet = defaultWorksheet,
             LocalizedWorksheets = metadata.LocalizedWorksheets,
             SpecificationAttributeManager = specificationAttributeManager,
-            TierPriceManager = tierPriceManager,
             SkuCellNum = skuCellNum,
             AllSku = allSku,
             RequiredProductsData = requiredProductsData
@@ -2167,7 +2098,7 @@ public partial class ImportManager : IImportManager
                 if (lastLoadedProduct == null)
                     continue;
 
-                var newTypeOfExportedAttribute = GetTypeOfExportedAdditionalProductInfo(defaultWorksheet, metadata.LocalizedWorksheets, metadata.ProductAttributeManager, metadata.SpecificationAttributeManager, metadata.TierPriceManager, iRow);
+                var newTypeOfExportedAttribute = GetTypeOfExportedAdditionalProductInfo(defaultWorksheet, metadata.LocalizedWorksheets, metadata.ProductAttributeManager, metadata.SpecificationAttributeManager, iRow);
 
                 //skip caption row
                 if (newTypeOfExportedAttribute != ExportedAdditionalProductInfoType.NotSpecified &&
@@ -2184,9 +2115,6 @@ public partial class ImportManager : IImportManager
                         break;
                     case ExportedAdditionalProductInfoType.SpecificationAttribute:
                         await ImportSpecificationAttributeAsync(metadata, lastLoadedProduct, languages, iRow);
-                        break;
-                    case ExportedAdditionalProductInfoType.TierPrices:
-                        await ImportTierPriceAsync(metadata, lastLoadedProduct, languages, iRow);
                         break;
                     case ExportedAdditionalProductInfoType.NotSpecified:
                     default:

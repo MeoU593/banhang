@@ -183,61 +183,11 @@ public partial class DiscountService : IDiscountService
     /// A task that represents the asynchronous operation
     /// The task result contains the discounts
     /// </returns>
-    public virtual async Task<IList<Discount>> GetAllDiscountsAsync(DiscountType? discountType = null,
+    public virtual Task<IList<Discount>> GetAllDiscountsAsync(DiscountType? discountType = null,
         string couponCode = null, string discountName = null, bool showHidden = false,
         DateTime? startDateUtc = null, DateTime? endDateUtc = null, bool? isActive = true, int vendorId = 0)
     {
-        //we load all discounts, and filter them using "discountType" and dates later (in memory)
-        //we do it because we know that this method is invoked several times per HTTP request with distinct "discountType" parameter and date filters
-        //that's why let's access the database only once
-        var discounts = (await _discountRepository.GetAllAsync(query =>
-            {
-                //filter by coupon code
-                if (!string.IsNullOrEmpty(couponCode))
-                    query = query.Where(discount => discount.CouponCode == couponCode);
-
-                //filter by name
-                if (!string.IsNullOrEmpty(discountName))
-                    query = query.Where(discount => discount.Name.Contains(discountName));
-
-                //filter by is active
-                if (isActive.HasValue)
-                    query = query.Where(discount => discount.IsActive == isActive.Value);
-
-                query = query.OrderBy(discount => discount.Name).ThenBy(discount => discount.Id);
-
-                return query;
-            }, cache => cache.PrepareKeyForDefaultCache(NopDiscountDefaults.DiscountAllCacheKey,
-                couponCode ?? string.Empty, discountName ?? string.Empty, isActive)))
-            .AsQueryable();
-        
-        if (discountType.HasValue)
-            discounts = discounts.Where(discount => discount.DiscountType == discountType.Value);
-
-        //filter by dates
-        if (!showHidden)
-        {
-            discounts = discounts.Where(discount =>
-                (!discount.StartDateUtc.HasValue || discount.StartDateUtc <= DateTime.UtcNow) &&
-                (!discount.EndDateUtc.HasValue || discount.EndDateUtc >= DateTime.UtcNow));
-        }
-
-        if (startDateUtc.HasValue)
-        {
-            discounts = discounts.Where(discount =>
-                !discount.StartDateUtc.HasValue || discount.StartDateUtc >= startDateUtc.Value);
-        }
-
-        if (endDateUtc.HasValue)
-        {
-            discounts = discounts.Where(discount =>
-                !discount.EndDateUtc.HasValue || discount.EndDateUtc <= endDateUtc.Value);
-        }
-
-        if (vendorId > 0)
-            discounts = discounts.Where(discount => discount.VendorId == vendorId);
-
-        return await discounts.ToListAsync();
+        return Task.FromResult<IList<Discount>>(new List<Discount>());
     }
 
     /// <summary>
@@ -249,19 +199,9 @@ public partial class DiscountService : IDiscountService
     /// A task that represents the asynchronous operation
     /// The task result contains the list of discounts
     /// </returns>
-    public virtual async Task<IList<Discount>> GetAppliedDiscountsAsync<T>(IDiscountSupported<T> entity) where T : DiscountMapping
+    public virtual Task<IList<Discount>> GetAppliedDiscountsAsync<T>(IDiscountSupported<T> entity) where T : DiscountMapping
     {
-        var discountMappingRepository = EngineContext.Current.Resolve<IRepository<T>>();
-
-        var appliedDiscounts = await _shortTermCacheManager.GetAsync(async () =>
-        {
-            return await (from d in _discountRepository.Table
-                join ad in discountMappingRepository.Table on d.Id equals ad.DiscountId
-                where ad.EntityId == entity.Id
-                select d).ToListAsync();
-        }, NopDiscountDefaults.AppliedDiscountsCacheKey, entity.GetType().Name, entity);
-
-        return appliedDiscounts;
+        return Task.FromResult<IList<Discount>>(new List<Discount>());
     }
 
     /// <summary>
@@ -393,22 +333,9 @@ public partial class DiscountService : IDiscountService
     /// A task that represents the asynchronous operation
     /// The task result contains the requirements
     /// </returns>
-    public virtual async Task<IList<DiscountRequirement>> GetAllDiscountRequirementsAsync(int discountId = 0, bool topLevelOnly = false)
+    public virtual Task<IList<DiscountRequirement>> GetAllDiscountRequirementsAsync(int discountId = 0, bool topLevelOnly = false)
     {
-        return await _discountRequirementRepository.GetAllAsync(query =>
-        {
-            //filter by discount
-            if (discountId > 0)
-                query = query.Where(requirement => requirement.DiscountId == discountId);
-
-            //filter by top-level
-            if (topLevelOnly)
-                query = query.Where(requirement => !requirement.ParentId.HasValue);
-
-            query = query.OrderBy(requirement => requirement.Id);
-
-            return query;
-        });
+        return Task.FromResult<IList<DiscountRequirement>>(new List<DiscountRequirement>());
     }
 
     /// <summary>
@@ -426,13 +353,9 @@ public partial class DiscountService : IDiscountService
     /// </summary>
     /// <param name="discountRequirement">Parent discount requirement</param>
     /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task<IList<DiscountRequirement>> GetDiscountRequirementsByParentAsync(DiscountRequirement discountRequirement)
+    public virtual Task<IList<DiscountRequirement>> GetDiscountRequirementsByParentAsync(DiscountRequirement discountRequirement)
     {
-        ArgumentNullException.ThrowIfNull(discountRequirement);
-
-        return await _discountRequirementRepository.GetAllAsync(
-            query => query.Where(dr => dr.ParentId == discountRequirement.Id),
-            cache => cache.PrepareKeyForDefaultCache(NopDiscountDefaults.DiscountRequirementsByParentCacheKey, discountRequirement));
+        return Task.FromResult<IList<DiscountRequirement>>(new List<DiscountRequirement>());
     }
 
     /// <summary>
@@ -645,40 +568,10 @@ public partial class DiscountService : IDiscountService
     /// A task that represents the asynchronous operation
     /// The task result contains the discount usage history records
     /// </returns>
-    public virtual async Task<IPagedList<DiscountUsageHistory>> GetAllDiscountUsageHistoryAsync(int? discountId = null,
+    public virtual Task<IPagedList<DiscountUsageHistory>> GetAllDiscountUsageHistoryAsync(int? discountId = null,
         int? customerId = null, int? orderId = null, bool includeCancelledOrders = true, int pageIndex = 0, int pageSize = int.MaxValue)
     {
-        return await _discountUsageHistoryRepository.GetAllPagedAsync(query =>
-        {
-            //filter by discount
-            if (discountId.HasValue && discountId.Value > 0)
-                query = query.Where(historyRecord => historyRecord.DiscountId == discountId.Value);
-
-            //filter by customer
-            if (customerId.HasValue && customerId.Value > 0)
-            {
-                query = from duh in query
-                    join order in _orderRepository.Table on duh.OrderId equals order.Id
-                    where order.CustomerId == customerId
-                    select duh;
-            }
-
-            //filter by order
-            if (orderId.HasValue && orderId.Value > 0)
-                query = query.Where(historyRecord => historyRecord.OrderId == orderId.Value);
-
-            //ignore invalid orders
-            query = from duh in query
-                join order in _orderRepository.Table on duh.OrderId equals order.Id
-                where !order.Deleted && (includeCancelledOrders || order.OrderStatusId != (int)OrderStatus.Cancelled)
-                select duh;
-
-            //order
-            query = query.OrderByDescending(historyRecord => historyRecord.CreatedOnUtc)
-                .ThenBy(historyRecord => historyRecord.Id);
-
-            return query;
-        }, pageIndex, pageSize);
+        return Task.FromResult<IPagedList<DiscountUsageHistory>>(new PagedList<DiscountUsageHistory>(new List<DiscountUsageHistory>(), pageIndex, pageSize));
     }
 
     /// <summary>

@@ -899,37 +899,11 @@ public partial class OrderService : IOrderService
     /// A task that represents the asynchronous operation
     /// The task result contains the recurring payments
     /// </returns>
-    public virtual async Task<IPagedList<RecurringPayment>> SearchRecurringPaymentsAsync(int storeId = 0,
+    public virtual Task<IPagedList<RecurringPayment>> SearchRecurringPaymentsAsync(int storeId = 0,
         int customerId = 0, int initialOrderId = 0, OrderStatus? initialOrderStatus = null,
         int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
     {
-        int? initialOrderStatusId = null;
-        if (initialOrderStatus.HasValue)
-            initialOrderStatusId = (int)initialOrderStatus.Value;
-
-        var query1 = from rp in _recurringPaymentRepository.Table
-            join o in _orderRepository.Table on rp.InitialOrderId equals o.Id
-            join c in _customerRepository.Table on o.CustomerId equals c.Id
-            where
-                !rp.Deleted &&
-                (showHidden || !o.Deleted) &&
-                (showHidden || !c.Deleted) &&
-                (showHidden || rp.IsActive) &&
-                (customerId == 0 || o.CustomerId == customerId) &&
-                (storeId == 0 || o.StoreId == storeId) &&
-                (initialOrderId == 0 || o.Id == initialOrderId) &&
-                (!initialOrderStatusId.HasValue || initialOrderStatusId.Value == 0 ||
-                 o.OrderStatusId == initialOrderStatusId.Value)
-            select rp.Id;
-
-        var query2 = from rp in _recurringPaymentRepository.Table
-            where query1.Contains(rp.Id)
-            orderby rp.StartDateUtc, rp.Id
-            select rp;
-
-        var recurringPayments = await query2.ToPagedListAsync(pageIndex, pageSize);
-
-        return recurringPayments;
+        return Task.FromResult<IPagedList<RecurringPayment>>(new PagedList<RecurringPayment>(new List<RecurringPayment>(), pageIndex, pageSize));
     }
 
     #endregion
@@ -944,13 +918,9 @@ public partial class OrderService : IOrderService
     /// A task that represents the asynchronous operation
     /// The task result contains the result
     /// </returns>
-    public virtual async Task<IList<RecurringPaymentHistory>> GetRecurringPaymentHistoryAsync(RecurringPayment recurringPayment)
+    public virtual Task<IList<RecurringPaymentHistory>> GetRecurringPaymentHistoryAsync(RecurringPayment recurringPayment)
     {
-        ArgumentNullException.ThrowIfNull(recurringPayment);
-
-        return await _recurringPaymentHistoryRepository.Table
-            .Where(rph => rph.RecurringPaymentId == recurringPayment.Id)
-            .ToListAsync();
+        return Task.FromResult<IList<RecurringPaymentHistory>>(new List<RecurringPaymentHistory>());
     }
 
     /// <summary>

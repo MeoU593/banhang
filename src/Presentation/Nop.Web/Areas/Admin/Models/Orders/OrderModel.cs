@@ -20,7 +20,6 @@ public partial record OrderModel : BaseNopEntityModel
         TaxRates = new List<TaxRate>();
         GiftCards = new List<GiftCard>();
         Items = new List<OrderItemModel>();
-        UsedDiscounts = new List<UsedDiscountModel>();
         OrderShipmentSearchModel = new OrderShipmentSearchModel();
         OrderNoteSearchModel = new OrderNoteSearchModel();
         BillingAddress = new AddressModel();
@@ -64,10 +63,6 @@ public partial record OrderModel : BaseNopEntityModel
     [NopResourceDisplayName("Admin.Orders.Fields.Affiliate")]
     public string AffiliateName { get; set; }
 
-    //Used discounts
-    [NopResourceDisplayName("Admin.Orders.Fields.UsedDiscounts")]
-    public IList<UsedDiscountModel> UsedDiscounts { get; set; }
-
     //totals
     public bool AllowCustomersToSelectTaxDisplayType { get; set; }
     public TaxDisplayType TaxDisplayType { get; set; }
@@ -75,10 +70,6 @@ public partial record OrderModel : BaseNopEntityModel
     public string OrderSubtotalInclTax { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.OrderSubtotalExclTax")]
     public string OrderSubtotalExclTax { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.OrderSubTotalDiscountInclTax")]
-    public string OrderSubTotalDiscountInclTax { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.OrderSubTotalDiscountExclTax")]
-    public string OrderSubTotalDiscountExclTax { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.OrderShippingInclTax")]
     public string OrderShippingInclTax { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.OrderShippingExclTax")]
@@ -92,12 +83,6 @@ public partial record OrderModel : BaseNopEntityModel
     public IList<TaxRate> TaxRates { get; set; }
     public bool DisplayTax { get; set; }
     public bool DisplayTaxRates { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.OrderTotalDiscount")]
-    public string OrderTotalDiscount { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.RedeemedRewardPoints")]
-    public int RedeemedRewardPoints { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.RedeemedRewardPoints")]
-    public string RedeemedRewardPointsAmount { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.OrderTotal")]
     public string OrderTotal { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.RefundedAmount")]
@@ -110,10 +95,6 @@ public partial record OrderModel : BaseNopEntityModel
     public decimal OrderSubtotalInclTaxValue { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderSubtotal")]
     public decimal OrderSubtotalExclTaxValue { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderSubTotalDiscount")]
-    public decimal OrderSubTotalDiscountInclTaxValue { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderSubTotalDiscount")]
-    public decimal OrderSubTotalDiscountExclTaxValue { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderShipping")]
     public decimal OrderShippingInclTaxValue { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderShipping")]
@@ -126,8 +107,6 @@ public partial record OrderModel : BaseNopEntityModel
     public decimal TaxValue { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.Edit.TaxRates")]
     public string TaxRatesValue { get; set; }
-    [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderTotalDiscount")]
-    public decimal OrderTotalDiscountValue { get; set; }
     [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderTotal")]
     public decimal OrderTotalValue { get; set; }
 
@@ -255,12 +234,6 @@ public partial record OrderModel : BaseNopEntityModel
         [NopResourceDisplayName("Admin.Orders.Fields.GiftCardInfo")]
         public string CouponCode { get; set; }
         public string Amount { get; set; }
-    }
-
-    public partial record UsedDiscountModel : BaseNopModel
-    {
-        public int DiscountId { get; set; }
-        public string DiscountName { get; set; }
     }
 
     #endregion

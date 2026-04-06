@@ -263,31 +263,6 @@ public partial interface IProductModelFactory
     Task<ProductOrderListModel> PrepareProductOrderListModelAsync(ProductOrderSearchModel searchModel, Product product);
 
     /// <summary>
-    /// Prepare paged tier price list model
-    /// </summary>
-    /// <param name="searchModel">Tier price search model</param>
-    /// <param name="product">Product</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ier price list model
-    /// </returns>
-    Task<TierPriceListModel> PrepareTierPriceListModelAsync(TierPriceSearchModel searchModel, Product product);
-
-    /// <summary>
-    /// Prepare tier price model
-    /// </summary>
-    /// <param name="model">Tier price model</param>
-    /// <param name="product">Product</param>
-    /// <param name="tierPrice">Tier price</param>
-    /// <param name="excludeProperties">Whether to exclude populating of some properties of model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ier price model
-    /// </returns>
-    Task<TierPriceModel> PrepareTierPriceModelAsync(TierPriceModel model,
-        Product product, TierPrice tierPrice, bool excludeProperties = false);
-
-    /// <summary>
     /// Prepare paged stock quantity history list model
     /// </summary>
     /// <param name="searchModel">Stock quantity history search model</param>

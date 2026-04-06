@@ -573,17 +573,6 @@
                                     <span>@Model.OrderSubtotal</span>
                                 </td>
                             </tr>
-                            @if (!string.IsNullOrEmpty(Model.OrderSubTotalDiscount))
-                            {
-                                <tr>
-                                    <td class="cart-total-left">
-                                        <label>@T("Order.SubTotalDiscount"):</label>
-                                    </td>
-                                    <td class="cart-total-right">
-                                        <span>@Model.OrderSubTotalDiscount</span>
-                                    </td>
-                                </tr>
-                            }
                             @if (Model.IsShippable)
                             {
                                 <tr>
@@ -631,17 +620,6 @@
                                     </td>
                                 </tr>
                             }
-                            @if (!string.IsNullOrEmpty(Model.OrderTotalDiscount))
-                            {
-                                <tr>
-                                    <td class="cart-total-left">
-                                        <label>@T("Order.TotalDiscount"):</label>
-                                    </td>
-                                    <td class="cart-total-right">
-                                        <span>@Model.OrderTotalDiscount</span>
-                                    </td>
-                                </tr>
-                            }
                             @if (Model.GiftCards.Count > 0)
                             {
                                 foreach (var gc in Model.GiftCards)
@@ -655,17 +633,6 @@
                                         </td>
                                     </tr>
                                 }
-                            }
-                            @if (Model.RedeemedRewardPoints > 0)
-                            {
-                                <tr>
-                                    <td class="cart-total-left">
-                                        <label>@string.Format(T("Order.RewardPoints").Text, Model.RedeemedRewardPoints):</label>
-                                    </td>
-                                    <td class="cart-total-right">
-                                        <span>@Model.RedeemedRewardPointsAmount</span>
-                                    </td>
-                                </tr>
                             }
                             <tr>
                                 <td class="cart-total-left">

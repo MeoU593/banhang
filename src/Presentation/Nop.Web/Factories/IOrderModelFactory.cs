@@ -49,13 +49,4 @@ public partial interface IOrderModelFactory
     /// </returns>
     Task<ShipmentDetailsModel> PrepareShipmentDetailsModelAsync(Shipment shipment);
 
-    /// <summary>
-    /// Prepare the customer reward points model
-    /// </summary>
-    /// <param name="page">Number of items page; pass null to load the first page</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the customer reward points model
-    /// </returns>
-    Task<CustomerRewardPointsModel> PrepareCustomerRewardPointsAsync(int? page);
 }

@@ -58,7 +58,6 @@ public partial class CheckoutController : BasePublicController
     protected readonly IWorkContext _workContext;
     protected readonly OrderSettings _orderSettings;
     protected readonly PaymentSettings _paymentSettings;
-    protected readonly RewardPointsSettings _rewardPointsSettings;
     protected readonly ShippingSettings _shippingSettings;
     protected readonly TaxSettings _taxSettings;
     private static readonly string[] _separator = ["___"];
@@ -92,7 +91,6 @@ public partial class CheckoutController : BasePublicController
         IWorkContext workContext,
         OrderSettings orderSettings,
         PaymentSettings paymentSettings,
-        RewardPointsSettings rewardPointsSettings,
         ShippingSettings shippingSettings,
         TaxSettings taxSettings)
     {
@@ -121,7 +119,6 @@ public partial class CheckoutController : BasePublicController
         _workContext = workContext;
         _orderSettings = orderSettings;
         _paymentSettings = paymentSettings;
-        _rewardPointsSettings = rewardPointsSettings;
         _shippingSettings = shippingSettings;
         _taxSettings = taxSettings;
     }
@@ -1055,7 +1052,7 @@ public partial class CheckoutController : BasePublicController
         var paymentMethodModel = await _checkoutModelFactory.PreparePaymentMethodModelAsync(cart, filterByCountryId);
 
         if (_paymentSettings.BypassPaymentMethodSelectionIfOnlyOne &&
-            paymentMethodModel.PaymentMethods.Count == 1 && !paymentMethodModel.DisplayRewardPoints)
+            paymentMethodModel.PaymentMethods.Count == 1)
         {
             //if we have only one payment method and reward points are disabled or the current customer doesn't have any reward points
             //so customer doesn't have to choose a payment method
@@ -1090,14 +1087,6 @@ public partial class CheckoutController : BasePublicController
 
         if (await _customerService.IsGuestAsync(customer) && !_orderSettings.AnonymousCheckoutAllowed)
             return Challenge();
-
-        //reward points
-        if (_rewardPointsSettings.Enabled)
-        {
-            await _genericAttributeService.SaveAttributeAsync(customer,
-                NopCustomerDefaults.UseRewardPointsDuringCheckoutAttribute, model.UseRewardPoints,
-                store.Id);
-        }
 
         //Check whether payment workflow is required
         var isPaymentWorkflowRequired = await _orderProcessingService.IsPaymentWorkflowRequiredAsync(cart);
@@ -1381,7 +1370,7 @@ public partial class CheckoutController : BasePublicController
             var paymentMethodModel = await _checkoutModelFactory.PreparePaymentMethodModelAsync(cart, filterByCountryId);
 
             if (_paymentSettings.BypassPaymentMethodSelectionIfOnlyOne &&
-                paymentMethodModel.PaymentMethods.Count == 1 && !paymentMethodModel.DisplayRewardPoints)
+                paymentMethodModel.PaymentMethods.Count == 1)
             {
                 //if we have only one payment method and reward points are disabled or the current customer doesn't have any reward points
                 //so customer doesn't have to choose a payment method
@@ -1864,14 +1853,6 @@ public partial class CheckoutController : BasePublicController
             //payment method 
             if (string.IsNullOrEmpty(paymentmethod))
                 throw new Exception("Selected payment method can't be parsed");
-
-            //reward points
-            if (_rewardPointsSettings.Enabled)
-            {
-                await _genericAttributeService.SaveAttributeAsync(customer,
-                    NopCustomerDefaults.UseRewardPointsDuringCheckoutAttribute, model.UseRewardPoints,
-                    store.Id);
-            }
 
             //Check whether payment workflow is required
             var isPaymentWorkflowRequired = await _orderProcessingService.IsPaymentWorkflowRequiredAsync(cart);

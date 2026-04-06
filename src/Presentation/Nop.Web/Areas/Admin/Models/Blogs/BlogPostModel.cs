@@ -18,6 +18,11 @@ public partial record BlogPostModel : BaseNopEntityModel, IStoreMappingSupported
         AvailableLanguages = new List<SelectListItem>();
         SelectedStoreIds = new List<int>();
         AvailableStores = new List<SelectListItem>();
+        AvailablePostTypes = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "0", Text = "Tin tức / Thông báo" },
+            new SelectListItem { Value = "1", Text = "Văn bản ban hành" }
+        };
     }
 
     #endregion
@@ -29,6 +34,10 @@ public partial record BlogPostModel : BaseNopEntityModel, IStoreMappingSupported
 
     [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.IncludeInSitemap")]
     public bool IncludeInSitemap { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.PostTypeId")]
+    public int PostTypeId { get; set; }
+    public IList<SelectListItem> AvailablePostTypes { get; set; }
 
     public IList<SelectListItem> AvailableLanguages { get; set; }
 

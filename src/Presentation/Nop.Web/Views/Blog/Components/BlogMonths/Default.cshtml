@@ -1,22 +1,24 @@
 ﻿@model IList<BlogPostYearModel>
 @if (Model.Count > 0)
 {
-    <section class="block block-blog-archive">
-        <h2 class="title">
+    <section class="block block-blog-archive overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm mb-4">
+        <h2 class="title border-b border-slate-100 bg-slate-900 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-military-gold">
             @T("Blog.Archive")
         </h2>
-        <div class="listbox">
-            <ul class="list" id="blog-month-list">
+        <div class="listbox p-4">
+            <ul class="list space-y-3" id="blog-month-list">
                 @foreach (var yearItem in Model)
                 {
                     <li class="year">
-                        <strong class="number">@(yearItem.Year)</strong>
-                        <ul class="sublist" id="blog-year-@(yearItem.Year)">
+                        <strong class="number text-sm font-bold text-slate-800">@(yearItem.Year)</strong>
+                        <ul class="sublist mt-2 space-y-2" id="blog-year-@(yearItem.Year)">
                             @foreach (var monthItem in yearItem.Months)
                             {
                                 <li class="month">
-                                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_MONTH, new { month = yearItem.Year + "-" + monthItem.Month })">@(new DateTime(yearItem.Year, monthItem.Month, 1).ToString("MMMM"))
-                                    (@(monthItem.BlogPostCount))</a>
+                                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_MONTH, new { month = yearItem.Year + "-" + monthItem.Month })" class="inline-flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                                        <span>@(new DateTime(yearItem.Year, monthItem.Month, 1).ToString("MMMM"))</span>
+                                        <span class="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-slate-600">@(monthItem.BlogPostCount)</span>
+                                    </a>
                                 </li>
                             }
                         </ul>

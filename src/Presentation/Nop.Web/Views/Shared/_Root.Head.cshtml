@@ -89,17 +89,21 @@
 
     @NopHtml.GenerateCssFiles()
     <style>
-        body {
+        /* Universal font override – beats all element-level Arial rules in styles.css */
+        *,
+        *::before,
+        *::after {
             font-family: 'Inter', sans-serif !important;
-            background: #f8fafc;
-            color: #0f172a;
         }
 
-        input,
-        textarea,
-        select,
-        button {
-            font-family: 'Inter', sans-serif !important;
+        /* Preserve monospace for code blocks */
+        pre, code, kbd, samp, tt {
+            font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
+        }
+
+        body {
+            background: #f8fafc;
+            color: #0f172a;
         }
 
         .material-symbols-outlined {

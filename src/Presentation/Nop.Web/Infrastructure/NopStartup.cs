@@ -43,7 +43,6 @@ public partial class NopStartup : INopStartup
         services.AddScoped<ICustomerAttributeModelFactory, CustomerAttributeModelFactory>();
         services.AddScoped<ICustomerModelFactory, CustomerModelFactory>();
         services.AddScoped<ICustomerRoleModelFactory, CustomerRoleModelFactory>();
-        services.AddScoped<IDiscountModelFactory, DiscountModelFactory>();
         services.AddScoped<IEmailAccountModelFactory, EmailAccountModelFactory>();
         services.AddScoped<IExternalAuthenticationMethodModelFactory, ExternalAuthenticationMethodModelFactory>();
         services.AddScoped<IFilterLevelValueModelFactory, FilterLevelValueModelFactory>();
@@ -73,7 +72,6 @@ public partial class NopStartup : INopStartup
         services.AddScoped<ISecurityModelFactory, SecurityModelFactory>();
         services.AddScoped<ISettingModelFactory, SettingModelFactory>();
         services.AddScoped<IShippingModelFactory, ShippingModelFactory>();
-        services.AddScoped<IShoppingCartModelFactory, ShoppingCartModelFactory>();
         services.AddScoped<ISpecificationAttributeModelFactory, SpecificationAttributeModelFactory>();
         services.AddScoped<IStoreModelFactory, StoreModelFactory>();
         services.AddScoped<ITaxModelFactory, TaxModelFactory>();
@@ -103,7 +101,6 @@ public partial class NopStartup : INopStartup
         services.AddScoped<Factories.IProductModelFactory, Factories.ProductModelFactory>();
         services.AddScoped<Factories.IProfileModelFactory, Factories.ProfileModelFactory>();
         services.AddScoped<Factories.IReturnRequestModelFactory, Factories.ReturnRequestModelFactory>();
-        services.AddScoped<Factories.IShoppingCartModelFactory, Factories.ShoppingCartModelFactory>();
         services.AddScoped<Factories.ISitemapModelFactory, Factories.SitemapModelFactory>();
         services.AddScoped<Factories.ITopicModelFactory, Factories.TopicModelFactory>();
         services.AddScoped<Factories.IVendorModelFactory, Factories.VendorModelFactory>();

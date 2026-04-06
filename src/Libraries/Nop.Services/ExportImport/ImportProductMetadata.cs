@@ -18,8 +18,6 @@ public partial class ImportProductMetadata
 
     public PropertyManager<ExportSpecificationAttribute> SpecificationAttributeManager { get; internal set; }
 
-    public PropertyManager<ExportTierPrice> TierPriceManager { get; internal set; }
-
     public IXLWorksheet DefaultWorksheet { get; set; }
 
     public List<IXLWorksheet> LocalizedWorksheets { get; set; }

@@ -32,7 +32,6 @@ using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Media;
-using Nop.Web.Models.ShoppingCart;
 
 namespace Nop.Web.Factories;
 
@@ -50,7 +49,6 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly ICategoryService _categoryService;
     protected readonly ICurrencyService _currencyService;
     protected readonly ICustomerService _customerService;
-    protected readonly ICustomWishlistService _customWishlistService;
     protected readonly IDateRangeService _dateRangeService;
     protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IDownloadService _downloadService;
@@ -74,7 +72,6 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreService _storeService;
-    protected readonly IShoppingCartModelFactory _shoppingCartModelFactory;
     protected readonly ITaxService _taxService;
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IVendorService _vendorService;
@@ -99,7 +96,6 @@ public partial class ProductModelFactory : IProductModelFactory
         ICategoryService categoryService,
         ICurrencyService currencyService,
         ICustomerService customerService,
-        ICustomWishlistService customWishlistService,
         IDateRangeService dateRangeService,
         IDateTimeHelper dateTimeHelper,
         IDownloadService downloadService,
@@ -123,7 +119,6 @@ public partial class ProductModelFactory : IProductModelFactory
         IStaticCacheManager staticCacheManager,
         IStoreContext storeContext,
         IStoreService storeService,
-        IShoppingCartModelFactory shoppingCartModelFactory,
         ITaxService taxService,
         IUrlRecordService urlRecordService,
         IVendorService vendorService,
@@ -143,7 +138,6 @@ public partial class ProductModelFactory : IProductModelFactory
         _categoryService = categoryService;
         _currencyService = currencyService;
         _customerService = customerService;
-        _customWishlistService = customWishlistService;
         _dateRangeService = dateRangeService;
         _dateTimeHelper = dateTimeHelper;
         _downloadService = downloadService;
@@ -167,7 +161,6 @@ public partial class ProductModelFactory : IProductModelFactory
         _staticCacheManager = staticCacheManager;
         _storeContext = storeContext;
         _storeService = storeService;
-        _shoppingCartModelFactory = shoppingCartModelFactory;
         _taxService = taxService;
         _urlRecordService = urlRecordService;
         _vendorService = vendorService;
@@ -772,37 +765,6 @@ public partial class ProductModelFactory : IProductModelFactory
     }
 
     /// <summary>
-    /// Prepare the product to wishlist model
-    /// </summary>
-    /// <param name="product">Product</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the product add to wishlist model
-    /// </returns>
-    protected virtual async Task<ProductToWishlistModel> PrepareProductToWishlistModelAsync(Product product)
-    {
-        ArgumentNullException.ThrowIfNull(product);
-
-        var model = new ProductToWishlistModel
-        {
-            ProductId = product.Id
-        };
-        //custom wishlists
-        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
-        var currentWishlists = await _customWishlistService.GetAllCustomWishlistsAsync(currentCustomer.Id);
-        foreach (var wishlist in currentWishlists)
-        {
-            var customWishlistModel = new CustomWishlistModel
-            {
-                Id = wishlist.Id,
-                Name = wishlist.Name
-            };
-            model.CustomWishlistItems.Add(customWishlistModel);
-        }
-        return model;
-    }
-
-    /// <summary>
     /// Prepare the product add to cart model
     /// </summary>
     /// <param name="product">Product</param>
@@ -851,9 +813,6 @@ public partial class ProductModelFactory : IProductModelFactory
             model.DisableBuyButton = true;
             model.DisableWishlistButton = true;
         }
-
-        //custom wishlist items
-        model.ProductToWishlist = await PrepareProductToWishlistModelAsync(product);
 
         //pre-order
         if (product.AvailableForPreOrder)
@@ -1361,9 +1320,6 @@ public partial class ProductModelFactory : IProductModelFactory
             //reviews
             model.ReviewOverviewModel = await PrepareProductReviewOverviewModelAsync(product);
 
-            //custom wishlist items
-            model.ProductToWishlist = await PrepareProductToWishlistModelAsync(product);
-
             models.Add(model);
         }
 
@@ -1623,32 +1579,6 @@ public partial class ProductModelFactory : IProductModelFactory
                 model.RentalStartDate = updatecartitem.RentalStartDateUtc;
                 model.RentalEndDate = updatecartitem.RentalEndDateUtc;
             }
-        }
-
-        //estimate shipping
-        if (_shippingSettings.EstimateShippingProductPageEnabled && !model.IsFreeShipping)
-        {
-            var wrappedProduct = new ShoppingCartItem
-            {
-                StoreId = store.Id,
-                ShoppingCartTypeId = (int)ShoppingCartType.ShoppingCart,
-                CustomerId = customer.Id,
-                ProductId = product.Id,
-                CreatedOnUtc = DateTime.UtcNow
-            };
-
-            var estimateShippingModel = await _shoppingCartModelFactory.PrepareEstimateShippingModelAsync(new[] { wrappedProduct });
-
-            model.ProductEstimateShipping.ProductId = product.Id;
-            model.ProductEstimateShipping.RequestDelay = estimateShippingModel.RequestDelay;
-            model.ProductEstimateShipping.Enabled = estimateShippingModel.Enabled;
-            model.ProductEstimateShipping.CountryId = estimateShippingModel.CountryId;
-            model.ProductEstimateShipping.StateProvinceId = estimateShippingModel.StateProvinceId;
-            model.ProductEstimateShipping.ZipPostalCode = estimateShippingModel.ZipPostalCode;
-            model.ProductEstimateShipping.UseCity = estimateShippingModel.UseCity;
-            model.ProductEstimateShipping.City = estimateShippingModel.City;
-            model.ProductEstimateShipping.AvailableCountries = estimateShippingModel.AvailableCountries;
-            model.ProductEstimateShipping.AvailableStates = estimateShippingModel.AvailableStates;
         }
 
         //associated products

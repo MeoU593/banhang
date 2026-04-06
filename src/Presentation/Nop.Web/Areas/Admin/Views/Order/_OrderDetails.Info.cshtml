@@ -194,40 +194,6 @@
                     </div>
                 </div>
             </div>
-            @if (((Model.AllowCustomersToSelectTaxDisplayType || Model.TaxDisplayType == TaxDisplayType.IncludingTax) && !string.IsNullOrEmpty(Model.OrderSubTotalDiscountInclTax)) ||
-               ((Model.AllowCustomersToSelectTaxDisplayType || Model.TaxDisplayType == TaxDisplayType.ExcludingTax) && !string.IsNullOrEmpty(Model.OrderSubTotalDiscountExclTax)))
-            {
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <div class="label-wrapper">
-                            <label class="col-form-label">@T("Admin.Orders.Fields.OrderSubTotalDiscount")</label>
-                            <div class="ico-help" title="@T("Admin.Orders.Fields.OrderSubTotalDiscount.Hint")">
-                                <i class="fas fa-circle-question"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="row">
-                            @if ((Model.AllowCustomersToSelectTaxDisplayType || Model.TaxDisplayType == TaxDisplayType.IncludingTax) && !string.IsNullOrEmpty(Model.OrderSubTotalDiscountInclTax))
-                            {
-                                <div class="col-md-6">
-                                    <div class="form-text-row">
-                                        @Html.Raw(Model.OrderSubTotalDiscountInclTax) <strong>@T("Admin.Orders.Fields.OrderSubTotalDiscountInclTax")</strong>
-                                    </div>
-                                </div>
-                            }
-                            @if ((Model.AllowCustomersToSelectTaxDisplayType || Model.TaxDisplayType == TaxDisplayType.ExcludingTax) && !string.IsNullOrEmpty(Model.OrderSubTotalDiscountExclTax))
-                            {
-                                <div class="col-md-6">
-                                    <div class="form-text-row">
-                                        @Html.Raw(Model.OrderSubTotalDiscountExclTax) <strong>@T("Admin.Orders.Fields.OrderSubTotalDiscountExclTax")</strong>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
             <div class="form-group row">
                 <div class="col-md-3">
                     <div class="label-wrapper">
@@ -317,17 +283,6 @@
                     </div>
                 </div>
             }
-            @if (!string.IsNullOrEmpty(Model.OrderTotalDiscount))
-            {
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <nop-label asp-for="OrderTotalDiscount" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="form-text-row">@Html.Raw(Model.OrderTotalDiscount)</div>
-                    </div>
-                </div>
-            }
             @foreach (var gc in Model.GiftCards)
             {
                 <div class="form-group row">
@@ -337,17 +292,6 @@
                     </div>
                     <div class="col-md-9">
                         <div class="form-text-row">@gc.Amount</div>
-                    </div>
-                </div>
-            }
-            @if (Model.RedeemedRewardPoints > 0)
-            {
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <nop-label asp-for="RedeemedRewardPoints" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="form-text-row">@($"{Model.RedeemedRewardPoints} {T("Admin.Orders.Fields.RedeemedRewardPoints.Points")} {Model.RedeemedRewardPointsAmount}")</div>
                     </div>
                 </div>
             }
@@ -367,25 +311,6 @@
                     </div>
                     <div class="col-md-9">
                         <div class="form-text-row">@Model.RefundedAmount</div>
-                    </div>
-                </div>
-            }
-            @if (Model.UsedDiscounts.Count > 0)
-            {
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <nop-label asp-for="UsedDiscounts" />
-                    </div>
-                    <div class="col-md-9">
-                        @for (var i = 0; i < Model.UsedDiscounts.Count; i++)
-                        {
-                            var discount = Model.UsedDiscounts[i];
-                            <a asp-controller="Discount" asp-action="Edit" asp-route-id="@discount.DiscountId">@discount.DiscountName</a>
-                            if (i != Model.UsedDiscounts.Count - 1)
-                            {
-                                <text>,</text>
-                            }
-                        }
                     </div>
                 </div>
             }
@@ -410,21 +335,6 @@
                         <div class="float-left">
                             @T("Admin.Orders.Fields.Edit.ExclTax")
                             <nop-editor asp-for="OrderSubtotalExclTaxValue" />
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <nop-label asp-for="OrderSubTotalDiscountInclTaxValue" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="float-left margin-r-10">
-                            @T("Admin.Orders.Fields.Edit.InclTax")
-                            <nop-editor asp-for="OrderSubTotalDiscountInclTaxValue" />
-                        </div>
-                        <div class="float-left">
-                            @T("Admin.Orders.Fields.Edit.ExclTax")
-                            <nop-editor asp-for="OrderSubTotalDiscountExclTaxValue" />
                         </div>
                     </div>
                 </div>
@@ -472,14 +382,6 @@
                     </div>
                     <div class="col-md-9">
                         <nop-editor asp-for="TaxValue" />
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-md-3">
-                        <nop-label asp-for="OrderTotalDiscountValue" />
-                    </div>
-                    <div class="col-md-9">
-                        <nop-editor asp-for="OrderTotalDiscountValue" />
                     </div>
                 </div>
                 <div class="form-group row">

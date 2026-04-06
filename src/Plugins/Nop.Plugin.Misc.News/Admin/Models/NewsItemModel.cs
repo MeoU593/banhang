@@ -29,6 +29,15 @@ public record NewsItemModel : BaseNopEntityModel, IStoreMappingSupportedModel, I
 
     public IList<SelectListItem> AvailableLanguages { get; set; }
 
+    [NopResourceDisplayName("Plugins.Misc.News.NewsItems.Fields.NewsItemType")]
+    public int NewsItemTypeId { get; set; }
+
+    public IList<SelectListItem> AvailableNewsItemTypes { get; set; } = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "0", Text = "Tin tức" },
+        new SelectListItem { Value = "1", Text = "Công văn" }
+    };
+
     [NopResourceDisplayName("Plugins.Misc.News.NewsItems.Fields.Language")]
     public string LanguageName { get; set; }
 

@@ -1491,29 +1491,6 @@ public partial class InstallationService
     }
 
     /// <summary>
-    /// Installs a sample discounts
-    /// </summary>
-    /// <param name="sampleDiscounts">Sample discounts to install</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    protected virtual async Task InstallDiscountsAsync(IList<SampleDiscount> sampleDiscounts)
-    {
-        await _dataProvider.BulkInsertEntitiesAsync(sampleDiscounts.Select(sd => new Discount
-        {
-            IsActive = sd.IsActive,
-            Name = sd.Name,
-            DiscountType = sd.DiscountType,
-            DiscountLimitation = sd.DiscountLimitation,
-            DiscountAmount = sd.DiscountAmount,
-            UsePercentage = sd.UsePercentage,
-            DiscountPercentage = sd.DiscountPercentage,
-            StartDateUtc = DateTime.UtcNow.AddYears(-5),
-            EndDateUtc = DateTime.UtcNow.AddYears(5),
-            RequiresCouponCode = sd.RequiresCouponCode,
-            CouponCode = sd.CouponCode
-        }));
-    }
-
-    /// <summary>
     /// Installs a sample blog posts
     /// </summary>
     /// <param name="sampleBlogPosts">Sample blog posts to install</param>

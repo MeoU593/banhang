@@ -49,7 +49,6 @@ public partial class ProductController : BasePublicController
     protected readonly IProductService _productService;
     protected readonly IRecentlyViewedProductsService _recentlyViewedProductsService;
     protected readonly IReviewTypeService _reviewTypeService;
-    protected readonly IShoppingCartModelFactory _shoppingCartModelFactory;
     protected readonly IShoppingCartService _shoppingCartService;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreMappingService _storeMappingService;
@@ -82,7 +81,6 @@ public partial class ProductController : BasePublicController
         IProductService productService,
         IRecentlyViewedProductsService recentlyViewedProductsService,
         IReviewTypeService reviewTypeService,
-        IShoppingCartModelFactory shoppingCartModelFactory,
         IShoppingCartService shoppingCartService,
         IStoreContext storeContext,
         IStoreMappingService storeMappingService,
@@ -111,7 +109,6 @@ public partial class ProductController : BasePublicController
         _productService = productService;
         _reviewTypeService = reviewTypeService;
         _recentlyViewedProductsService = recentlyViewedProductsService;
-        _shoppingCartModelFactory = shoppingCartModelFactory;
         _shoppingCartService = shoppingCartService;
         _storeContext = storeContext;
         _storeMappingService = storeMappingService;
@@ -200,75 +197,6 @@ public partial class ProductController : BasePublicController
         var productTemplateViewPath = await _productModelFactory.PrepareProductTemplateViewPathAsync(product);
 
         return View(productTemplateViewPath, model);
-    }
-
-    [HttpPost]
-    public virtual async Task<IActionResult> EstimateShipping([FromQuery] ProductDetailsModel.ProductEstimateShippingModel model, IFormCollection form)
-    {
-        if (model == null)
-            model = new ProductDetailsModel.ProductEstimateShippingModel();
-
-        var errors = new List<string>();
-
-        if (!_shippingSettings.EstimateShippingCityNameEnabled && string.IsNullOrEmpty(model.ZipPostalCode))
-            errors.Add(await _localizationService.GetResourceAsync("Shipping.EstimateShipping.ZipPostalCode.Required"));
-
-        if (_shippingSettings.EstimateShippingCityNameEnabled && string.IsNullOrEmpty(model.City))
-            errors.Add(await _localizationService.GetResourceAsync("Shipping.EstimateShipping.City.Required"));
-
-        if (model.CountryId == null || model.CountryId == 0)
-            errors.Add(await _localizationService.GetResourceAsync("Shipping.EstimateShipping.Country.Required"));
-
-        if (errors.Count > 0)
-        {
-            return Json(new
-            {
-                Success = false,
-                Errors = errors
-            });
-        }
-
-        var product = await _productService.GetProductByIdAsync(model.ProductId);
-        if (product == null || product.Deleted)
-        {
-            errors.Add(await _localizationService.GetResourceAsync("Shipping.EstimateShippingPopUp.Product.IsNotFound"));
-            return Json(new
-            {
-                Success = false,
-                Errors = errors
-            });
-        }
-
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var customer = await _workContext.GetCurrentCustomerAsync();
-
-        var wrappedProduct = new ShoppingCartItem()
-        {
-            StoreId = store.Id,
-            ShoppingCartTypeId = (int)ShoppingCartType.ShoppingCart,
-            CustomerId = customer.Id,
-            ProductId = product.Id,
-            CreatedOnUtc = DateTime.UtcNow
-        };
-
-        var addToCartWarnings = new List<string>();
-        //customer entered price
-        wrappedProduct.CustomerEnteredPrice = await _productAttributeParser.ParseCustomerEnteredPriceAsync(product, form);
-
-        //entered quantity
-        wrappedProduct.Quantity = _productAttributeParser.ParseEnteredQuantity(product, form);
-
-        //product and gift card attributes
-        wrappedProduct.AttributesXml = await _productAttributeParser.ParseProductAttributesAsync(product, form, addToCartWarnings);
-
-        //rental attributes
-        _productAttributeParser.ParseRentalDates(product, form, out var rentalStartDate, out var rentalEndDate);
-        wrappedProduct.RentalStartDateUtc = rentalStartDate;
-        wrappedProduct.RentalEndDateUtc = rentalEndDate;
-
-        var result = await _shoppingCartModelFactory.PrepareEstimateShippingResultModelAsync(new[] { wrappedProduct }, model, false);
-
-        return Json(result);
     }
 
     //ignore SEO friendly URLs checks

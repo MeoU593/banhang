@@ -568,34 +568,10 @@ public partial class ExportManager : IExportManager
     }
 
     /// <returns>A task that represents the asynchronous operation</returns>
-    protected virtual async Task<PropertyManager<ExportTierPrice>> GetTierPriceManagerAsync(IList<Language> languages)
-    {
-        var tierPriceProperties = new[]
-        {
-            new PropertyByName<ExportTierPrice>("TierPriceId", (p, _) => p.Id),
-            new PropertyByName<ExportTierPrice>("Store", (p, _) => p.StoreId)
-            {
-                DropDownElements = (await _storeService.GetAllStoresAsync()).ToSelectList(p=>(p as Store)?.Name ?? string.Empty)
-            },
-            new PropertyByName<ExportTierPrice>("CustomerRole", (p, _) => p.CustomerRoleId ?? 0)
-            {
-                DropDownElements = (await _customerService.GetAllCustomerRolesAsync()).ToSelectList(p=>(p as CustomerRole)?.Name ?? string.Empty)
-            },
-            new PropertyByName<ExportTierPrice>("Quantity", (p, _) => p.Quantity),
-            new PropertyByName<ExportTierPrice>("Price", (p, _) => p.Price),
-            new PropertyByName<ExportTierPrice>("StartDateTimeUtc", (p, _) => p.StartDateTimeUtc),
-            new PropertyByName<ExportTierPrice>("EndDateTimeUtc", (p, _) => p.EndDateTimeUtc)
-        };
-
-        return new PropertyManager<ExportTierPrice>(tierPriceProperties, _catalogSettings, languages: languages);
-    }
-
-    /// <returns>A task that represents the asynchronous operation</returns>
     protected virtual async Task<byte[]> ExportProductsToXlsxWithAdditionalInfoAsync(PropertyByName<Product>[] properties, PropertyByName<Product>[] localizedProperties, IEnumerable<Product> itemsToExport, IList<Language> languages)
     {
         var productAttributeManager = await GetProductAttributeManagerAsync(languages);
         var specificationAttributeManager = await GetSpecificationAttributeManagerAsync(languages);
-        var tierPriceManager = await GetTierPriceManagerAsync(languages);
 
         await using var stream = new MemoryStream();
         // ok, we can run the real code of the sample now
@@ -648,8 +624,6 @@ public partial class ExportManager : IExportManager
                 if (_catalogSettings.ExportImportProductSpecificationAttributes)
                     row = await ExportSpecificationAttributesAsync(item, specificationAttributeManager, worksheet, localizedWorksheets, row, fsaWorksheet);
 
-                if (_catalogSettings.ExportImportTierPrices)
-                    row = await ExportTierPricesAsync(item, tierPriceManager, worksheet, localizedWorksheets, row, fsaWorksheet);
             }
 
             workbook.SaveAs(stream);
@@ -798,40 +772,6 @@ public partial class ExportManager : IExportManager
                 lws.Worksheet.Row(row).OutlineLevel = 1;
                 lws.Worksheet.Row(row).Collapse();
             }
-        }
-
-        return row + 1;
-    }
-
-    /// <returns>A task that represents the asynchronous operation</returns>
-    protected virtual async Task<int> ExportTierPricesAsync(Product item, PropertyManager<ExportTierPrice> tierPriceManager,
-        IXLWorksheet worksheet, IList<(Language Language, IXLWorksheet Worksheet)> localizedWorksheets, int row, IXLWorksheet faWorksheet)
-    {
-        var tierPrices = (await _productService.GetTierPricesByProductAsync(item.Id)).Select(p => new ExportTierPrice
-        {
-            Id = p.Id,
-            CustomerRoleId = p.CustomerRoleId,
-            Quantity = p.Quantity,
-            Price = p.Price,
-            StartDateTimeUtc = p.StartDateTimeUtc,
-            EndDateTimeUtc = p.EndDateTimeUtc,
-            StoreId = p.StoreId
-        }).ToList();
-
-        if (!tierPrices.Any())
-            return row;
-
-        tierPriceManager.WriteDefaultCaption(worksheet, row, ExportImportDefaults.ProductAdditionalInfoCellOffset);
-        worksheet.Row(row).OutlineLevel = 1;
-        worksheet.Row(row).Collapse();
-
-        foreach (var tierPrice in tierPrices)
-        {
-            row++;
-            tierPriceManager.CurrentObject = tierPrice;
-            await tierPriceManager.WriteDefaultToXlsxAsync(worksheet, row, ExportImportDefaults.ProductAdditionalInfoCellOffset, faWorksheet);
-            worksheet.Row(row).OutlineLevel = 1;
-            worksheet.Row(row).Collapse();
         }
 
         return row + 1;

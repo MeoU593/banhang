@@ -1,46 +1,88 @@
-﻿@model NewsItemListModel
+@model NewsItemListModel
+@using Nop.Plugin.Misc.News.Domain
+@using Nop.Plugin.Misc.News.Public.Models
 
 @{
-    Layout = "_ColumnsTwo";
-
-    //title
+    Layout = "_ColumnsOne";
     NopHtml.AddTitleParts(T("Plugins.Misc.News.PageTitle.NewsArchive").Text);
-    //page class
     NopHtml.AppendPageCssClassParts("html-news-list-page");
+
+    var currentType = Model.ActiveType;
+    var tabActive = "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#1152d4] text-white shadow transition";
+    var tabInactive = "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition";
 }
-<div class="page news-list-page">
-    <div class="page-title">
-        <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsRSS, new { languageId = Model.WorkingLanguageId })" class="link-rss" title="@T("Plugins.Misc.News.RSS.Hint")">@T("Plugins.Misc.News.RSS")</a>
-        <h1>@T("Plugins.Misc.News.Title")</h1>
-    </div>
-    <div class="page-body">
-        <div class="news-items">
-            @foreach (var item in Model.NewsItems)
-            {
-                <article class="news-item">
-                    <header class="news-head">
-                        <a class="news-title" href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))">
-                            <h2>@item.Title</h2>
-                        </a>
-                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="news-date">-@item.CreatedOn.ToString("D")</time>
-                    </header>
-                    <section class="news-body">
-                        @Html.Raw(item.Short)
-                    </section>
-                    <footer class="buttons">
-                        <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))" class="read-more">@T("Plugins.Misc.News.MoreInfo")</a>
-                    </footer>
-                </article>
-            }
+
+<div class="page news-list-page p-6 lg:p-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Tin tức - Văn bản</h1>
+            <p class="mt-1 text-sm text-slate-500">Thông tin chính thống từ hệ thống quản lý</p>
         </div>
-        @{
-            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
-        }
-        @if (!(await pager.IsEmpty()))
+        <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsRSS, new { languageId = Model.WorkingLanguageId })" class="text-xs text-slate-400 hover:text-slate-600 transition" title="@T("Plugins.Misc.News.RSS.Hint")">
+            RSS
+        </a>
+    </div>
+
+    <div class="mb-6 flex flex-wrap gap-2">
+        <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=-1" class="@(currentType == -1 ? tabActive : tabInactive)">
+            Tất cả
+        </a>
+        <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=0" class="@(currentType == 0 ? tabActive : tabInactive)">
+            <span class="material-symbols-outlined text-[18px]" style="font-family:'Material Symbols Outlined' !important;">newspaper</span>
+            Tin tức
+        </a>
+        <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=1" class="@(currentType == 1 ? tabActive : tabInactive)">
+            <span class="material-symbols-outlined text-[18px]" style="font-family:'Material Symbols Outlined' !important;">description</span>
+            Công văn
+        </a>
+    </div>
+
+    <div class="space-y-4">
+        @foreach (var item in Model.NewsItems)
         {
-            <div class="pager">
-                @pager
-            </div>
+            var typeBadge = item.NewsItemTypeId == 1 ? "Công văn" : "Tin tức";
+            var typeBadgeClass = item.NewsItemTypeId == 1
+                ? "bg-amber-100 text-amber-800 border border-amber-200"
+                : "bg-blue-50 text-blue-700 border border-blue-100";
+            <article class="group flex gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)] transition hover:shadow-[0_12px_32px_-16px_rgba(15,23,42,0.22)]">
+                <div class="flex-1 min-w-0">
+                    <div class="mb-2 flex flex-wrap items-center gap-2">
+                        <span class="rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider @typeBadgeClass">@typeBadge</span>
+                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="text-xs text-slate-400">
+                            @item.CreatedOn.ToString("dd/MM/yyyy")
+                        </time>
+                    </div>
+                    <h2 class="text-base font-bold leading-snug text-slate-900 group-hover:text-[#1152d4] transition">
+                        <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))">@item.Title</a>
+                    </h2>
+                    <div class="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                        @Html.Raw(item.Short)
+                    </div>
+                </div>
+                <div class="flex shrink-0 items-start pt-1">
+                    <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))"
+                       class="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-[#1152d4] hover:text-white">
+                        Xem
+                    </a>
+                </div>
+            </article>
         }
     </div>
+
+    @if (!Model.NewsItems.Any())
+    {
+        <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
+            <p class="text-sm font-semibold text-slate-500">Chưa có bài đăng nào</p>
+        </div>
+    }
+
+    @{
+        var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber").QueryParam("type");
+    }
+    @if (!(await pager.IsEmpty()))
+    {
+        <div class="mt-8 flex justify-center">
+            <div class="pager">@pager</div>
+        </div>
+    }
 </div>

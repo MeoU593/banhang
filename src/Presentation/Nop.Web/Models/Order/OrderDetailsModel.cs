@@ -58,8 +58,6 @@ public partial record OrderDetailsModel : BaseNopEntityModel
 
     public string OrderSubtotal { get; set; }
     public decimal OrderSubtotalValue { get; set; }
-    public string OrderSubTotalDiscount { get; set; }
-    public decimal OrderSubTotalDiscountValue { get; set; }
     public string OrderShipping { get; set; }
     public decimal OrderShippingValue { get; set; }
     public string PaymentMethodAdditionalFee { get; set; }
@@ -73,10 +71,6 @@ public partial record OrderDetailsModel : BaseNopEntityModel
     public bool DisplayTax { get; set; }
     public bool DisplayTaxRates { get; set; }
 
-    public string OrderTotalDiscount { get; set; }
-    public decimal OrderTotalDiscountValue { get; set; }
-    public int RedeemedRewardPoints { get; set; }
-    public string RedeemedRewardPointsAmount { get; set; }
     public string OrderTotal { get; set; }
     public decimal OrderTotalValue { get; set; }
 

@@ -57,7 +57,6 @@ public partial class OrderModelFactory : IOrderModelFactory
     protected readonly IPictureService _pictureService;
     protected readonly IPriceFormatter _priceFormatter;
     protected readonly IProductService _productService;
-    protected readonly IRewardPointService _rewardPointService;
     protected readonly IShipmentService _shipmentService;
     protected readonly IShortTermCacheManager _shortTermCacheManager;
     protected readonly IStateProvinceService _stateProvinceService;
@@ -70,7 +69,6 @@ public partial class OrderModelFactory : IOrderModelFactory
     protected readonly MediaSettings _mediaSettings;
     protected readonly OrderSettings _orderSettings;
     protected readonly PdfSettings _pdfSettings;
-    protected readonly RewardPointsSettings _rewardPointsSettings;
     protected readonly ShippingSettings _shippingSettings;
     protected readonly TaxSettings _taxSettings;
     protected readonly VendorSettings _vendorSettings;
@@ -97,7 +95,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         IPictureService pictureService,
         IPriceFormatter priceFormatter,
         IProductService productService,
-        IRewardPointService rewardPointService,
         IShipmentService shipmentService,
         IShortTermCacheManager shortTermCacheManager,
         IStateProvinceService stateProvinceService,
@@ -110,7 +107,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         MediaSettings mediaSettings,
         OrderSettings orderSettings,
         PdfSettings pdfSettings,
-        RewardPointsSettings rewardPointsSettings,
         ShippingSettings shippingSettings,
         TaxSettings taxSettings,
         VendorSettings vendorSettings)
@@ -133,7 +129,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         _pictureService = pictureService;
         _priceFormatter = priceFormatter;
         _productService = productService;
-        _rewardPointService = rewardPointService;
         _shipmentService = shipmentService;
         _shortTermCacheManager = shortTermCacheManager;
         _stateProvinceService = stateProvinceService;
@@ -146,7 +141,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         _mediaSettings = mediaSettings;
         _orderSettings = orderSettings;
         _pdfSettings = pdfSettings;
-        _rewardPointsSettings = rewardPointsSettings;
         _shippingSettings = shippingSettings;
         _taxSettings = taxSettings;
         _vendorSettings = vendorSettings;
@@ -414,13 +408,6 @@ public partial class OrderModelFactory : IOrderModelFactory
             var orderSubtotalInclTaxInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderSubtotalInclTax, order.CurrencyRate);
             model.OrderSubtotal = await _priceFormatter.FormatPriceAsync(orderSubtotalInclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, true);
             model.OrderSubtotalValue = orderSubtotalInclTaxInCustomerCurrency;
-            //discount (applied to order subtotal)
-            var orderSubTotalDiscountInclTaxInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderSubTotalDiscountInclTax, order.CurrencyRate);
-            if (orderSubTotalDiscountInclTaxInCustomerCurrency > decimal.Zero)
-            {
-                model.OrderSubTotalDiscount = await _priceFormatter.FormatPriceAsync(-orderSubTotalDiscountInclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, true);
-                model.OrderSubTotalDiscountValue = orderSubTotalDiscountInclTaxInCustomerCurrency;
-            }
         }
         else
         {
@@ -430,13 +417,6 @@ public partial class OrderModelFactory : IOrderModelFactory
             var orderSubtotalExclTaxInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderSubtotalExclTax, order.CurrencyRate);
             model.OrderSubtotal = await _priceFormatter.FormatPriceAsync(orderSubtotalExclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, false);
             model.OrderSubtotalValue = orderSubtotalExclTaxInCustomerCurrency;
-            //discount (applied to order subtotal)
-            var orderSubTotalDiscountExclTaxInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderSubTotalDiscountExclTax, order.CurrencyRate);
-            if (orderSubTotalDiscountExclTaxInCustomerCurrency > decimal.Zero)
-            {
-                model.OrderSubTotalDiscount = await _priceFormatter.FormatPriceAsync(-orderSubTotalDiscountExclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, false);
-                model.OrderSubTotalDiscountValue = orderSubTotalDiscountExclTaxInCustomerCurrency;
-            }
         }
 
         if (order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax)
@@ -511,14 +491,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         model.DisplayTaxShippingInfo = _catalogSettings.DisplayTaxShippingInfoOrderDetailsPage;
         model.PricesIncludeTax = order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax;
 
-        //discount (applied to order total)
-        var orderDiscountInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderDiscount, order.CurrencyRate);
-        if (orderDiscountInCustomerCurrency > decimal.Zero)
-        {
-            model.OrderTotalDiscount = await _priceFormatter.FormatPriceAsync(-orderDiscountInCustomerCurrency, true, order.CustomerCurrencyCode, false, languageId);
-            model.OrderTotalDiscountValue = orderDiscountInCustomerCurrency;
-        }
-
         //gift cards
         foreach (var gcuh in await _giftCardService.GetGiftCardUsageHistoryAsync(order))
         {
@@ -527,13 +499,6 @@ public partial class OrderModelFactory : IOrderModelFactory
                 CouponCode = (await _giftCardService.GetGiftCardByIdAsync(gcuh.GiftCardId)).GiftCardCouponCode,
                 Amount = await _priceFormatter.FormatPriceAsync(-(_currencyService.ConvertCurrency(gcuh.UsedValue, order.CurrencyRate)), true, order.CustomerCurrencyCode, false, languageId),
             });
-        }
-
-        //reward points           
-        if (order.RedeemedRewardPointsEntryId.HasValue && await _rewardPointService.GetRewardPointsHistoryEntryByIdAsync(order.RedeemedRewardPointsEntryId.Value) is RewardPointsHistory redeemedRewardPointsEntry)
-        {
-            model.RedeemedRewardPoints = -redeemedRewardPointsEntry.Points;
-            model.RedeemedRewardPointsAmount = await _priceFormatter.FormatPriceAsync(-(_currencyService.ConvertCurrency(redeemedRewardPointsEntry.UsedAmount, order.CurrencyRate)), true, order.CustomerCurrencyCode, false, languageId);
         }
 
         //total
@@ -729,78 +694,9 @@ public partial class OrderModelFactory : IOrderModelFactory
         return model;
     }
 
-    /// <summary>
-    /// Prepare the customer reward points model
-    /// </summary>
-    /// <param name="page">Number of items page; pass null to load the first page</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the customer reward points model
-    /// </returns>
-    public virtual async Task<CustomerRewardPointsModel> PrepareCustomerRewardPointsAsync(int? page)
-    {
-        //get reward points history
-        var customer = await _workContext.GetCurrentCustomerAsync();
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var pageSize = _rewardPointsSettings.PageSize;
-        var rewardPoints = await _rewardPointService.GetRewardPointsHistoryAsync(customer.Id, store.Id, true, pageIndex: --page ?? 0, pageSize: pageSize);
-
-        //prepare model
-        var model = new CustomerRewardPointsModel
-        {
-            RewardPoints = await rewardPoints.SelectAwait(async historyEntry =>
-            {
-                var activatingDate = await _dateTimeHelper.ConvertToUserTimeAsync(historyEntry.CreatedOnUtc, DateTimeKind.Utc);
-                return new CustomerRewardPointsModel.RewardPointsHistoryModel
-                {
-                    Points = historyEntry.Points,
-                    PointsBalance = historyEntry.PointsBalance.HasValue ? historyEntry.PointsBalance.ToString()
-                        : string.Format(await _localizationService.GetResourceAsync("RewardPoints.ActivatedLater"), activatingDate),
-                    Message = historyEntry.Message,
-                    CreatedOn = activatingDate,
-                    EndDate = !historyEntry.EndDateUtc.HasValue ? null :
-                        (DateTime?)(await _dateTimeHelper.ConvertToUserTimeAsync(historyEntry.EndDateUtc.Value, DateTimeKind.Utc))
-                };
-            }).ToListAsync(),
-
-            PagerModel = new PagerModel(_localizationService)
-            {
-                PageSize = rewardPoints.PageSize,
-                TotalRecords = rewardPoints.TotalCount,
-                PageIndex = rewardPoints.PageIndex,
-                ShowTotalSummary = true,
-                RouteActionName = NopRouteNames.Standard.CUSTOMER_REWARD_POINTS_PAGED,
-                UseRouteLinks = true,
-                RouteValues = new RewardPointsRouteValues { PageNumber = page ?? 0 }
-            }
-        };
-
-        //current amount/balance
-        var rewardPointsBalance = await _rewardPointService.GetRewardPointsBalanceAsync(customer.Id, store.Id);
-        var rewardPointsAmountBase = await _orderTotalCalculationService.ConvertRewardPointsToAmountAsync(rewardPointsBalance);
-        var currentCurrency = await _workContext.GetWorkingCurrencyAsync();
-        var rewardPointsAmount = await _currencyService.ConvertFromPrimaryStoreCurrencyAsync(rewardPointsAmountBase, currentCurrency);
-        model.RewardPointsBalance = rewardPointsBalance;
-        model.RewardPointsAmount = await _priceFormatter.FormatPriceAsync(rewardPointsAmount, true, false);
-
-        //minimum amount/balance
-        var minimumRewardPointsBalance = _rewardPointsSettings.MinimumRewardPointsToUse;
-        var minimumRewardPointsAmountBase = await _orderTotalCalculationService.ConvertRewardPointsToAmountAsync(minimumRewardPointsBalance);
-        var minimumRewardPointsAmount = await _currencyService.ConvertFromPrimaryStoreCurrencyAsync(minimumRewardPointsAmountBase, currentCurrency);
-        model.MinimumRewardPointsBalance = minimumRewardPointsBalance;
-        model.MinimumRewardPointsAmount = await _priceFormatter.FormatPriceAsync(minimumRewardPointsAmount, true, false);
-
-        return model;
-    }
-
     #endregion
 
     #region nested class
-
-    /// <summary>
-    /// record that has only page for route value. Used for (My Account) Reward Points pagination
-    /// </summary>
-    public partial record RewardPointsRouteValues : BaseRouteValues;
 
     /// <summary>
     /// Record that has filter options for route values. Used for Customer orders pagination (My Account)

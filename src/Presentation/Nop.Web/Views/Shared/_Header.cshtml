@@ -1,6 +1,9 @@
 @{
     var currentPath = Context.Request.Path.Value ?? "/";
     var productListingUrl = Url.RouteUrl(NopRouteNames.General.CATEGORIES);
+    var isAdmin = User.IsInRole("Administrators");
+    var isVendor = User.IsInRole("Vendors");
+    var showAdminLink = isAdmin || isVendor;
 
     string NavClasses(string path)
     {
@@ -39,7 +42,7 @@
                 <span class="material-symbols-outlined text-[20px]">inventory_2</span>
                 <span>Sản phẩm / Năng lực</span>
             </a>
-            <a href="@Url.RouteUrl("Plugin.Misc.News.Route.NewsArchive")" class="@NavClasses("/news")">
+            <a href="@Url.RouteUrl(NopRouteNames.General.BLOG)" class="@NavClasses("/blog")">
                 <span class="material-symbols-outlined text-[20px]">article</span>
                 <span>Tin tức - Văn bản</span>
             </a>
@@ -59,10 +62,13 @@
     </nav>
 
     <div class="border-t border-slate-800 px-4 py-5">
-        <a href="/settings" class="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]">
-            <span class="material-symbols-outlined text-[20px]">settings</span>
-            <span>Cài đặt hệ thống</span>
-        </a>
+        @if (showAdminLink)
+        {
+            <a href="/Admin" class="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]">
+                <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                <span>@(isAdmin ? "Quản trị hệ thống" : "Quản lý nhà cung cấp")</span>
+            </a>
+        }
         <a href="@Url.RouteUrl(NopRouteNames.Standard.LOGOUT)" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/10 hover:text-rose-300 active:scale-[0.99]">
             <span class="material-symbols-outlined text-[20px]">logout</span>
             <span>Đăng xuất</span>

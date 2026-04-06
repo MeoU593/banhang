@@ -30,49 +30,50 @@
     }
 </script>
 @await Component.InvokeAsync(typeof(ForumBreadcrumbViewComponent))
-<div class="page forum-search-page">
-    <div class="page-title">
-        <h1>@T("Forum.Search")</h1>
+<div class="page forum-search-page px-4 pb-8 lg:px-0">
+    <div class="mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-military-gold">Tim kiem dien dan</p>
+        <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">@T("Forum.Search")</h1>
     </div>
-    <div class="page-body">
+    <div class="page-body space-y-5">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsSearchBeforeSearchform, additionalData = Model })
-        <div class="search-input">
+        <div class="search-input rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <form asp-route="@NopRouteNames.Standard.BOARDS_SEARCH" method="get">
                 <section class="fieldset">
                     <div class="form-fields">
-                        <div class="basic-search">
+                        <div class="basic-search space-y-4">
                             <div class="inputs">
-                                <label for="searchterms">@T("Forum.Search.SearchKeyword")</label>
-                                <input type="text" name="searchterms" id="searchterms" class="forum-search-text" value="@Model.SearchTerms" />
+                                <label for="searchterms" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchKeyword")</label>
+                                <input type="text" name="searchterms" id="searchterms" class="forum-search-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white" value="@Model.SearchTerms" />
                             </div>
-                            <div class="inputs reversed">
+                            <div class="inputs reversed inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">
                                 <input @(Model.ShowAdvancedSearch ? "checked=\"checked\"" : "") id="advs" name="advs" type="checkbox" value="true">
-                                <label for="advs">@T("Forum.Search.AdvancedSearch")</label>
+                                <label for="advs" class="text-sm font-medium text-slate-700">@T("Forum.Search.AdvancedSearch")</label>
                             </div>
                         </div>
-                        <div class="advanced-search" id="advanced-search" style="display: none;">
+                        <div class="advanced-search mt-4 grid gap-4 md:grid-cols-3" id="advanced-search" style="display: none;">
                             <div class="inputs">
-                                <label for="forumId">@T("Forum.Search.SearchInForum")</label>
-                                <select name="forumId" id="forumId" asp-items="@(new SelectList(Model.ForumList, "Value", "Text", Model.ForumIdSelected))"></select>
+                                <label for="forumId" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchInForum")</label>
+                                <select name="forumId" id="forumId" asp-items="@(new SelectList(Model.ForumList, "Value", "Text", Model.ForumIdSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"></select>
                             </div>
                             <div class="inputs">
-                                <label for="within">@T("Forum.Search.SearchWithin")</label>
-                                <select name="within" id="within" asp-items="@(new SelectList(Model.WithinList, "Value", "Text", Model.WithinSelected))"></select>
+                                <label for="within" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchWithin")</label>
+                                <select name="within" id="within" asp-items="@(new SelectList(Model.WithinList, "Value", "Text", Model.WithinSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"></select>
                             </div>
                             <div class="inputs">
-                                <label for="limitDays">@T("Forum.Search.LimitResultsToPrevious")</label>
-                                <select name="limitDays" id="limitDays" asp-items="@(new SelectList(Model.LimitList, "Value", "Text", Model.LimitDaysSelected))"></select>
+                                <label for="limitDays" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.Search.LimitResultsToPrevious")</label>
+                                <select name="limitDays" id="limitDays" asp-items="@(new SelectList(Model.LimitList, "Value", "Text", Model.LimitDaysSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"></select>
                             </div>
                         </div>
                     </div>
                 </section>
-                <section class="buttons">
-                    <button type="submit" class="button-1 forum-search-button">@T("Forum.SearchButton")</button>
+                <section class="buttons mt-4">
+                    <button type="submit" class="button-1 forum-search-button inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.SearchButton")</button>
                 </section>
             </form>
         </div>
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsSearchAfterSearchform, additionalData = Model })
-        <div class="search-error">
+        <div class="search-error text-sm font-medium text-rose-700">
             @Model.Error
         </div>
         <div class="search-results">
@@ -114,11 +115,11 @@
                     @T("Forum.SearchNoResultsText")
                 </div>
             }
-            <div class="forums-table-section topic-group">
+            <div class="forums-table-section topic-group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 @if (Model.SearchResultsVisible)
                 {
-                    <div class="table-wrapper">
-                        <table class="forum-table">
+                    <div class="table-wrapper overflow-x-auto">
+                        <table class="forum-table min-w-full">
                             <colgroup>
                                 <col width="1" />
                                 <col />
@@ -129,24 +130,24 @@
                                 }
                                 <col width="1" />
                             </colgroup>
-                            <thead>
+                            <thead class="bg-slate-50">
                                 <tr>
-                                    <th class="topic-details" colspan="2">
+                                    <th class="topic-details px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500" colspan="2">
                                         @T("Forum.TopicTitle")
                                     </th>
-                                    <th class="replies">
+                                    <th class="replies px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                                         @T("Forum.Replies")
                                     </th>
-                                    <th class="views">
+                                    <th class="views px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                                         @T("Forum.Views")
                                     </th>
                                     @if (Model.AllowPostVoting)
                                     {
-                                        <th class="votes">
+                                        <th class="votes px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                                             @T("Forum.Votes")
                                         </th>
                                     }
-                                    <th class="latest-post">
+                                    <th class="latest-post px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                                         @T("Forum.LatestPost")
                                     </th>
                                 </tr>
@@ -173,16 +174,16 @@
                                             topicType = "post";
                                             break;
                                     }
-                                    <tr>
-                                        <td class="image">
+                                    <tr class="border-t border-slate-100 hover:bg-slate-50/70">
+                                        <td class="image px-4 py-3 align-top">
                                             <div class="@topicType"></div>
                                         </td>
-                                        <td class="topic-details">
+                                        <td class="topic-details px-2 py-3 align-top">
                                             <div class="topic-title">
-                                                @Html.RouteLink(topic.Subject, "TopicSlug", new { id = topic.Id, slug = topic.SeName })
+                                                @Html.RouteLink(topic.Subject, "TopicSlug", new { id = topic.Id, slug = topic.SeName }, new { @class = "text-sm font-bold text-slate-900 hover:text-military-red sm:text-base" })
                                                 @if (!string.IsNullOrEmpty(topicText))
                                                 {
-                                                    <span class="topic-type">@topicText</span>
+                                                    <span class="topic-type ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">@topicText</span>
                                                 }
                                             </div>
                                             @if (topic.NumPosts > Model.PostsPageSize)
@@ -191,13 +192,13 @@
                                                     @await Html.ForumTopicSmallPagerAsync(topic)
                                                 </div>
                                             }
-                                            <div class="topic-starter">
+                                            <div class="topic-starter mt-1 text-xs text-slate-500">
                                                 @if (topic.CustomerId > 0)
                                                 {
                                                     <label>@T("Forum.Author"):</label>
                                                     if (topic.AllowViewingProfiles)
                                                     {
-                                                        @Html.RouteLink(topic.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = topic.CustomerId })
+                                                        @Html.RouteLink(topic.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = topic.CustomerId }, new { @class = "font-semibold text-slate-700 hover:text-military-green" })
                                                     }
                                                     else
                                                     {
@@ -206,19 +207,19 @@
                                                 }
                                             </div>
                                         </td>
-                                        <td class="replies">
+                                        <td class="replies px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
                                             @topic.NumReplies
                                         </td>
-                                        <td class="views">
+                                        <td class="views px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
                                             @topic.Views
                                         </td>
                                         @if (Model.AllowPostVoting)
                                         {
-                                            <td class="votes">
+                                            <td class="votes px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
                                                 @topic.Votes
                                             </td>
                                         }
-                                        <td class="latest-post">
+                                        <td class="latest-post px-4 py-3 align-top">
                                             @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new { forumPostId = topic.LastPostId, showTopic = false })
                                         </td>
                                     </tr>

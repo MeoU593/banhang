@@ -1,11 +1,12 @@
 ﻿@model ForumGroupModel
-<div class="forums-table-section forum-group">
-    <div class="forums-table-section-title">
-        @Html.RouteLink(Model.Name, NopRouteNames.Standard.FORUM_GROUP_SLUG, new { id = Model.Id, slug = Model.SeName })
+<div class="forums-table-section forum-group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="forums-table-section-title flex items-center gap-2 border-b border-slate-100 bg-slate-900 px-4 py-3 text-sm font-bold text-white">
+        <span class="material-symbols-outlined !text-base text-military-gold">forum</span>
+        @Html.RouteLink(Model.Name, NopRouteNames.Standard.FORUM_GROUP_SLUG, new { id = Model.Id, slug = Model.SeName }, new { @class = "hover:text-military-gold" })
     </div>
     <div class="forums-table-section-body">
-        <div class="table-wrapper">
-            <table class="forum-table">
+        <div class="table-wrapper overflow-x-auto">
+            <table class="forum-table min-w-full">
                 <colgroup>
                     <col width="1" />
                     <col />
@@ -13,18 +14,18 @@
                     <col width="1" />
                     <col width="1" />
                 </colgroup>
-                <thead>
+                <thead class="bg-slate-50">
                     <tr>
-                        <th class="forum-details" colspan="2">
+                        <th class="forum-details px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500" colspan="2">
                             @T("Forum.Forum")
                         </th>
-                        <th class="topics">
+                        <th class="topics px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                             @T("Forum.Topics")
                         </th>
-                        <th class="posts">
+                        <th class="posts px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                             @T("Forum.Posts")
                         </th>
-                        <th class="latest-post">
+                        <th class="latest-post px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
                             @T("Forum.LatestPost")
                         </th>
                     </tr>
@@ -32,21 +33,21 @@
                 <tbody>
                     @foreach (var forum in Model.Forums)
                     {
-                        <tr>
-                            <td class="image">
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/70">
+                            <td class="image px-4 py-3 align-top">
                                 <div class="post"></div>
                             </td>
-                            <td class="forum-details">
+                            <td class="forum-details px-2 py-3 align-top">
                                 <div class="forum-title">
-                                    @Html.RouteLink(forum.Name, NopRouteNames.Standard.FORUM_SLUG, new { id = forum.Id, slug = forum.SeName })
+                                    @Html.RouteLink(forum.Name, NopRouteNames.Standard.FORUM_SLUG, new { id = forum.Id, slug = forum.SeName }, new { @class = "text-sm font-bold text-slate-900 hover:text-military-red" })
                                 </div>
-                                <div class="forum-description">
+                                <div class="forum-description mt-1 text-xs text-slate-500">
                                     @forum.Description
                                 </div>
                             </td>
-                            <td class="topics">@forum.NumTopics</td>
-                            <td class="posts">@forum.NumPosts</td>
-                            <td class="latest-post">
+                            <td class="topics px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">@forum.NumTopics</td>
+                            <td class="posts px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">@forum.NumPosts</td>
+                            <td class="latest-post px-4 py-3 align-top">
                                 @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new {forumPostId = forum.LastPostId, showTopic = true})
                             </td>
                         </tr>            

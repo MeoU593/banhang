@@ -63,18 +63,6 @@ public partial record ShippingSettingsModel : BaseNopModel, ISettingsModel
     public bool FreeShippingOverXIncludingTax { get; set; }
     public bool FreeShippingOverXIncludingTax_OverrideForStore { get; set; }
 
-    [NopResourceDisplayName("Admin.Configuration.Settings.Shipping.EstimateShippingCartPageEnabled")]
-    public bool EstimateShippingCartPageEnabled { get; set; }
-    public bool EstimateShippingCartPageEnabled_OverrideForStore { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.Shipping.EstimateShippingProductPageEnabled")]
-    public bool EstimateShippingProductPageEnabled { get; set; }
-    public bool EstimateShippingProductPageEnabled_OverrideForStore { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.Shipping.EstimateShippingCityNameEnabled")]
-    public bool EstimateShippingCityNameEnabled { get; set; }
-    public bool EstimateShippingCityNameEnabled_OverrideForStore { get; set; }
-
     [NopResourceDisplayName("Admin.Configuration.Settings.Shipping.DisplayShipmentEventsToCustomers")]
     public bool DisplayShipmentEventsToCustomers { get; set; }
     public bool DisplayShipmentEventsToCustomers_OverrideForStore { get; set; }

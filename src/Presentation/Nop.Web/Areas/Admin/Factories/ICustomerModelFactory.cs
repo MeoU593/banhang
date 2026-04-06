@@ -41,16 +41,6 @@ public partial interface ICustomerModelFactory
     /// </returns>
     Task<CustomerModel> PrepareCustomerModelAsync(CustomerModel model, Customer customer, bool excludeProperties = false);
 
-    /// <summary>
-    /// Prepare paged reward points list model
-    /// </summary>
-    /// <param name="searchModel">Reward points search model</param>
-    /// <param name="customer">Customer</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the reward points list model
-    /// </returns>
-    Task<CustomerRewardPointsListModel> PrepareRewardPointsListModelAsync(CustomerRewardPointsSearchModel searchModel, Customer customer);
 
     /// <summary>
     /// Prepare paged customer address list model
@@ -88,17 +78,6 @@ public partial interface ICustomerModelFactory
     /// </returns>
     Task<CustomerOrderListModel> PrepareCustomerOrderListModelAsync(CustomerOrderSearchModel searchModel, Customer customer);
 
-    /// <summary>
-    /// Prepare paged customer shopping cart list model
-    /// </summary>
-    /// <param name="searchModel">Customer shopping cart search model</param>
-    /// <param name="customer">Customer</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the customer shopping cart list model
-    /// </returns>
-    Task<CustomerShoppingCartListModel> PrepareCustomerShoppingCartListModelAsync(CustomerShoppingCartSearchModel searchModel,
-        Customer customer);
 
     /// <summary>
     /// Prepare paged customer activity log list model

@@ -182,7 +182,8 @@ public class NewsService
     /// The task result contains the news items
     /// </returns>
     public async Task<IPagedList<NewsItem>> GetAllNewsAsync(int languageId = 0, int storeId = 0,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null)
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null,
+        int newsItemTypeId = -1)
     {
         var news = await _newsItemRepository.GetAllPagedAsync(async query =>
         {
@@ -191,6 +192,9 @@ public class NewsService
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(n => n.Title.Contains(title));
+
+            if (newsItemTypeId >= 0)
+                query = query.Where(n => n.NewsItemTypeId == newsItemTypeId);
 
             if (!showHidden || storeId > 0)
             {

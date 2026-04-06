@@ -10,6 +10,7 @@ public record NewsItemListModel : BaseNopModel
     #region Properties
 
     public int WorkingLanguageId { get; set; }
+    public int ActiveType { get; set; } = -1;
     public NewsPagingFilteringModel PagingFilteringContext { get; set; } = new();
     public List<NewsItemModel> NewsItems { get; set; } = [];
 

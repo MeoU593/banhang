@@ -74,4 +74,9 @@ public class NewsItem : BaseEntity, ISlugSupported, IStoreMappingSupported, IMet
     /// Gets or sets the date and time of entity creation
     /// </summary>
     public DateTime CreatedOnUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the news item type identifier (0 = Tin tức, 1 = Công văn)
+    /// </summary>
+    public int NewsItemTypeId { get; set; }
 }

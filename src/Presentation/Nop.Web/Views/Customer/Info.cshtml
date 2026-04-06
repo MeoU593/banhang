@@ -16,6 +16,266 @@
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent), new { selectedTabId = CustomerNavigationEnum.Info })
 }
 
+<style>
+.customer-info-page {
+    padding: 24px;
+    background: radial-gradient(circle at top left, rgba(45, 58, 34, 0.1), transparent 34%), #f8fafc;
+    min-height: calc(100vh - 4rem);
+}
+
+.customer-info-page .page-title {
+    display: block !important;
+    margin: 0 0 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 62%, #2d3a22 100%);
+    padding: 20px;
+    box-shadow: 0 20px 40px -32px rgba(15, 23, 42, 0.85);
+}
+.customer-info-page .page-title h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #fff;
+    border: 0;
+    padding: 0;
+}
+
+.customer-info-page .page-body {
+    display: grid;
+    gap: 16px;
+}
+
+.customer-info-page form {
+    display: grid;
+    gap: 16px;
+}
+
+.customer-info-page .fieldset {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 45px -35px rgba(15, 23, 42, 0.45);
+}
+
+.customer-info-page .fieldset .title {
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 800;
+    color: #2d3a22;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+}
+
+.customer-info-page .form-fields {
+    display: grid;
+    gap: 12px;
+}
+
+.customer-info-page .inputs {
+    margin: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 12px;
+}
+
+.customer-info-page .inputs > label:not(.forcheckbox) {
+    display: block;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.customer-info-page .inputs input[type="text"],
+.customer-info-page .inputs input[type="email"],
+.customer-info-page .inputs input[type="tel"],
+.customer-info-page .inputs select,
+.customer-info-page .inputs textarea {
+    min-height: 42px;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.customer-info-page .inputs input:focus,
+.customer-info-page .inputs select:focus,
+.customer-info-page .inputs textarea:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+    background: #fff;
+}
+
+.customer-info-page .inputs span.field-validation-error {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #dc2626;
+}
+
+.customer-info-page .inputs .field-validation-valid {
+    display: none;
+}
+
+.customer-info-page .inputs .nop-required {
+    margin-left: 6px;
+}
+
+.customer-info-page .inputs .readonly-username {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    color: #334155;
+    font-size: 13px;
+}
+
+.customer-info-page .gender {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+
+.customer-info-page .gender label {
+    margin: 0 0 0 6px;
+    margin-left: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+}
+
+.customer-info-page .date-of-birth .date-picker-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.customer-info-page .attributes ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+}
+
+.customer-info-page .attributes li,
+.customer-info-page .accept-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.customer-info-page .email-to-revalidate,
+.customer-info-page .vat-status,
+.customer-info-page .vat-note,
+.customer-info-page .email-to-revalidate-note,
+.customer-info-page .please-wait {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.customer-info-page .message-error {
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px 14px;
+    font-size: 13px;
+}
+
+.customer-info-page .table-wrapper {
+    overflow-x: auto;
+}
+
+.customer-info-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customer-info-page .data-table th,
+.customer-info-page .data-table td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px;
+    vertical-align: top;
+    text-align: left;
+    font-size: 13px;
+}
+
+.customer-info-page .data-table th {
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+}
+
+.customer-info-page .data-table td {
+    color: #475569;
+}
+
+.customer-info-page .buttons {
+    margin-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.customer-info-page .save-customer-info-button {
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: #2d3a22;
+    color: #fff;
+    padding: 0 22px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.15s, filter 0.2s;
+}
+
+.customer-info-page .save-customer-info-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+}
+
+@@media (max-width: 991px) {
+    .customer-info-page {
+        padding: 16px;
+    }
+
+    .customer-info-page .fieldset {
+        padding: 14px;
+    }
+
+    .customer-info-page .page-title {
+        padding: 16px;
+    }
+
+    .customer-info-page .page-title h1 {
+        font-size: 22px;
+    }
+
+    .customer-info-page .date-of-birth .date-picker-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
 <div class="page account-page customer-info-page">
     <div class="page-title">
         <h1>@T("Account.MyAccount") - @T("Account.CustomerInfo")</h1>

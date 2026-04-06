@@ -1,15 +1,32 @@
 ﻿@model BlogPostListModel
-
 @using Nop.Core.Domain.Blogs
 
 @{
     Layout = "_ColumnsTwo";
 
-    //title
     NopHtml.AddTitleParts(T("PageTitle.Blog").Text);
-    //page class
     NopHtml.AppendPageCssClassParts("html-blog-page");
+
+    var pageTitle = string.Empty;
+    if (string.IsNullOrEmpty(Model.PagingFilteringContext.Tag))
+    {
+        if (Model.PagingFilteringContext.GetParsedMonth().HasValue)
+        {
+            pageTitle = string.Format(T("Blog.FilteredByMonth").Text,
+                Model.PagingFilteringContext.GetParsedMonth().Value.Year,
+                Model.PagingFilteringContext.GetParsedMonth().Value.ToString("MMMM"));
+        }
+        else
+        {
+            pageTitle = T("Blog").Text;
+        }
+    }
+    else
+    {
+        pageTitle = string.Format(T("Blog.TaggedWith").Text, Model.PagingFilteringContext.Tag);
+    }
 }
+
 @section left {
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogBefore, additionalData = Model })
     @await Component.InvokeAsync(typeof(BlogMonthsViewComponent))
@@ -17,85 +34,93 @@
     @await Component.InvokeAsync(typeof(BlogTagsViewComponent))
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogAfter, additionalData = Model })
 }
-<div class="page blog-page">
-    <div class="page-title">
-        <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_RSS, new { languageId = Model.WorkingLanguageId })" class="link-rss" title="@T("Blog.RSS.Hint")">@T("Blog.RSS")</a>
-        <h1>
-            @if (string.IsNullOrEmpty(Model.PagingFilteringContext.Tag))
-            {
-                if (Model.PagingFilteringContext.GetParsedMonth().HasValue)
-                {
-                    @string.Format(T("Blog.FilteredByMonth").Text, Model.PagingFilteringContext.GetParsedMonth().Value.Year, Model.PagingFilteringContext.GetParsedMonth().Value.ToString("MMMM"))
-                }
-                else
-                {
-                    @T("Blog")
-                }
-            }
-            else
-            {
-                @string.Format(T("Blog.TaggedWith").Text, Model.PagingFilteringContext.Tag)
-            }
-        </h1>
-    </div>
-    <div class="page-body">
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePosts, additionalData = Model })
-        <div class="blog-posts">
-            @foreach (var item in Model.BlogPosts)
-            {
-                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePost, additionalData = item })
-                <article class="post">
-                    <header class="post-head">
-                        <a class="post-title" href="@(await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName }))">
-                            <h2>@item.Title</h2>
-                        </a>
-                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")"  class="post-date">@item.CreatedOn.ToString("D")</time>
-                    </header>
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePostBody, additionalData = item })
-                    <div class="post-body">
-                        @Html.Raw(!string.IsNullOrEmpty(item.BodyOverview) ? item.BodyOverview : item.Body)
-                    </div>
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPostBody, additionalData = item })
-                    <div role="navigation" class="blog-details">
-                        @if (item.Tags.Count > 0)
-                        {
-                            <div class="tags">
-                                <h3>@T("Blog.Tags"):</h3>
-                                <ul>
-                                    @for (var i = 0; i < item.Tags.Count; i++)
-                                    {
-                                        var tag = item.Tags[i];
-                                        <li><a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag = tag })">@tag</a></li>
-                                        if (i != item.Tags.Count - 1)
-                                        {
-                                            <li class="separator">,</li>
-                                        }
-                                    }
-                                </ul>
-                            </div>
-                        }
-                        <div class="buttons">
-                            @if (item.AllowComments)
-                            {
-                                <a href="@(await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName }, fragment: "comments"))" class="read-comments">@string.Format(T("Blog.CommentsLink").Text, item.NumberOfComments)</a>
-                            }
-                            <a href="@(await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName }))" class="read-more">@T("Blog.MoreInfo")</a>
-                        </div>
-                    </div>
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageInsidePost, additionalData = item })
-                </article>
-                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPost, additionalData = item })
-            }
-        </div>
-        @{
-            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
-        }
-        @if (!(await pager.IsEmpty()))
-        {
-            <div class="pager">
-                @pager
+
+<div class="page blog-page px-4 pb-8 lg:px-0">
+    <div class="mx-auto max-w-5xl">
+        <section class="mb-6 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-2">
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-military-gold">Ban tin noi bo</p>
+                    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">@pageTitle</h1>
+                    <p class="max-w-2xl text-sm text-white/75 sm:text-base">Cap nhat thong bao, huong dan tac chien va cac tin tuc van hanh quan trong tu he thong.</p>
+                </div>
+                <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_RSS, new { languageId = Model.WorkingLanguageId })" title="@T("Blog.RSS.Hint")" class="inline-flex items-center justify-center rounded-2xl border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">
+                    @T("Blog.RSS")
+                </a>
             </div>
-        }
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPosts, additionalData = Model })
+        </section>
+
+        <div class="page-body">
+            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePosts, additionalData = Model })
+
+            <div class="blog-posts space-y-5">
+                @foreach (var item in Model.BlogPosts)
+                {
+                    var postUrl = await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                    var commentsUrl = await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName }, fragment: "comments");
+
+                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePost, additionalData = item })
+                    <article class="post overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_20px_45px_-35px_rgba(15,23,42,0.45)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_54px_-36px_rgba(45,58,34,0.55)] sm:p-6">
+                        <header class="post-head mb-4 border-b border-slate-100 pb-4">
+                            <a class="post-title block text-2xl font-extrabold tracking-tight text-slate-900 transition hover:text-military-red" href="@postUrl">
+                                <h2>@item.Title</h2>
+                            </a>
+                            <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="post-date mt-2 block text-sm font-medium text-slate-500">@item.CreatedOn.ToString("D")</time>
+                        </header>
+
+                        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePostBody, additionalData = item })
+                        <div class="post-body prose prose-slate max-w-none text-sm leading-7 text-slate-700 sm:text-base">
+                            @Html.Raw(!string.IsNullOrEmpty(item.BodyOverview) ? item.BodyOverview : item.Body)
+                        </div>
+                        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPostBody, additionalData = item })
+
+                        <div role="navigation" class="blog-details mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                            @if (item.Tags.Count > 0)
+                            {
+                                <div class="tags flex flex-wrap items-center gap-2">
+                                    <h3 class="text-sm font-semibold text-slate-600">@T("Blog.Tags"):</h3>
+                                    <ul class="flex flex-wrap items-center gap-2">
+                                        @for (var i = 0; i < item.Tags.Count; i++)
+                                        {
+                                            var tag = item.Tags[i];
+                                            <li>
+                                                <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag = tag })" class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">@tag</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <div class="buttons flex items-center gap-2">
+                                @if (item.AllowComments)
+                                {
+                                    <a href="@commentsUrl" class="read-comments inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                                        @string.Format(T("Blog.CommentsLink").Text, item.NumberOfComments)
+                                    </a>
+                                }
+                                <a href="@postUrl" class="read-more inline-flex h-10 items-center justify-center rounded-xl bg-military-green px-4 text-sm font-semibold text-white transition hover:brightness-110">
+                                    @T("Blog.MoreInfo")
+                                </a>
+                            </div>
+                        </div>
+
+                        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageInsidePost, additionalData = item })
+                    </article>
+                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPost, additionalData = item })
+                }
+            </div>
+
+            @{
+                var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
+            }
+            @if (!(await pager.IsEmpty()))
+            {
+                <div class="pager mt-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                    @pager
+                </div>
+            }
+
+            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPosts, additionalData = Model })
+        </div>
     </div>
 </div>

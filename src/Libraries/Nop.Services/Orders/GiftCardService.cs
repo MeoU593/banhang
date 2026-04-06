@@ -79,46 +79,13 @@ public partial class GiftCardService : IGiftCardService
     /// A task that represents the asynchronous operation
     /// The task result contains the gift cards
     /// </returns>
-    public virtual async Task<IPagedList<GiftCard>> GetAllGiftCardsAsync(int? purchasedWithOrderId = null, int? usedWithOrderId = null,
+    public virtual Task<IPagedList<GiftCard>> GetAllGiftCardsAsync(int? purchasedWithOrderId = null, int? usedWithOrderId = null,
         DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
         bool? isGiftCardActivated = null, string giftCardCouponCode = null,
         string recipientName = null,
         int pageIndex = 0, int pageSize = int.MaxValue)
     {
-        var giftCards = await _giftCardRepository.GetAllPagedAsync(query =>
-        {
-            if (purchasedWithOrderId.HasValue)
-            {
-                query = from gc in query
-                    join oi in _orderItemRepository.Table on gc.PurchasedWithOrderItemId equals oi.Id
-                    where oi.OrderId == purchasedWithOrderId.Value
-                    select gc;
-            }
-
-            if (usedWithOrderId.HasValue)
-            {
-                query = from gc in query
-                    join gcuh in _giftCardUsageHistoryRepository.Table on gc.Id equals gcuh.GiftCardId
-                    where gcuh.UsedWithOrderId == usedWithOrderId
-                    select gc;
-            }
-
-            if (createdFromUtc.HasValue)
-                query = query.Where(gc => createdFromUtc.Value <= gc.CreatedOnUtc);
-            if (createdToUtc.HasValue)
-                query = query.Where(gc => createdToUtc.Value >= gc.CreatedOnUtc);
-            if (isGiftCardActivated.HasValue)
-                query = query.Where(gc => gc.IsGiftCardActivated == isGiftCardActivated.Value);
-            if (!string.IsNullOrEmpty(giftCardCouponCode))
-                query = query.Where(gc => gc.GiftCardCouponCode == giftCardCouponCode);
-            if (!string.IsNullOrWhiteSpace(recipientName))
-                query = query.Where(c => c.RecipientName.Contains(recipientName));
-            query = query.OrderByDescending(gc => gc.CreatedOnUtc);
-
-            return query;
-        }, pageIndex, pageSize);
-
-        return giftCards;
+        return Task.FromResult<IPagedList<GiftCard>>(new PagedList<GiftCard>(new List<GiftCard>(), pageIndex, pageSize));
     }
 
     /// <summary>
@@ -149,18 +116,9 @@ public partial class GiftCardService : IGiftCardService
     /// A task that represents the asynchronous operation
     /// The task result contains the gift card entries
     /// </returns>
-    public virtual async Task<IList<GiftCard>> GetGiftCardsByPurchasedWithOrderItemIdAsync(int purchasedWithOrderItemId)
+    public virtual Task<IList<GiftCard>> GetGiftCardsByPurchasedWithOrderItemIdAsync(int purchasedWithOrderItemId)
     {
-        if (purchasedWithOrderItemId == 0)
-            return new List<GiftCard>();
-
-        var query = _giftCardRepository.Table;
-        query = query.Where(gc => gc.PurchasedWithOrderItemId.HasValue && gc.PurchasedWithOrderItemId.Value == purchasedWithOrderItemId);
-        query = query.OrderBy(gc => gc.Id);
-
-        var giftCards = await query.ToListAsync();
-
-        return giftCards;
+        return Task.FromResult<IList<GiftCard>>(new List<GiftCard>());
     }
 
     /// <summary>
@@ -255,13 +213,9 @@ public partial class GiftCardService : IGiftCardService
     /// A task that represents the asynchronous operation
     /// The task result contains the result
     /// </returns>
-    public virtual async Task<IList<GiftCardUsageHistory>> GetGiftCardUsageHistoryAsync(GiftCard giftCard)
+    public virtual Task<IList<GiftCardUsageHistory>> GetGiftCardUsageHistoryAsync(GiftCard giftCard)
     {
-        ArgumentNullException.ThrowIfNull(giftCard);
-
-        return await _giftCardUsageHistoryRepository.Table
-            .Where(gcuh => gcuh.GiftCardId == giftCard.Id)
-            .ToListAsync();
+        return Task.FromResult<IList<GiftCardUsageHistory>>(new List<GiftCardUsageHistory>());
     }
 
     /// <summary>
@@ -272,13 +226,9 @@ public partial class GiftCardService : IGiftCardService
     /// A task that represents the asynchronous operation
     /// The task result contains the result
     /// </returns>
-    public virtual async Task<IList<GiftCardUsageHistory>> GetGiftCardUsageHistoryAsync(Order order)
+    public virtual Task<IList<GiftCardUsageHistory>> GetGiftCardUsageHistoryAsync(Order order)
     {
-        ArgumentNullException.ThrowIfNull(order);
-
-        return await _giftCardUsageHistoryRepository.Table
-            .Where(gcuh => gcuh.UsedWithOrderId == order.Id)
-            .ToListAsync();
+        return Task.FromResult<IList<GiftCardUsageHistory>>(new List<GiftCardUsageHistory>());
     }
 
     /// <summary>

@@ -1,4 +1,12 @@
-﻿/* COMMON */
+﻿/* FONT */
+*, *::before, *::after {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+}
+pre, code, kbd, samp {
+    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
+}
+
+/* COMMON */
 .content, .content-wrapper > .content {
   padding: 0 10px 55px 10px;
 }

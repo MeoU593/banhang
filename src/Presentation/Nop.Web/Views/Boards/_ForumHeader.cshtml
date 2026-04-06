@@ -1,8 +1,11 @@
 ﻿@using Nop.Services.Helpers
 @inject IDateTimeHelper dateTimeHelper
-<div class="forums-header">
-    <div class="current-time">
+<div class="forums-header mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div class="current-time inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+        <span class="material-symbols-outlined !text-base text-military-green">schedule</span>
         @((await dateTimeHelper.ConvertToUserTimeAsync(DateTime.UtcNow)).ToString("F"))
     </div>
-    @await Html.PartialAsync("_SearchBox")
+    <div class="min-w-[220px] sm:min-w-[280px]">
+        @await Html.PartialAsync("_SearchBox")
+    </div>
 </div>

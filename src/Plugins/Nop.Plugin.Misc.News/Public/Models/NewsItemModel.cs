@@ -11,6 +11,7 @@ public record NewsItemModel : BaseNopEntityModel, IMetaTagsSupportedModel
     public string MetaDescription { get; set; }
     public string MetaTitle { get; set; }
     public string SeName { get; set; }
+    public int NewsItemTypeId { get; set; }
     public string Title { get; set; }
     public string Short { get; set; }
     public string Full { get; set; }

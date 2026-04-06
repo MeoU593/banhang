@@ -25,7 +25,8 @@ public class NewsItemBuilder : NopEntityBuilder<NewsItem>
             .WithColumn(nameof(NewsItem.Full)).AsString(int.MaxValue).NotNullable()
             .WithColumn(nameof(NewsItem.MetaKeywords)).AsString(400).Nullable()
             .WithColumn(nameof(NewsItem.MetaTitle)).AsString(400).Nullable()
-            .WithColumn(nameof(NewsItem.LanguageId)).AsInt32().ForeignKey<Language>();
+            .WithColumn(nameof(NewsItem.LanguageId)).AsInt32().ForeignKey<Language>()
+            .WithColumn(nameof(NewsItem.NewsItemTypeId)).AsInt32().NotNullable().WithDefaultValue(0);
     }
 
     #endregion

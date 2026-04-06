@@ -8,24 +8,24 @@
     NopHtml.AppendPageCssClassParts("html-move-topic-page");
 }
 @await Component.InvokeAsync(typeof(ForumBreadcrumbViewComponent), new { forumTopicId = Model.Id })
-<div class="page move-topic-page">
-    <div class="page-title">
-        <h1>@T("Forum.MoveTopic")</h1>
+<div class="page move-topic-page px-4 pb-8 lg:px-0">
+    <div class="page-title mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
+        <h1 class="text-3xl font-black tracking-tight sm:text-4xl">@T("Forum.MoveTopic")</h1>
     </div>
     <div class="page-body">
         <form asp-route="@NopRouteNames.Standard.TOPIC_MOVE" method="post">
             <input type="hidden" asp-for="Id"/>
-            <section class="fieldset">
+            <section class="fieldset rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div class="form-fields">
                     <div class="inputs">
-                        <label asp-for="ForumSelected">@T("Forum.SelectTheForumToMoveTopic"):</label>
-                        <select asp-for="ForumSelected" asp-items="@(new SelectList(Model.ForumList, "Value", "Text"))"></select>
+                        <label asp-for="ForumSelected" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.SelectTheForumToMoveTopic"):</label>
+                        <select asp-for="ForumSelected" asp-items="@(new SelectList(Model.ForumList, "Value", "Text"))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"></select>
                     </div>
                 </div>
             </section>
-            <section class="buttons">
-                <button type="submit" class="button-1 submit-forum-topic-button">@T("Forum.Submit")</button>
-                <button type="button" class="button-2 cancel-forum-topic-button" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.Id, slug = Model.TopicSeName })')">@T("Forum.Cancel")</button>
+            <section class="buttons mt-4 flex flex-wrap items-center gap-2">
+                <button type="submit" class="button-1 submit-forum-topic-button inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.Submit")</button>
+                <button type="button" class="button-2 cancel-forum-topic-button inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-300" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.Id, slug = Model.TopicSeName })')">@T("Forum.Cancel")</button>
             </section>
         </form>
     </div>

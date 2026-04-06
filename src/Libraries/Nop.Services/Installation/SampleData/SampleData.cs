@@ -46,11 +46,6 @@ public partial class SampleData
     public List<SampleForumGroup> ForumGroups { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the list of discounts
-    /// </summary>
-    public List<SampleDiscount> Discounts { get; set; } = new();
-
-    /// <summary>
     /// Gets or sets the list of blog posts
     /// </summary>
     public List<SampleBlogPost> BlogPosts { get; set; } = new();

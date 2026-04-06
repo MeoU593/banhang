@@ -60,7 +60,6 @@ public partial class OrderModelFactory : IOrderModelFactory
     protected readonly ICurrencyService _currencyService;
     protected readonly ICustomerService _customerService;
     protected readonly IDateTimeHelper _dateTimeHelper;
-    protected readonly IDiscountService _discountService;
     protected readonly IDownloadService _downloadService;
     protected readonly IEncryptionService _encryptionService;
     protected readonly IGiftCardService _giftCardService;
@@ -76,7 +75,6 @@ public partial class OrderModelFactory : IOrderModelFactory
     protected readonly IProductAttributeService _productAttributeService;
     protected readonly IProductService _productService;
     protected readonly IReturnRequestService _returnRequestService;
-    protected readonly IRewardPointService _rewardPointService;
     protected readonly ISettingService _settingService;
     protected readonly IShipmentService _shipmentService;
     protected readonly IStateProvinceService _stateProvinceService;
@@ -110,7 +108,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         ICurrencyService currencyService,
         ICustomerService customerService,
         IDateTimeHelper dateTimeHelper,
-        IDiscountService discountService,
         IDownloadService downloadService,
         IEncryptionService encryptionService,
         IGiftCardService giftCardService,
@@ -126,7 +123,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         IProductAttributeService productAttributeService,
         IProductService productService,
         IReturnRequestService returnRequestService,
-        IRewardPointService rewardPointService,
         ISettingService settingService,
         IShipmentService shipmentService,
         IStateProvinceService stateProvinceService,
@@ -155,7 +151,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         _currencyService = currencyService;
         _customerService = customerService;
         _dateTimeHelper = dateTimeHelper;
-        _discountService = discountService;
         _downloadService = downloadService;
         _encryptionService = encryptionService;
         _giftCardService = giftCardService;
@@ -171,7 +166,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         _productAttributeService = productAttributeService;
         _productService = productService;
         _returnRequestService = returnRequestService;
-        _rewardPointService = rewardPointService;
         _settingService = settingService;
         _shipmentService = shipmentService;
         _stateProvinceService = stateProvinceService;
@@ -419,20 +413,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         model.OrderSubtotalInclTaxValue = order.OrderSubtotalInclTax;
         model.OrderSubtotalExclTaxValue = order.OrderSubtotalExclTax;
 
-        //discount (applied to order subtotal)
-        var orderSubtotalDiscountInclTaxStr = await _priceFormatter
-            .FormatOrderPriceAsync(order.OrderSubTotalDiscountInclTax, order.CurrencyRate, order.CustomerCurrencyCode,
-                _orderSettings.DisplayCustomerCurrencyOnOrders, primaryStoreCurrency, languageId, true);
-        var orderSubtotalDiscountExclTaxStr = await _priceFormatter
-            .FormatOrderPriceAsync(order.OrderSubTotalDiscountExclTax, order.CurrencyRate, order.CustomerCurrencyCode,
-                _orderSettings.DisplayCustomerCurrencyOnOrders, primaryStoreCurrency, languageId, false);
-        if (order.OrderSubTotalDiscountInclTax > decimal.Zero)
-            model.OrderSubTotalDiscountInclTax = orderSubtotalDiscountInclTaxStr;
-        if (order.OrderSubTotalDiscountExclTax > decimal.Zero)
-            model.OrderSubTotalDiscountExclTax = orderSubtotalDiscountExclTaxStr;
-        model.OrderSubTotalDiscountInclTaxValue = order.OrderSubTotalDiscountInclTax;
-        model.OrderSubTotalDiscountExclTaxValue = order.OrderSubTotalDiscountExclTax;
-
         //shipping
         model.OrderShippingInclTax = await _priceFormatter
             .FormatOrderPriceAsync(order.OrderShippingInclTax, order.CurrencyRate, order.CustomerCurrencyCode,
@@ -484,15 +464,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         model.TaxValue = order.OrderTax;
         model.TaxRatesValue = order.TaxRates;
 
-        //discount
-        if (order.OrderDiscount > 0)
-        {
-            model.OrderTotalDiscount = await _priceFormatter
-                .FormatOrderPriceAsync(-order.OrderDiscount, order.CurrencyRate, order.CustomerCurrencyCode,
-                    _orderSettings.DisplayCustomerCurrencyOnOrders, primaryStoreCurrency, languageId, null, false);
-        }
-        model.OrderTotalDiscountValue = order.OrderDiscount;
-
         //gift cards
         foreach (var gcuh in await _giftCardService.GetGiftCardUsageHistoryAsync(order))
         {
@@ -501,14 +472,6 @@ public partial class OrderModelFactory : IOrderModelFactory
                 CouponCode = (await _giftCardService.GetGiftCardByIdAsync(gcuh.GiftCardId)).GiftCardCouponCode,
                 Amount = await _priceFormatter.FormatPriceAsync(-gcuh.UsedValue, true, false)
             });
-        }
-
-        //reward points
-        if (order.RedeemedRewardPointsEntryId.HasValue && await _rewardPointService.GetRewardPointsHistoryEntryByIdAsync(order.RedeemedRewardPointsEntryId.Value) is RewardPointsHistory redeemedRewardPointsEntry)
-        {
-            model.RedeemedRewardPoints = -redeemedRewardPointsEntry.Points;
-            model.RedeemedRewardPointsAmount =
-                await _priceFormatter.FormatPriceAsync(-redeemedRewardPointsEntry.UsedAmount, true, false);
         }
 
         //total
@@ -520,19 +483,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         //refunded amount
         if (order.RefundedAmount > decimal.Zero)
             model.RefundedAmount = await _priceFormatter.FormatPriceAsync(order.RefundedAmount, true, false);
-
-        //used discounts
-        var duh = await _discountService.GetAllDiscountUsageHistoryAsync(orderId: order.Id);
-        foreach (var d in duh)
-        {
-            var discount = await _discountService.GetDiscountByIdAsync(d.DiscountId);
-
-            model.UsedDiscounts.Add(new OrderModel.UsedDiscountModel
-            {
-                DiscountId = d.DiscountId,
-                DiscountName = discount.Name
-            });
-        }
 
         //profit (hide for vendors)
         if (await _workContext.GetCurrentVendorAsync() != null)

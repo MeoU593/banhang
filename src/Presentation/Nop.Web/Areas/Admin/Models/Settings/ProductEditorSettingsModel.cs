@@ -51,17 +51,8 @@ public partial record ProductEditorSettingsModel : BaseNopModel, ISettingsModel
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.ProductCost")]
     public bool ProductCost { get; set; }
 
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.TierPrices")]
-    public bool TierPrices { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.Discounts")]
-    public bool Discounts { get; set; }
-
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.DisableBuyButton")]
     public bool DisableBuyButton { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.DisableWishlistButton")]
-    public bool DisableWishlistButton { get; set; }
 
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.AvailableForPreOrder")]
     public bool AvailableForPreOrder { get; set; }

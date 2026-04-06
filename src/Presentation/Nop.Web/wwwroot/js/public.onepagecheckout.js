@@ -603,15 +603,6 @@ var PaymentMethod = {
         this.localized_data = localized_data;
     },
 
-    toggleUseRewardPoints: function (useRewardPointsInput) {
-        if (useRewardPointsInput.checked) {
-            $('#payment-method-block').hide();
-        }
-        else {
-            $('#payment-method-block').show();
-        }
-    },
-
     validate: function () {
         var methods = document.getElementsByName('paymentmethod');
         if (methods.length === 0) {

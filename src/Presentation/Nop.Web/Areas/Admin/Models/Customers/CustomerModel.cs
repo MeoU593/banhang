@@ -26,11 +26,8 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
         AvailableStates = new List<SelectListItem>();
         AvailableVendors = new List<SelectListItem>();
         CustomerAttributes = new List<CustomerAttributeModel>();
-        AddRewardPoints = new AddRewardPointsToCustomerModel();
-        CustomerRewardPointsSearchModel = new CustomerRewardPointsSearchModel();
         CustomerAddressSearchModel = new CustomerAddressSearchModel();
         CustomerOrderSearchModel = new CustomerOrderSearchModel();
-        CustomerShoppingCartSearchModel = new CustomerShoppingCartSearchModel();
         CustomerActivityLogSearchModel = new CustomerActivityLogSearchModel();
         CustomerBackInStockSubscriptionSearchModel = new CustomerBackInStockSubscriptionSearchModel();
         CustomerAssociatedExternalAuthRecordsSearchModel = new CustomerAssociatedExternalAuthRecordsSearchModel();
@@ -207,13 +204,6 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     [NopResourceDisplayName("Admin.Customers.Customers.Fields.CustomerRoles")]
     public IList<int> SelectedCustomerRoleIds { get; set; }
 
-    //reward points history
-    public bool DisplayRewardPointsHistory { get; set; }
-
-    public AddRewardPointsToCustomerModel AddRewardPoints { get; set; }
-
-    public CustomerRewardPointsSearchModel CustomerRewardPointsSearchModel { get; set; }
-
     //send email model
     public SendEmailModel SendEmail { get; set; }
 
@@ -237,8 +227,6 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     public CustomerAddressSearchModel CustomerAddressSearchModel { get; set; }
 
     public CustomerOrderSearchModel CustomerOrderSearchModel { get; set; }
-
-    public CustomerShoppingCartSearchModel CustomerShoppingCartSearchModel { get; set; }
 
     public CustomerActivityLogSearchModel CustomerActivityLogSearchModel { get; set; }
 

@@ -202,9 +202,9 @@ public partial class ShoppingCartService : IShoppingCartService
     /// </summary>
     /// <param name="customer">Customer</param>
     /// <returns>Result</returns>
-    protected virtual async Task<bool> IsCustomerShoppingCartEmptyAsync(Customer customer)
+    protected virtual Task<bool> IsCustomerShoppingCartEmptyAsync(Customer customer)
     {
-        return !await _sciRepository.Table.AnyAsync(sci => sci.CustomerId == customer.Id);
+        return Task.FromResult(true);
     }
 
     /// <summary>
@@ -747,36 +747,10 @@ public partial class ShoppingCartService : IShoppingCartService
     /// A task that represents the asynchronous operation
     /// The task result contains the shopping Cart
     /// </returns>
-    public virtual async Task<IList<ShoppingCartItem>> GetShoppingCartAsync(Customer customer, ShoppingCartType? shoppingCartType = null,
+    public virtual Task<IList<ShoppingCartItem>> GetShoppingCartAsync(Customer customer, ShoppingCartType? shoppingCartType = null,
         int storeId = 0, int? productId = null, DateTime? createdFromUtc = null, DateTime? createdToUtc = null, int? customWishlistId = null)
     {
-        ArgumentNullException.ThrowIfNull(customer);
-
-        var items = _sciRepository.Table.Where(sci => sci.CustomerId == customer.Id);
-
-        //filter by type
-        if (shoppingCartType.HasValue)
-            items = items.Where(item => item.ShoppingCartTypeId == (int)shoppingCartType.Value);
-
-        //filter by custom wishlist
-        if ((!shoppingCartType.HasValue || shoppingCartType == ShoppingCartType.Wishlist) && (customWishlistId is null || customWishlistId > 0))
-            items = items.Where(item => item.CustomWishlistId == customWishlistId);
-
-        //filter shopping cart items by store
-        if (storeId > 0 && !_shoppingCartSettings.CartsSharedBetweenStores)
-            items = items.Where(item => item.StoreId == storeId);
-
-        //filter shopping cart items by product
-        if (productId > 0)
-            items = items.Where(item => item.ProductId == productId);
-
-        //filter shopping cart items by date
-        if (createdFromUtc.HasValue)
-            items = items.Where(item => createdFromUtc.Value <= item.CreatedOnUtc);
-        if (createdToUtc.HasValue)
-            items = items.Where(item => createdToUtc.Value >= item.CreatedOnUtc);
-
-        return await _shortTermCacheManager.GetAsync(async () => await items.ToListAsync(), NopOrderDefaults.ShoppingCartItemsAllCacheKey, customer, shoppingCartType, storeId, productId, createdFromUtc, createdToUtc);
+        return Task.FromResult<IList<ShoppingCartItem>>(new List<ShoppingCartItem>());
     }
 
     /// <summary>

@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(sqlcmd -?)",
+      "Bash(sqlcmd:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":64260\")",
+      "Bash(netsh int:*)",
+      "Bash(curl -s --max-time 5 \"https://fonts.googleapis.com\" -o /dev/null)",
+      "Bash(xargs -I {} find {} -type f -name \"*cart*\" -o -name \"*reward*\")",
+      "Bash(grep:*)",
+      "Bash(dotnet build:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Read(//d/thayhai/banhang/src/**)",
+      "Bash(powershell -Command ':*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\fix-encoding.ps1\" -WhatIf)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\test-encoding.ps1\")",
+      "Bash(findstr /v \"tim cmdlet Category FullyQual\")",
+      "Bash(Select-String -Pattern \"Original|Bytes|Fixed\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\fix-encoding.ps1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\fix-encoding-all.ps1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\fix-encoding-universal.ps1\" -WhatIf)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"D:\\\\thayhai\\\\banhang\\\\fix-encoding-universal.ps1\")",
+      "Bash(tasklist)",
+      "Bash(powershell:*)",
+      "Bash(pip install:*)"
+    ]
+  }
+}

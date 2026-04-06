@@ -1,18 +1,22 @@
-﻿@model CustomerNavigationModel
-<section class="block block-account-navigation">
-    <h2 class="title">
-        @T("Account.Navigation")
-    </h2>
-    <div class="listbox">
-        <ul class="list">
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.AccountNavigationBefore, additionalData = Model })
-            @foreach (var item in Model.CustomerNavigationItems)
-            {
-                <li class="@item.ItemClass @(Model.SelectedTab == item.Tab ? "active" : "inactive")">
-                    <a href="@Url.RouteUrl(item.RouteName)">@(item.Title)</a>
-                </li>
-            }
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.AccountNavigationAfter, additionalData = Model })
-        </ul>
-    </div>
-</section>
+@model CustomerNavigationModel
+<style>
+.account-nav-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); margin-bottom: 16px; }
+.account-nav-title { padding: 14px 16px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #eab308; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; }
+.account-nav-list { list-style: none; margin: 0; padding: 8px 0; }
+.account-nav-list li a { display: flex; align-items: center; padding: 10px 16px; font-size: 13px; font-weight: 500; color: #475569; text-decoration: none; transition: background 0.15s, color 0.15s; border-left: 3px solid transparent; }
+.account-nav-list li a:hover { background: #f8fafc; color: #0f172a; }
+.account-nav-list li.active a { color: #2d3a22; font-weight: 700; background: #f0f4eb; border-left-color: #2d3a22; }
+</style>
+<div class="account-nav-card">
+    <div class="account-nav-title">@T("Account.Navigation")</div>
+    <ul class="account-nav-list">
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.AccountNavigationBefore, additionalData = Model })
+        @foreach (var item in Model.CustomerNavigationItems)
+        {
+            <li class="@item.ItemClass @(Model.SelectedTab == item.Tab ? "active" : "inactive")">
+                <a href="@Url.RouteUrl(item.RouteName)">@(item.Title)</a>
+            </li>
+        }
+        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.AccountNavigationAfter, additionalData = Model })
+    </ul>
+</div>

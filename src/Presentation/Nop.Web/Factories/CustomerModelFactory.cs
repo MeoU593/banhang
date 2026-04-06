@@ -76,7 +76,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IWorkContext _workContext;
     protected readonly MediaSettings _mediaSettings;
     protected readonly OrderSettings _orderSettings;
-    protected readonly RewardPointsSettings _rewardPointsSettings;
     protected readonly SecuritySettings _securitySettings;
     protected readonly TaxSettings _taxSettings;
     protected readonly VendorSettings _vendorSettings;
@@ -121,7 +120,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IWorkContext workContext,
         MediaSettings mediaSettings,
         OrderSettings orderSettings,
-        RewardPointsSettings rewardPointsSettings,
         SecuritySettings securitySettings,
         TaxSettings taxSettings,
         VendorSettings vendorSettings)
@@ -162,7 +160,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _workContext = workContext;
         _mediaSettings = mediaSettings;
         _orderSettings = orderSettings;
-        _rewardPointsSettings = rewardPointsSettings;
         _securitySettings = securitySettings;
         _taxSettings = taxSettings;
         _vendorSettings = vendorSettings;
@@ -631,13 +628,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             ItemClass = "customer-orders"
         });
 
-        model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-        {
-            RouteName = NopRouteNames.Standard.CUSTOMER_RECURRING_PAYMENTS,
-            Title = await _localizationService.GetResourceAsync("Account.CustomerRecurringPayments"),
-            Tab = (int)CustomerNavigationEnum.RecurringPayments,
-            ItemClass = "customer-recurring-payments"
-        });
 
         var store = await _storeContext.GetCurrentStoreAsync();
         var customer = await _workContext.GetCurrentCustomerAsync();
@@ -677,16 +667,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             });
         }
 
-        if (_rewardPointsSettings.Enabled)
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.Standard.CUSTOMER_REWARD_POINTS,
-                Title = await _localizationService.GetResourceAsync("Account.RewardPoints"),
-                Tab = (int)CustomerNavigationEnum.RewardPoints,
-                ItemClass = "reward-points"
-            });
-        }
 
         model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
         {

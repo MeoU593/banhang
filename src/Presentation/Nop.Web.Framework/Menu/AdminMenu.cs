@@ -81,14 +81,6 @@ public partial class AdminMenu : IAdminMenu
             Url = GetMenuItemUrl("Home", "Overview"),
             ChildNodes = new List<AdminMenuItem>
             {
-                //dashboard
-                new()
-                {
-                    SystemName = "Dashboard",
-                    Title = await _localizationService.GetResourceAsync("Admin.Dashboard"),
-                    Url = GetMenuItemUrl("Home", "Index"),
-                    IconClass = "fas fa-desktop"
-                },
                 //catalog
                 new()
                 {
@@ -131,14 +123,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Product tags",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.ProductTags"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_TAGS_VIEW },
-                            Url = GetMenuItemUrl("Product", "ProductTags"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Filter level values",
                             Title = await _localizationService.GetResourceAsync("Admin.Catalog.FilterLevelValues"),
                             PermissionNames = new List<string> { StandardPermission.Catalog.FILTER_LEVEL_VALUE_VIEW },
@@ -146,97 +130,6 @@ public partial class AdminMenu : IAdminMenu
                             Visible = _filterLevelSettings.FilterLevelEnabled,
                             IconClass = "far fa-dot-circle"
                         },
-                        new()
-                        {
-                            SystemName = "Attributes",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.Attributes"),
-                            IconClass = "far fa-dot-circle",
-                            ChildNodes = new List<AdminMenuItem>
-                            {
-                                new()
-                                {
-                                    SystemName = "Product attributes",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Catalog.Attributes.ProductAttributes"),
-                                    Url = GetMenuItemUrl("ProductAttribute", "List"),
-                                    PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_ATTRIBUTES_VIEW },
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Specification attributes",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Catalog.Attributes.SpecificationAttributes"),
-                                    Url = GetMenuItemUrl("SpecificationAttribute", "List"),
-                                    PermissionNames = new List<string> { StandardPermission.Catalog.SPECIFICATION_ATTRIBUTES_VIEW },
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Checkout attributes",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Catalog.Attributes.CheckoutAttributes"),
-                                    PermissionNames = new List<string> { StandardPermission.Catalog.CHECKOUT_ATTRIBUTES_VIEW },
-                                    Url = GetMenuItemUrl("CheckoutAttribute", "List"),
-                                    IconClass = "far fa-circle"
-                                }
-                            }
-                        }
-                    }
-                },
-                //sales
-                new()
-                {
-                    SystemName = "Sales",
-                    Title = await _localizationService.GetResourceAsync("Admin.Sales"),
-                    IconClass = "fas fa-shopping-cart",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
-                        new()
-                        {
-                            SystemName = "Orders",
-                            Title = await _localizationService.GetResourceAsync("Admin.Orders"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.ORDERS_VIEW },
-                            Url = GetMenuItemUrl("Order", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Shipments",
-                            Title = await _localizationService.GetResourceAsync("Admin.Orders.Shipments.List"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.SHIPMENTS_VIEW },
-                            Url = GetMenuItemUrl("Order", "ShipmentList"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Return requests",
-                            Title = await _localizationService.GetResourceAsync("Admin.ReturnRequests"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.RETURN_REQUESTS_VIEW },
-                            Url = GetMenuItemUrl("ReturnRequest", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Recurring payments",
-                            Title = await _localizationService.GetResourceAsync("Admin.RecurringPayments"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.RECURRING_PAYMENTS_VIEW },
-                            Url = GetMenuItemUrl("RecurringPayment", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Gift cards",
-                            Title = await _localizationService.GetResourceAsync("Admin.GiftCards"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.GIFT_CARDS_VIEW },
-                            Url = GetMenuItemUrl("GiftCard", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Current shopping carts and wishlists",
-                            Title = await _localizationService.GetResourceAsync("Admin.CurrentCarts.CartsAndWishlists"),
-                            PermissionNames = new List<string> { StandardPermission.Orders.CURRENT_CARTS_MANAGE },
-                            Url = GetMenuItemUrl("ShoppingCart", "CurrentCarts"),
-                            IconClass = "far fa-dot-circle"
-                        }
                     }
                 },
                 //customers
@@ -273,14 +166,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Vendors",
-                            Title = await _localizationService.GetResourceAsync("Admin.Vendors"),
-                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
-                            Url = GetMenuItemUrl("Vendor", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Activity logs",
                             Title = await _localizationService.GetResourceAsync("Admin.Customers.ActivityLog"),
                             PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
@@ -301,56 +186,6 @@ public partial class AdminMenu : IAdminMenu
                             Title = await _localizationService.GetResourceAsync("Admin.Customers.GdprLog"),
                             PermissionNames = new List<string> { StandardPermission.Customers.GDPR_MANAGE },
                             Url = GetMenuItemUrl("Customer", "GdprLog"),
-                            IconClass = "far fa-dot-circle"
-                        }
-                    }
-                },
-                //promotions
-                new()
-                {
-                    SystemName = "Promotions",
-                    Title = await _localizationService.GetResourceAsync("Admin.Promotions"),
-                    IconClass = "fas fa-tags",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
-                        new()
-                        {
-                            SystemName = "Discounts",
-                            Title = await _localizationService.GetResourceAsync("Admin.Promotions.Discounts"),
-                            PermissionNames = new List<string> { StandardPermission.Promotions.DISCOUNTS_VIEW },
-                            Url = GetMenuItemUrl("Discount", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Affiliates",
-                            Title = await _localizationService.GetResourceAsync("Admin.Affiliates"),
-                            PermissionNames = new List<string> { StandardPermission.Promotions.AFFILIATES_VIEW },
-                            Url = GetMenuItemUrl("Affiliate", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Newsletter subscriptions",
-                            Title = await _localizationService.GetResourceAsync("Admin.Promotions.NewsletterSubscriptions"),
-                            PermissionNames = new List<string> { StandardPermission.Promotions.SUBSCRIBERS_VIEW },
-                            Url = GetMenuItemUrl("NewsLetterSubscription", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Newsletter subscription types",
-                            Title = await _localizationService.GetResourceAsync("Admin.Promotions.NewsLetterSubscriptionType"),
-                            PermissionNames = new List<string> { StandardPermission.Promotions.SUBSCRIPTION_TYPE_VIEW },
-                            Url = GetMenuItemUrl("NewsLetterSubscriptionType", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Campaigns",
-                            Title = await _localizationService.GetResourceAsync("Admin.Promotions.Campaigns"),
-                            PermissionNames = new List<string> { StandardPermission.Promotions.CAMPAIGNS_VIEW },
-                            Url = GetMenuItemUrl("Campaign", "List"),
                             IconClass = "far fa-dot-circle"
                         }
                     }
@@ -488,30 +323,9 @@ public partial class AdminMenu : IAdminMenu
                                 },
                                 new()
                                 {
-                                    SystemName = "Shopping cart settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.ShoppingCart"),
-                                    Url = GetMenuItemUrl("Setting", "ShoppingCart"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Reward points",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.RewardPoints"),
-                                    Url = GetMenuItemUrl("Setting", "RewardPoints"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
                                     SystemName = "GDPR settings",
                                     Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Gdpr"),
                                     Url = GetMenuItemUrl("Setting", "Gdpr"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Vendor settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Vendor"),
-                                    Url = GetMenuItemUrl("Setting", "Vendor"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
@@ -576,119 +390,12 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Countries",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Countries"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_COUNTRIES },
-                            Url = GetMenuItemUrl("Country",
-                            "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Languages",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Languages"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_LANGUAGES },
-                            Url = GetMenuItemUrl("Language",
-                            "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Currencies",
                             Title = await _localizationService.GetResourceAsync("Admin.Configuration.Currencies"),
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_CURRENCIES },
                             Url = GetMenuItemUrl("Currency",
                             "List"),
                             IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Payment methods",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Payment.Methods"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Configuration.MANAGE_PAYMENT_METHODS
-                                },
-                            Url = GetMenuItemUrl("Payment", "Methods"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Payment restrictions",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Payment.MethodRestrictions"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Configuration.MANAGE_PAYMENT_METHODS
-                                },
-                            Url = GetMenuItemUrl("Payment", "MethodRestrictions"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Tax providers",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Tax.Providers"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_TAX_SETTINGS },
-                            Url = GetMenuItemUrl("Tax", "Providers"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Tax categories",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Tax.Categories"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_TAX_SETTINGS },
-                            Url = GetMenuItemUrl("Tax", "Categories"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Shipping",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Configuration.MANAGE_SHIPPING_SETTINGS
-                                },
-                            IconClass = "far fa-dot-circle",
-                            ChildNodes = new List<AdminMenuItem>
-                            {
-                                new()
-                                {
-                                    SystemName = "Shipping providers",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping.Providers"),
-                                    Url = GetMenuItemUrl("Shipping", "Providers"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Warehouses",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping.Warehouses"),
-                                    Url = GetMenuItemUrl("Shipping", "Warehouses"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Pickup points",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping.PickupPoints"),
-                                    Url = GetMenuItemUrl("Shipping", "PickupPointProviders"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Dates and ranges",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping.DatesAndRanges"),
-                                    Url = GetMenuItemUrl("Shipping", "DatesAndRanges"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Measures",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Shipping.Measures"),
-                                    Url = GetMenuItemUrl("Measure", "List"),
-                                    IconClass = "far fa-circle"
-                                }
-                            }
                         },
                         new()
                         {
@@ -864,19 +571,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Bestsellers",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.Sales.Bestsellers"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Orders.ORDERS_VIEW,
-                                    StandardPermission.Reports.BESTSELLERS
-                                },
-                            Url = GetMenuItemUrl("Report", "Bestsellers"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Products never purchased",
                             Title = await _localizationService.GetResourceAsync("Admin.Reports.Sales.NeverSold"),
                             PermissionNames =
@@ -886,14 +580,6 @@ public partial class AdminMenu : IAdminMenu
                                     StandardPermission.Reports.PRODUCTS_NEVER_PURCHASED
                                 },
                             Url = GetMenuItemUrl("Report", "NeverSold"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Country sales",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.Sales.Country"),
-                            PermissionNames = new List<string> { StandardPermission.Reports.COUNTRY_SALES },
-                            Url = GetMenuItemUrl("Report", "CountrySales"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
@@ -943,56 +629,6 @@ public partial class AdminMenu : IAdminMenu
                                     IconClass = "far fa-dot-circle"
                                 }
                             }
-                        }
-                    }
-                },
-                //help
-                new()
-                {
-                    SystemName = "Help",
-                    Title = await _localizationService.GetResourceAsync("Admin.Help"),
-                    IconClass = "fas fa-question-circle",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
-                        new()
-                        {
-                            SystemName = "Training",
-                            Title = await _localizationService.GetResourceAsync("Admin.Help.Training"),
-                            Url = "https://www.nopcommerce.com/training?utm_source=admin-panel&utm_medium=menu&utm_campaign=course&utm_content=help",
-                            IconClass = "far fa-dot-circle",
-                            OpenUrlInNewTab = true
-                        },
-                        new()
-                        {
-                            SystemName = "Documentation",
-                            Title = await _localizationService.GetResourceAsync("Admin.Help.Documentation"),
-                            Url = "https://docs.nopcommerce.com?utm_source=admin-panel&utm_medium=menu&utm_campaign=documentation&utm_content=help",
-                            IconClass = "far fa-dot-circle",
-                            OpenUrlInNewTab = true
-                        },
-                        new()
-                        {
-                            SystemName = "Community forums",
-                            Title = await _localizationService.GetResourceAsync("Admin.Help.Forums"),
-                            Url = "https://www.nopcommerce.com/boards?utm_source=admin-panel&utm_medium=menu&utm_campaign=forum&utm_content=help",
-                            IconClass = "far fa-dot-circle",
-                            OpenUrlInNewTab = true
-                        },
-                        new()
-                        {
-                            SystemName = "Premium support services",
-                            Title = await _localizationService.GetResourceAsync("Admin.Help.SupportServices"),
-                            Url = "https://www.nopcommerce.com/nopcommerce-premium-support-services?utm_source=admin-panel&utm_medium=menu&utm_campaign=premium_support&utm_content=help",
-                            IconClass = "far fa-dot-circle",
-                            OpenUrlInNewTab = true
-                        },
-                        new()
-                        {
-                            SystemName = "Solution partners",
-                            Title = await _localizationService.GetResourceAsync("Admin.Help.SolutionPartners"),
-                            Url = "https://www.nopcommerce.com/solution-partners?utm_source=admin-panel&utm_medium=menu&utm_campaign=solution_partners&utm_content=help",
-                            IconClass = "far fa-dot-circle",
-                            OpenUrlInNewTab = true
                         }
                     }
                 },

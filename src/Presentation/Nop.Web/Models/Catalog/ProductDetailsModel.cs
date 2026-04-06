@@ -6,8 +6,6 @@ using Nop.Web.Framework.Models;
 using Nop.Web.Framework.Models.ArtificialIntelligence;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Models.Media;
-using Nop.Web.Models.ShoppingCart;
-
 namespace Nop.Web.Models.Catalog;
 
 public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupportedModel
@@ -30,7 +28,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         ProductReviewOverview = new ProductReviewOverviewModel();
         ProductReviews = new ProductReviewsModel();
         TierPrices = new List<TierPriceModel>();
-        ProductEstimateShipping = new ProductEstimateShippingModel();
     }
 
     //picture(s)
@@ -111,8 +108,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
 
     public ProductReviewsModel ProductReviews { get; set; }
 
-    public ProductEstimateShippingModel ProductEstimateShipping { get; set; }
-
     public IList<TierPriceModel> TierPrices { get; set; }
 
     //a list of associated products. For example, "Grouped" products could have several child "simple" products
@@ -148,7 +143,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         public AddToCartModel()
         {
             AllowedQuantities = new List<SelectListItem>();
-            ProductToWishlist = new ProductToWishlistModel();
         }
         public int ProductId { get; set; }
 
@@ -179,7 +173,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         //updating existing shopping cart or wishlist item?
         public int UpdatedShoppingCartItemId { get; set; }
         public ShoppingCartType? UpdateShoppingCartItemType { get; set; }
-        public ProductToWishlistModel ProductToWishlist { get; set; }
     }
     
     public partial record GiftCardModel : BaseNopModel
@@ -294,11 +287,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         public bool CustomerEntersQty { get; set; }
 
         public int Quantity { get; set; }
-    }
-
-    public partial record ProductEstimateShippingModel : EstimateShippingModel
-    {
-        public int ProductId { get; set; }
     }
 
     #endregion

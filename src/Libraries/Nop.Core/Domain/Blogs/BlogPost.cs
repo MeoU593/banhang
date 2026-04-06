@@ -35,9 +35,14 @@ public partial class BlogPost : BaseEntity, ISlugSupported, IStoreMappingSupport
     public string BodyOverview { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the blog post comments are allowed 
+    /// Gets or sets a value indicating whether the blog post comments are allowed
     /// </summary>
     public bool AllowComments { get; set; }
+
+    /// <summary>
+    /// Gets or sets the blog post type: 0 = Tin tức, 1 = Văn bản ban hành
+    /// </summary>
+    public int PostTypeId { get; set; }
 
     /// <summary>
     /// Gets or sets the blog tags

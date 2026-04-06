@@ -535,24 +535,6 @@ public partial class ProductModelFactory : IProductModelFactory
     }
 
     /// <summary>
-    /// Prepare tier price search model
-    /// </summary>
-    /// <param name="searchModel">Tier price search model</param>
-    /// <param name="product">Product</param>
-    /// <returns>Tier price search model</returns>
-    protected virtual TierPriceSearchModel PrepareTierPriceSearchModel(TierPriceSearchModel searchModel, Product product)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-        ArgumentNullException.ThrowIfNull(product);
-
-        searchModel.ProductId = product.Id;
-
-        //prepare page parameters
-        searchModel.SetGridPageSize();
-
-        return searchModel;
-    }
-
     /// <summary>
     /// Prepare stock quantity history search model
     /// </summary>
@@ -884,7 +866,6 @@ public partial class ProductModelFactory : IProductModelFactory
             PrepareProductVideoSearchModel(model.ProductVideoSearchModel, product);
             PrepareProductSpecificationAttributeSearchModel(model.ProductSpecificationAttributeSearchModel, product);
             PrepareProductOrderSearchModel(model.ProductOrderSearchModel, product);
-            PrepareTierPriceSearchModel(model.TierPriceSearchModel, product);
             await PrepareStockQuantityHistorySearchModelAsync(model.StockQuantityHistorySearchModel, product);
             PrepareProductAttributeMappingSearchModel(model.ProductAttributeMappingSearchModel, product);
             PrepareProductAttributeCombinationSearchModel(model.ProductAttributeCombinationSearchModel, product);
@@ -1897,85 +1878,6 @@ public partial class ProductModelFactory : IProductModelFactory
                 return orderModel;
             });
         });
-
-        return model;
-    }
-
-    /// <summary>
-    /// Prepare paged tier price list model
-    /// </summary>
-    /// <param name="searchModel">Tier price search model</param>
-    /// <param name="product">Product</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ier price list model
-    /// </returns>
-    public virtual async Task<TierPriceListModel> PrepareTierPriceListModelAsync(TierPriceSearchModel searchModel, Product product)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-        ArgumentNullException.ThrowIfNull(product);
-
-        //get tier prices
-        var tierPrices = (await _productService.GetTierPricesByProductAsync(product.Id))
-            .OrderBy(price => price.StoreId).ThenBy(price => price.Quantity).ThenBy(price => price.CustomerRoleId)
-            .ToList().ToPagedList(searchModel);
-
-        //prepare grid model
-        var model = await new TierPriceListModel().PrepareToGridAsync(searchModel, tierPrices, () =>
-        {
-            return tierPrices.SelectAwait(async price =>
-            {
-                //fill in model values from the entity
-                var tierPriceModel = price.ToModel<TierPriceModel>();
-
-                //fill in additional values (not existing in the entity)   
-                tierPriceModel.Store = price.StoreId > 0
-                    ? ((await _storeService.GetStoreByIdAsync(price.StoreId))?.Name ?? "Deleted")
-                    : await _localizationService.GetResourceAsync("Admin.Catalog.Products.TierPrices.Fields.Store.All");
-                tierPriceModel.CustomerRoleId = price.CustomerRoleId ?? 0;
-                tierPriceModel.CustomerRole = price.CustomerRoleId.HasValue
-                    ? (await _customerService.GetCustomerRoleByIdAsync(price.CustomerRoleId.Value))?.Name
-                    : await _localizationService.GetResourceAsync("Admin.Catalog.Products.TierPrices.Fields.CustomerRole.All");
-
-                tierPriceModel.FormattedPrice = await _priceFormatter.FormatPriceAsync(price.Price);
-
-                return tierPriceModel;
-            });
-        });
-
-        return model;
-    }
-
-    /// <summary>
-    /// Prepare tier price model
-    /// </summary>
-    /// <param name="model">Tier price model</param>
-    /// <param name="product">Product</param>
-    /// <param name="tierPrice">Tier price</param>
-    /// <param name="excludeProperties">Whether to exclude populating of some properties of model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ier price model
-    /// </returns>
-    public virtual async Task<TierPriceModel> PrepareTierPriceModelAsync(TierPriceModel model,
-        Product product, TierPrice tierPrice, bool excludeProperties = false)
-    {
-        ArgumentNullException.ThrowIfNull(product);
-
-        if (tierPrice != null)
-        {
-            //fill in model values from the entity
-            if (model == null)
-                model = tierPrice.ToModel<TierPriceModel>();
-        }
-
-        model.PrimaryStoreCurrencyCode = (await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId)).CurrencyCode;
-
-        //prepare available stores
-        await _baseAdminModelFactory.PrepareStoresAsync(model.AvailableStores);
-
-        //prepare available customer roles
-        await _baseAdminModelFactory.PrepareCustomerRolesAsync(model.AvailableCustomerRoles);
 
         return model;
     }

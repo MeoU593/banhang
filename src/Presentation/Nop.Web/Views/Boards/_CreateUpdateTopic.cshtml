@@ -6,30 +6,30 @@
 }
 
 @await Component.InvokeAsync(typeof(ForumBreadcrumbViewComponent), new { forumId = Model.ForumId, forumTopicId = Model.Id })
-<div class="page forum-edit-page">
-    <div class="page-title">
+<div class="page forum-edit-page px-4 pb-8 lg:px-0">
+    <div class="page-title mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
         @if (Model.IsEdit)
         {
-            <h1>@T("Forum.EditTopic")</h1>
+            <h1 class="text-3xl font-black tracking-tight sm:text-4xl">@T("Forum.EditTopic")</h1>
         }
         else
         {
-            <h1>@T("Forum.NewTopic")</h1>
+            <h1 class="text-3xl font-black tracking-tight sm:text-4xl">@T("Forum.NewTopic")</h1>
         }
     </div>
     <div class="page-body">
-        <div asp-validation-summary="ModelOnly" class="message-error"></div>
+        <div asp-validation-summary="ModelOnly" class="message-error mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="ForumId" />
-        <section class="fieldset">
-            <div class="form-fields">
+        <section class="fieldset rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="form-fields space-y-4">
                 <div class="inputs">
-                    <label>@T("Forum.ForumName"):</label>
-                    <strong>@Model.ForumName</strong>
+                    <label class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.ForumName"):</label>
+                    <strong class="text-sm text-slate-900">@Model.ForumName</strong>
                 </div>
                 <div class="inputs">
-                    <label asp-for="Subject">@T("Forum.TopicTitle"):</label>
-                    <input asp-for="Subject" class="forum-topic-title-text" />
+                    <label asp-for="Subject" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.TopicTitle"):</label>
+                    <input asp-for="Subject" class="forum-topic-title-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white" />
                     <span asp-validation-for="Subject"></span>
                 </div>
                 @if (Model.ForumEditor == EditorType.MarkdownEditor)  
@@ -50,15 +50,15 @@
                 @if (Model.IsCustomerAllowedToSetTopicPriority)
                 {
                     <div class="inputs">
-                        <label asp-for="TopicTypeId">@T("Forum.Priority"):</label>
-                        <select asp-for="TopicTypeId" asp-items="@(new SelectList(Model.TopicPriorities, "Value", "Text", Model.TopicTypeId))"></select>
+                        <label asp-for="TopicTypeId" class="mb-2 block text-sm font-semibold text-slate-700">@T("Forum.Priority"):</label>
+                        <select asp-for="TopicTypeId" asp-items="@(new SelectList(Model.TopicPriorities, "Value", "Text", Model.TopicTypeId))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"></select>
                     </div>
                 }
                 @if (Model.IsCustomerAllowedToSubscribe)
                 {
-                    <div class="inputs reversed">
+                    <div class="inputs reversed inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">
                         <input asp-for="Subscribed" />
-                        <label asp-for="Subscribed">@T("Forum.NotifyWhenSomeonePostsInThisTopic")</label>
+                        <label asp-for="Subscribed" class="text-sm font-medium text-slate-700">@T("Forum.NotifyWhenSomeonePostsInThisTopic")</label>
                     </div>
                 }
                 @if (Model.DisplayCaptcha)
@@ -67,9 +67,9 @@
                 }
             </div>
         </section>
-        <section class="buttons">
-            <button type="submit" class="button-1 submit-topic-button">@T("Forum.Submit")</button>
-            <button type="button" class="button-2 cancel-topic-button" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.FORUM_SLUG, new { id = Model.ForumId, slug = Model.ForumSeName })')">@T("Forum.Cancel")</button>
+        <section class="buttons mt-4 flex flex-wrap items-center gap-2">
+            <button type="submit" class="button-1 submit-topic-button inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.Submit")</button>
+            <button type="button" class="button-2 cancel-topic-button inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-300" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.FORUM_SLUG, new { id = Model.ForumId, slug = Model.ForumSeName })')">@T("Forum.Cancel")</button>
         </section>
     </div>
 </div>

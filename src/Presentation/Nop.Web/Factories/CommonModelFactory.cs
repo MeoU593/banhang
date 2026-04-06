@@ -55,7 +55,6 @@ public partial class CommonModelFactory : ICommonModelFactory
     protected readonly INopHtmlHelper _nopHtmlHelper;
     protected readonly IPermissionService _permissionService;
     protected readonly IPictureService _pictureService;
-    protected readonly IShoppingCartService _shoppingCartService;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreContext _storeContext;
     protected readonly IThemeContext _themeContext;
@@ -90,7 +89,6 @@ public partial class CommonModelFactory : ICommonModelFactory
         INopHtmlHelper nopHtmlHelper,
         IPermissionService permissionService,
         IPictureService pictureService,
-        IShoppingCartService shoppingCartService,
         IStaticCacheManager staticCacheManager,
         IStoreContext storeContext,
         IThemeContext themeContext,
@@ -121,7 +119,6 @@ public partial class CommonModelFactory : ICommonModelFactory
         _nopHtmlHelper = nopHtmlHelper;
         _permissionService = permissionService;
         _pictureService = pictureService;
-        _shoppingCartService = shoppingCartService;
         _staticCacheManager = staticCacheManager;
         _storeContext = storeContext;
         _themeContext = themeContext;
@@ -339,22 +336,10 @@ public partial class CommonModelFactory : ICommonModelFactory
             RegistrationType = _customerSettings.UserRegistrationType,
             IsAuthenticated = await _customerService.IsRegisteredAsync(customer),
             CustomerName = await _customerService.IsRegisteredAsync(customer) ? await _customerService.FormatUsernameAsync(customer) : string.Empty,
-            ShoppingCartEnabled = await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.ENABLE_SHOPPING_CART),
-            UsePopupNotifications = _messagesSettings.UsePopupNotifications,
-            WishlistEnabled = await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.ENABLE_WISHLIST),
             AllowPrivateMessages = await _customerService.IsRegisteredAsync(customer) && _forumSettings.AllowPrivateMessages,
             UnreadPrivateMessages = unreadMessage,
             AlertMessage = alertMessage,
         };
-        //performance optimization (use "HasShoppingCartItems" property)
-        if (customer.HasShoppingCartItems)
-        {
-            model.ShoppingCartItems = (await _shoppingCartService.GetShoppingCartAsync(customer, ShoppingCartType.ShoppingCart, store.Id))
-                .Sum(item => item.Quantity);
-
-            model.WishlistItems = (await _shoppingCartService.GetShoppingCartAsync(customer, ShoppingCartType.Wishlist, store.Id))
-                .Sum(item => item.Quantity);
-        }
 
         return model;
     }

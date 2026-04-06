@@ -1104,15 +1104,12 @@ public partial class OrderController : BaseAdminController
 
         order.OrderSubtotalInclTax = model.OrderSubtotalInclTaxValue;
         order.OrderSubtotalExclTax = model.OrderSubtotalExclTaxValue;
-        order.OrderSubTotalDiscountInclTax = model.OrderSubTotalDiscountInclTaxValue;
-        order.OrderSubTotalDiscountExclTax = model.OrderSubTotalDiscountExclTaxValue;
         order.OrderShippingInclTax = model.OrderShippingInclTaxValue;
         order.OrderShippingExclTax = model.OrderShippingExclTaxValue;
         order.PaymentMethodAdditionalFeeInclTax = model.PaymentMethodAdditionalFeeInclTaxValue;
         order.PaymentMethodAdditionalFeeExclTax = model.PaymentMethodAdditionalFeeExclTaxValue;
         order.TaxRates = model.TaxRatesValue;
         order.OrderTax = model.TaxValue;
-        order.OrderDiscount = model.OrderTotalDiscountValue;
         order.OrderTotal = model.OrderTotalValue;
         await _orderService.UpdateOrderAsync(order);
 

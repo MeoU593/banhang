@@ -1,31 +1,26 @@
-﻿@model LastPostModel
+@model LastPostModel
 @if (Model.Id > 0)
 {
-    <div class="date">
-        @Model.PostCreatedOnStr
-    </div>
-    if (Model.ShowTopic)
+    <div class="mb-1 text-[11px] font-medium text-slate-400">@Model.PostCreatedOnStr</div>
+    @if (Model.ShowTopic)
     {
-        <div class="origin">
-            <label>@T("Forum.In"):</label>
-            @Html.RouteLink(Model.ForumTopicSubject, NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName })
+        <div class="mb-1">
+            @Html.RouteLink(Model.ForumTopicSubject, NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName }, new { @class = "line-clamp-2 text-xs font-semibold text-military-green hover:text-military-red" })
         </div>
     }
-    <div class="author">
-        <label>@T("Forum.By"):</label>
+    <div class="text-[11px] text-slate-500">
+        @T("Forum.By"):
         @if (Model.AllowViewingProfiles)
         {
-            @Html.RouteLink(Model.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = Model.CustomerId })
+            @Html.RouteLink(Model.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = Model.CustomerId }, new { @class = "font-semibold text-slate-700 hover:text-military-green" })
         }
         else
         {
-            <span>@Model.CustomerName</span>
+            <span class="font-semibold text-slate-700">@Model.CustomerName</span>
         }
     </div>
 }
 else
 {
-    <div class="no-post">
-        @T("Forum.NoPosts")
-    </div>
+    <span class="no-post text-xs italic text-slate-400">@T("Forum.NoPosts")</span>
 }
