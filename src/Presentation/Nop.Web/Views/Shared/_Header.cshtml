@@ -5,74 +5,85 @@
     var isVendor = User.IsInRole("Vendors");
     var showAdminLink = isAdmin || isVendor;
 
-    string NavClasses(string path)
+    string NavActive(string path)
     {
         var isActive = currentPath.Equals(path, StringComparison.OrdinalIgnoreCase)
             || (path != "/" && currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase));
-
         return isActive
-            ? "sidebar-active flex items-center gap-3 rounded-r-xl py-3 pl-5 pr-4 text-sm font-semibold text-white transition"
-            : "flex items-center gap-3 rounded-r-xl border-l-4 border-transparent py-3 pl-5 pr-4 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]";
+            ? "bg-military-green text-white rounded-lg mx-2 my-0.5 px-4 py-3 flex items-center gap-3 text-sm font-semibold"
+            : "text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg mx-2 my-0.5 px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors duration-150";
     }
 }
 
 <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-slate-900" href="#main">@T("Header.SkipNavigation.Text")</a>
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderBefore })
 
-<aside class="sticky top-0 z-50 flex h-screen w-72 shrink-0 flex-col overflow-y-auto bg-sidebar-bg text-white shadow-[18px_0_45px_-28px_rgba(15,23,42,0.85)]">
-    <div class="border-b border-slate-800 px-6 py-6">
-        <div class="flex items-start gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
-                <span class="material-symbols-outlined text-[28px] text-military-gold">shield</span>
+<aside class="sticky top-0 z-50 flex h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900 py-6 shadow-xl">
+    <div class="mb-8 px-6">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-military-green shadow-inner">
+                <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;font-size:22px">military_tech</span>
             </div>
             <div>
-                <div class="text-lg font-extrabold tracking-tight text-white">Hậu cần - Quân nhu</div>
-                <p class="mt-1 text-sm text-slate-400">Cổng thông tin toàn quân</p>
+                <div class="text-base font-bold leading-none tracking-tighter text-white">HẬU CẦN - QUÂN NHU</div>
+                <p class="mt-1 text-[10px] uppercase tracking-widest text-slate-400">BTL Tăng thiết giáp</p>
             </div>
         </div>
     </div>
 
-    <nav class="flex-1 px-0 py-6" aria-label="Điều hướng quân nhu">
-        <div class="space-y-1 pr-4">
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="@NavClasses("/")">
-                <span class="material-symbols-outlined text-[20px]">home</span>
-                <span>Trang chủ</span>
-            </a>
-            <a href="@productListingUrl" class="@NavClasses(productListingUrl)">
-                <span class="material-symbols-outlined text-[20px]">inventory_2</span>
-                <span>Sản phẩm / Năng lực</span>
-            </a>
-            <a href="@Url.RouteUrl(NopRouteNames.General.BLOG)" class="@NavClasses("/blog")">
-                <span class="material-symbols-outlined text-[20px]">article</span>
-                <span>Tin tức - Văn bản</span>
-            </a>
-            <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="@NavClasses("/boards")">
-                <span class="material-symbols-outlined text-[20px]">forum</span>
-                <span>Diễn đàn</span>
-            </a>
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="@NavClasses("/units")">
-                <span class="material-symbols-outlined text-[20px]">corporate_fare</span>
-                <span>Đơn vị</span>
-            </a>
-            <a href="@Url.RouteUrl(NopRouteNames.General.CUSTOMER_INFO)" class="@NavClasses("/customer/info")">
-                <span class="material-symbols-outlined text-[20px]">account_circle</span>
-                <span>Hồ sơ cá nhân</span>
-            </a>
-        </div>
+    <nav class="flex-1 space-y-0.5" aria-label="Điều hướng quân nhu">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="@NavActive("/")">
+            <span class="material-symbols-outlined text-[20px]">home</span>
+            <span>Trang chủ</span>
+        </a>
+        <a href="@productListingUrl" class="@NavActive(productListingUrl)">
+            <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+            <span>Sản phẩm &amp; Năng lực</span>
+        </a>
+        <a href="@Url.RouteUrl(NopRouteNames.General.BLOG)" class="@NavActive("/blog")">
+            <span class="material-symbols-outlined text-[20px]">description</span>
+            <span>Tin tức &amp; Văn bản</span>
+        </a>
+        <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="@NavActive("/boards")">
+            <span class="material-symbols-outlined text-[20px]">forum</span>
+            <span>Diễn đàn</span>
+        </a>
+        <a href="/tai-lieu" class="@NavActive("/tai-lieu")">
+            <span class="material-symbols-outlined text-[20px]">folder_open</span>
+            <span>Kho tài liệu</span>
+        </a>
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="@NavActive("/units")">
+            <span class="material-symbols-outlined text-[20px]">military_tech</span>
+            <span>Đơn vị</span>
+        </a>
+        <a href="@Url.RouteUrl(NopRouteNames.General.CUSTOMER_INFO)" class="@NavActive("/customer/info")">
+            <span class="material-symbols-outlined text-[20px]">account_circle</span>
+            <span>Hồ sơ cá nhân</span>
+        </a>
     </nav>
 
-    <div class="border-t border-slate-800 px-4 py-5">
+    <div class="mt-auto border-t border-slate-800 pt-4">
         @if (showAdminLink)
         {
-            <a href="/Admin" class="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white active:scale-[0.99]">
+            <a href="/Admin" class="text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg mx-2 my-0.5 px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors duration-150">
                 <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                 <span>@(isAdmin ? "Quản trị hệ thống" : "Quản lý nhà cung cấp")</span>
             </a>
         }
-        <a href="@Url.RouteUrl(NopRouteNames.Standard.LOGOUT)" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/10 hover:text-rose-300 active:scale-[0.99]">
-            <span class="material-symbols-outlined text-[20px]">logout</span>
-            <span>Đăng xuất</span>
-        </a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="@Url.RouteUrl(NopRouteNames.Standard.LOGOUT)" class="text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg mx-2 my-0.5 px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors duration-150">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span>Đăng xuất</span>
+            </a>
+        }
+        else
+        {
+            <a href="@Url.RouteUrl(NopRouteNames.General.LOGIN)" class="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20 rounded-lg mx-2 my-0.5 px-4 py-3 flex items-center gap-3 text-sm font-medium transition-colors duration-150">
+                <span class="material-symbols-outlined text-[20px]">login</span>
+                <span>Đăng nhập</span>
+            </a>
+        }
     </div>
 </aside>
 

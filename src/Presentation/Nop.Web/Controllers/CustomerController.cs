@@ -766,10 +766,6 @@ public partial class CustomerController : BasePublicController
     [CheckAccessPublicStore(ignore: true)]
     public virtual async Task<IActionResult> Register(string returnUrl)
     {
-        //check whether registration is allowed
-        if (_customerSettings.UserRegistrationType == UserRegistrationType.Disabled)
-            return RedirectToRoute(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.Disabled, returnUrl });
-
         var model = new RegisterModel();
         model = await _customerModelFactory.PrepareRegisterModelAsync(model, false, setDefaultValues: true);
 
@@ -783,9 +779,7 @@ public partial class CustomerController : BasePublicController
     [CheckAccessPublicStore(ignore: true)]
     public virtual async Task<IActionResult> Register(RegisterModel model, string returnUrl, bool captchaValid, IFormCollection form)
     {
-        //check whether registration is allowed
-        if (_customerSettings.UserRegistrationType == UserRegistrationType.Disabled)
-            return RedirectToRoute(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.Disabled, returnUrl });
+        const UserRegistrationType registrationType = UserRegistrationType.AdminApproval;
 
         var store = await _storeContext.GetCurrentStoreAsync();
         var customer = await _workContext.GetCurrentCustomerAsync();
@@ -831,7 +825,7 @@ public partial class CustomerController : BasePublicController
             var customerUserName = model.Username;
             var customerEmail = model.Email;
 
-            var isApproved = _customerSettings.UserRegistrationType == UserRegistrationType.Standard;
+            var isApproved = registrationType == UserRegistrationType.Standard;
             var registrationRequest = new CustomerRegistrationRequest(customer,
                 customerEmail,
                 _customerSettings.UsernamesEnabled ? customerUserName : customerEmail,
@@ -891,12 +885,13 @@ public partial class CustomerController : BasePublicController
                 //save customer attributes
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
+                await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.DutyRoleTitleAttribute, model.DutyRoleTitle?.Trim());
 
                 //newsletter subscriptions
                 if (_customerSettings.NewsletterEnabled)
                 {
                     var anyNewSubscriptions = false;
-                    var isNewsletterActive = _customerSettings.UserRegistrationType != UserRegistrationType.EmailValidation;
+                    var isNewsletterActive = registrationType != UserRegistrationType.EmailValidation;
                     var activeSubscriptions = model.NewsLetterSubscriptions.Where(subscriptionModel => subscriptionModel.IsActive);
                     var currentSubscriptions = await _newsLetterSubscriptionService
                         .GetNewsLetterSubscriptionsByEmailAsync(customerEmail, storeId: store.Id);
@@ -1040,32 +1035,8 @@ public partial class CustomerController : BasePublicController
                 //raise event       
                 await _eventPublisher.PublishAsync(new CustomerRegisteredEvent(customer));
 
-                switch (_customerSettings.UserRegistrationType)
-                {
-                    case UserRegistrationType.EmailValidation:
-                        //email validation message
-                        await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AccountActivationTokenAttribute, Guid.NewGuid().ToString());
-                        await _workflowMessageService.SendCustomerEmailValidationMessageAsync(customer, language.Id);
-
-                        //result
-                        return RedirectToRoute(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.EmailValidation, returnUrl });
-
-                    case UserRegistrationType.AdminApproval:
-                        return RedirectToRoute(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.AdminApproval, returnUrl });
-
-                    case UserRegistrationType.Standard:
-                        //send customer welcome message
-                        await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, language.Id);
-
-                        //raise event       
-                        await _eventPublisher.PublishAsync(new CustomerActivatedEvent(customer));
-
-                        returnUrl = Url.RouteUrl(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.Standard, returnUrl });
-                        return await _customerRegistrationService.SignInCustomerAsync(customer, returnUrl, true);
-
-                    default:
-                        return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
-                }
+                return RedirectToRoute(NopRouteNames.Standard.REGISTER_RESULT,
+                    new { resultId = (int)registrationType, returnUrl });
             }
 
             //errors
@@ -1313,6 +1284,7 @@ public partial class CustomerController : BasePublicController
 
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
+                await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.DutyRoleTitleAttribute, model.DutyRoleTitle?.Trim());
 
                 //newsletter subscriptions
                 if (_customerSettings.NewsletterEnabled)

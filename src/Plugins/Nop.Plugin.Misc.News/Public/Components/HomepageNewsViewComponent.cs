@@ -35,12 +35,12 @@ public class HomepageNewsViewComponent : NopViewComponent
     /// A task that represents the asynchronous operation
     /// The task result contains the view component result
     /// </returns>
-    public async Task<IViewComponentResult> InvokeAsync()
+    public async Task<IViewComponentResult> InvokeAsync(int newsItemTypeId = -1)
     {
         if (!_newsSettings.Enabled || !_newsSettings.ShowNewsOnMainPage)
             return Content("");
 
-        var model = await _newsModelFactory.PrepareHomepageNewsItemsModelAsync();
+        var model = await _newsModelFactory.PrepareHomepageNewsItemsModelAsync(newsItemTypeId);
         return View("~/Plugins/Misc.News/Public/Views/Components/HomepageNews.cshtml", model);
     }
 

@@ -20,6 +20,7 @@ public partial record BlogPostModel : BaseNopEntityModel, IMetaTagsSupportedMode
     public string Title { get; set; }
     public string Body { get; set; }
     public string BodyOverview { get; set; }
+    public int PostTypeId { get; set; }
     public bool AllowComments { get; set; }
     public bool PreventNotRegisteredUsersToLeaveComments { get; set; }
     public int NumberOfComments { get; set; }

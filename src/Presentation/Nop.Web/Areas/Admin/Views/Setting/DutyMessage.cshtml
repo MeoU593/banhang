@@ -1,0 +1,147 @@
+@model DutyMessageSettingsModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = "Quản lý nội dung trang đăng nhập";
+    NopHtml.SetActiveMenuItemSystemName("Duty message");
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">Quản lý nội dung trang đăng nhập</h1>
+    <div class="float-right">
+        <button type="submit" form="duty-message-form" name="save" class="btn btn-primary">
+            <i class="far fa-save"></i> Lưu
+        </button>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="form-horizontal">
+            <form id="duty-message-form" asp-action="DutyMessage" method="post">
+                <div asp-validation-summary="All"></div>
+
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Nội dung bên trái trang đăng nhập</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="LoginTitle" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="LoginTitle" class="form-control" placeholder="Ví dụ: Cổng thông tin Hậu cần - Quân nhu" />
+                                <span asp-validation-for="LoginTitle"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="LoginSubtitle" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="LoginSubtitle" class="form-control" placeholder="Ví dụ: Bộ Tư lệnh Tăng Thiết Giáp" />
+                                <span asp-validation-for="LoginSubtitle"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="LoginDescription" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <textarea asp-for="LoginDescription" class="form-control" rows="3"
+                                          placeholder="Mô tả ngắn về hệ thống..."></textarea>
+                                <span asp-validation-for="LoginDescription"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông điệp trực ban (hiện dưới dạng blockquote)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="Message" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <textarea asp-for="Message" class="form-control" rows="4"
+                                          placeholder="Nhập nội dung thông điệp..."></textarea>
+                                <span asp-validation-for="Message"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="Author" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="Author" class="form-control"
+                                       placeholder="Ví dụ: Trung tâm kỹ thuật số hóa - cụm điều hành số 02" />
+                                <span asp-validation-for="Author"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin hỗ trợ kỹ thuật</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SupportDepartment" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="SupportDepartment" class="form-control" placeholder="Ví dụ: Phòng Kỹ thuật" />
+                                <span asp-validation-for="SupportDepartment"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SupportUnit" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="SupportUnit" class="form-control" placeholder="Ví dụ: BTL Tăng Thiết Giáp" />
+                                <span asp-validation-for="SupportUnit"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SupportContactName" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="SupportContactName" class="form-control" placeholder="Ví dụ: Thiếu tá Nguyễn Văn A" />
+                                <span asp-validation-for="SupportContactName"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SupportContactPosition" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="SupportContactPosition" class="form-control" placeholder="Ví dụ: Cán bộ trực kỹ thuật" />
+                                <span asp-validation-for="SupportContactPosition"></span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SupportPhone" asp-postfix=":" />
+                            </div>
+                            <div class="col-md-9">
+                                <input asp-for="SupportPhone" class="form-control" placeholder="Ví dụ: 0988 123 456" />
+                                <span asp-validation-for="SupportPhone"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" name="save" class="btn btn-primary">
+                    <i class="far fa-save"></i> Lưu thay đổi
+                </button>
+            </form>
+        </div>
+    </div>
+</section>

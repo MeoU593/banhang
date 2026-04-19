@@ -21,6 +21,7 @@ public partial record VendorModel : BaseNopEntityModel, IMetaTagsSupportedModel
     public string SeName { get; set; }
     public bool AllowCustomersToContactVendors { get; set; }
     public int? PmCustomerId { get; set; }
+    public int NumberOfProducts { get; set; }
 
     public PictureModel PictureModel { get; set; }
 

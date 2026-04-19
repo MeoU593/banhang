@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Nop.Core;
 using Nop.Core.Domain.Directory;
 using Nop.Services.Configuration;
@@ -57,6 +58,16 @@ public partial class CurrencyController : BaseAdminController
 
     #endregion
 
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+
+        if (context.Result is not null)
+            return;
+
+        context.Result = RedirectToAction("Index", "Home");
+    }
+
     #region Utilities
 
     protected virtual async Task UpdateLocalesAsync(Currency currency, CurrencyModel model)
@@ -71,25 +82,14 @@ public partial class CurrencyController : BaseAdminController
 
     public virtual IActionResult Index()
     {
-        return RedirectToAction("List");
+        return RedirectToAction("Overview", "Home");
     }
 
     [CheckPermission(StandardPermission.Configuration.MANAGE_CURRENCIES)]
-    public virtual async Task<IActionResult> List(bool liveRates = false)
+    public virtual IActionResult List(bool liveRates = false)
     {
-        var model = new CurrencySearchModel();
-
-        try
-        {
-            //prepare model
-            model = await _currencyModelFactory.PrepareCurrencySearchModelAsync(model, liveRates);
-        }
-        catch (Exception e)
-        {
-            await _notificationService.ErrorNotificationAsync(e);
-        }
-
-        return View(model);
+        _notificationService.WarningNotification("Chức năng quản lý tiền tệ đã được vô hiệu hóa.");
+        return RedirectToAction("Overview", "Home");
     }
 
     [HttpPost]

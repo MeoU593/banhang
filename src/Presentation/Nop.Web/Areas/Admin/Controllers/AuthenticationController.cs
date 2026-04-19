@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Events;
 using Nop.Services.Authentication.External;
@@ -55,17 +56,23 @@ public partial class AuthenticationController : BaseAdminController
 
     #endregion
 
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+
+        if (context.Result is not null)
+            return;
+
+        context.Result = RedirectToAction("Index", "Home");
+    }
+
+    public virtual IActionResult Index() => RedirectToAction("Index", "Home");
+
     #region External Authentication
 
     [CheckPermission(StandardPermission.Configuration.MANAGE_EXTERNAL_AUTHENTICATION_METHODS)]
     public virtual IActionResult ExternalMethods()
-    {
-        //prepare model
-        var model = _externalAuthenticationMethodModelFactory
-            .PrepareExternalAuthenticationMethodSearchModel(new ExternalAuthenticationMethodSearchModel());
-
-        return View(model);
-    }
+        => RedirectToAction("Index", "Home");
 
     [HttpPost]
     [CheckPermission(StandardPermission.Configuration.MANAGE_EXTERNAL_AUTHENTICATION_METHODS)]
@@ -119,13 +126,7 @@ public partial class AuthenticationController : BaseAdminController
 
     [CheckPermission(StandardPermission.Configuration.MANAGE_MULTIFACTOR_AUTHENTICATION_METHODS)]
     public virtual IActionResult MultiFactorMethods()
-    {
-        //prepare model
-        var model = _multiFactorAuthenticationMethodModelFactory
-            .PrepareMultiFactorAuthenticationMethodSearchModel(new MultiFactorAuthenticationMethodSearchModel());
-
-        return View(model);
-    }
+        => RedirectToAction("Index", "Home");
 
     [HttpPost]
     [CheckPermission(StandardPermission.Configuration.MANAGE_MULTIFACTOR_AUTHENTICATION_METHODS)]

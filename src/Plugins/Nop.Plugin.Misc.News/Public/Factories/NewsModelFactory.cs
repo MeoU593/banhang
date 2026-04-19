@@ -133,14 +133,14 @@ public class NewsModelFactory
     /// A task that represents the asynchronous operation
     /// The task result contains the home page news items model
     /// </returns>
-    public async Task<HomepageNewsItemsModel> PrepareHomepageNewsItemsModelAsync()
+    public async Task<HomepageNewsItemsModel> PrepareHomepageNewsItemsModelAsync(int newsItemTypeId = -1)
     {
         var store = await _storeContext.GetCurrentStoreAsync();
         var language = await _workContext.GetWorkingLanguageAsync();
-        var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NewsDefaults.HomepageNewsModelKey, language, store);
+        var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NewsDefaults.HomepageNewsModelKey, language, store, newsItemTypeId);
         var cachedModel = await _staticCacheManager.GetAsync(cacheKey, async () =>
         {
-            var newsItems = await _newsService.GetAllNewsAsync(language.Id, store.Id, 0, _newsSettings.MainPageNewsCount);
+            var newsItems = await _newsService.GetAllNewsAsync(language.Id, store.Id, 0, _newsSettings.MainPageNewsCount, newsItemTypeId: newsItemTypeId);
 
             return new HomepageNewsItemsModel
             {

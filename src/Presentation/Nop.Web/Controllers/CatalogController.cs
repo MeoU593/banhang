@@ -210,9 +210,39 @@ public partial class CatalogController : BasePublicController
         return View(model);
     }
 
-    public virtual IActionResult CategoryAll()
+    public virtual async Task<IActionResult> CategoryAll(CatalogProductsCommand command)
     {
-        return View();
+        command ??= new CatalogProductsCommand();
+
+        var pageNumber = command.PageNumber > 0 ? command.PageNumber : 1;
+        var pageSize = command.PageSize > 0
+            ? command.PageSize
+            : (_catalogSettings.DefaultCategoryPageSize > 0 ? _catalogSettings.DefaultCategoryPageSize : 16);
+
+        var orderBy = command.OrderBy.HasValue && Enum.IsDefined(typeof(ProductSortingEnum), command.OrderBy.Value)
+            ? (ProductSortingEnum)command.OrderBy.Value
+            : ProductSortingEnum.Position;
+
+        var store = await _storeContext.GetCurrentStoreAsync();
+        var products = await _productService.SearchProductsAsync(
+            pageNumber - 1,
+            pageSize,
+            storeId: store.Id,
+            visibleIndividuallyOnly: true,
+            orderBy: orderBy);
+
+        var model = new CatalogProductsModel
+        {
+            UseAjaxLoading = false,
+            OrderBy = (int)orderBy,
+            ViewMode = string.Equals(command.ViewMode, "list", StringComparison.OrdinalIgnoreCase) ? "list" : "grid",
+            NoResultMessage = await _localizationService.GetResourceAsync("Categories.NoProducts")
+        };
+
+        model.LoadPagedList(products);
+        model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+
+        return View(model);
     }
 
     #endregion

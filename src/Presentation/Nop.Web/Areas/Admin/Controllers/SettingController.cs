@@ -78,6 +78,7 @@ public partial class SettingController : BaseAdminController
     protected readonly IStoreService _storeService;
     protected readonly IWorkContext _workContext;
     protected readonly IUploadService _uploadService;
+    protected readonly IPermissionService _permissionService;
     private static readonly char[] _separator = [','];
 
     #endregion
@@ -105,7 +106,8 @@ public partial class SettingController : BaseAdminController
         IStoreContext storeContext,
         IStoreService storeService,
         IWorkContext workContext,
-        IUploadService uploadService)
+        IUploadService uploadService,
+        IPermissionService permissionService)
     {
         _appSettings = appSettings;
         _addressService = addressService;
@@ -129,6 +131,7 @@ public partial class SettingController : BaseAdminController
         _storeService = storeService;
         _workContext = workContext;
         _uploadService = uploadService;
+        _permissionService = permissionService;
     }
 
     #endregion
@@ -1938,6 +1941,55 @@ public partial class SettingController : BaseAdminController
         }
 
         return Json(new { Result = string.Empty });
+    }
+
+    #endregion
+
+    #region Duty message
+
+    public virtual async Task<IActionResult> DutyMessage()
+    {
+        if (!await _permissionService.AuthorizeAsync(StandardPermission.Configuration.MANAGE_SETTINGS))
+            return AccessDeniedView();
+
+        var settings = await _settingService.LoadSettingAsync<DutyMessageSettings>();
+        var model = new DutyMessageSettingsModel
+        {
+            LoginTitle = settings.LoginTitle,
+            LoginSubtitle = settings.LoginSubtitle,
+            LoginDescription = settings.LoginDescription,
+            Message = settings.Message,
+            Author = settings.Author,
+            SupportDepartment = settings.SupportDepartment,
+            SupportUnit = settings.SupportUnit,
+            SupportContactName = settings.SupportContactName,
+            SupportContactPosition = settings.SupportContactPosition,
+            SupportPhone = settings.SupportPhone
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> DutyMessage(DutyMessageSettingsModel model)
+    {
+        if (!await _permissionService.AuthorizeAsync(StandardPermission.Configuration.MANAGE_SETTINGS))
+            return AccessDeniedView();
+
+        var settings = await _settingService.LoadSettingAsync<DutyMessageSettings>();
+        settings.LoginTitle = model.LoginTitle ?? string.Empty;
+        settings.LoginSubtitle = model.LoginSubtitle ?? string.Empty;
+        settings.LoginDescription = model.LoginDescription ?? string.Empty;
+        settings.Message = model.Message ?? string.Empty;
+        settings.Author = model.Author ?? string.Empty;
+        settings.SupportDepartment = model.SupportDepartment ?? string.Empty;
+        settings.SupportUnit = model.SupportUnit ?? string.Empty;
+        settings.SupportContactName = model.SupportContactName ?? string.Empty;
+        settings.SupportContactPosition = model.SupportContactPosition ?? string.Empty;
+        settings.SupportPhone = model.SupportPhone ?? string.Empty;
+        await _settingService.SaveSettingAsync(settings);
+
+        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Configuration.Updated"));
+        return RedirectToAction("DutyMessage");
     }
 
     #endregion

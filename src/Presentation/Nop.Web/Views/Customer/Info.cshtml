@@ -19,15 +19,15 @@
 <style>
 .customer-info-page {
     padding: 24px;
-    background: radial-gradient(circle at top left, rgba(45, 58, 34, 0.1), transparent 34%), #f8fafc;
+    background: transparent;
     min-height: calc(100vh - 4rem);
 }
 
 .customer-info-page .page-title {
     display: block !important;
     margin: 0 0 20px;
-    border: 1px solid #e2e8f0;
-    border-radius: 18px;
+    border: 1px solid rgba(196, 198, 204, 0.3);
+    border-radius: 12px;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 62%, #2d3a22 100%);
     padding: 20px;
     box-shadow: 0 20px 40px -32px rgba(15, 23, 42, 0.85);
@@ -63,7 +63,7 @@
 .customer-info-page .fieldset .title {
     margin: 0 0 16px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid rgba(196, 198, 204, 0.3);
     font-size: 12px;
     font-weight: 800;
     color: #2d3a22;
@@ -741,6 +741,17 @@
                     </div>
                 </section>
             }
+            <section class="fieldset">
+                <h2 class="title">Thông tin đơn vị &amp; vai trò</h2>
+                <div class="form-fields">
+                    <div class="inputs">
+                        <label for="duty-role-title">Chức vụ / Vai trò tự khai:</label>
+                        <input id="duty-role-title" name="DutyRoleTitle" type="text" value="@Model.DutyRoleTitle"
+                               placeholder="Ví dụ: Sĩ quan hậu cần, Trưởng đơn vị, Trợ lý tham mưu..." maxlength="100" />
+                        <span class="block mt-1 text-xs text-slate-500">Hiển thị dưới tên của bạn trong hệ thống. Tùy chọn.</span>
+                    </div>
+                </div>
+            </section>
             <section class="buttons">
                 <button type="submit" id="save-info-button" name="save-info-button" class="button-1 save-customer-info-button">@T("Common.Save")</button>
             </section>

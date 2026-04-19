@@ -271,10 +271,19 @@ public partial class CustomerController : BaseAdminController
     [CheckPermission(StandardPermission.Customers.CUSTOMERS_VIEW)]
     public virtual async Task<IActionResult> List()
     {
-        //prepare model
         var model = await _customerModelFactory.PrepareCustomerSearchModelAsync(new CustomerSearchModel());
-
         return View(model);
+    }
+
+    [CheckPermission(StandardPermission.Customers.CUSTOMERS_VIEW)]
+    public virtual async Task<IActionResult> PendingApproval()
+    {
+        var model = await _customerModelFactory.PrepareCustomerSearchModelAsync(new CustomerSearchModel
+        {
+            SearchIsActive = false
+        });
+        ViewBag.IsPendingApprovalView = true;
+        return View("List", model);
     }
 
     [HttpPost]

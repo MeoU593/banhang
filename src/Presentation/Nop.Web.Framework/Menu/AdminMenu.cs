@@ -187,6 +187,14 @@ public partial class AdminMenu : IAdminMenu
                             PermissionNames = new List<string> { StandardPermission.Customers.GDPR_MANAGE },
                             Url = GetMenuItemUrl("Customer", "GdprLog"),
                             IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Pending customers",
+                            Title = "Tài khoản chờ duyệt",
+                            PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
+                            Url = GetMenuItemUrl("Customer", "PendingApproval"),
+                            IconClass = "far fa-dot-circle"
                         }
                     }
                 },
@@ -216,18 +224,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Message templates",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.MessageTemplates"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.ContentManagement.MESSAGE_TEMPLATES_VIEW
-                                },
-                            Url = GetMenuItemUrl("MessageTemplate", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Blog posts",
                             Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts"),
                             PermissionNames = new List<string> { StandardPermission.ContentManagement.BLOG_VIEW },
@@ -252,6 +248,14 @@ public partial class AdminMenu : IAdminMenu
                             Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Forums"),
                             PermissionNames = new List<string> { StandardPermission.ContentManagement.FORUMS_VIEW },
                             Url = GetMenuItemUrl("Forum", "List"),
+                            IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Duty message",
+                            Title = "Nội dung trang đăng nhập",
+                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
+                            Url = GetMenuItemUrl("Setting", "DutyMessage"),
                             IconClass = "far fa-dot-circle"
                         }
                     }
@@ -367,6 +371,14 @@ public partial class AdminMenu : IAdminMenu
                                     Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.AllSettings"),
                                     Url = GetMenuItemUrl("Setting", "AllSettings"),
                                     IconClass = "far fa-circle"
+                                },
+                                new()
+                                {
+                                    SystemName = "Duty message",
+                                    Title = "Thông điệp trực ban",
+                                    PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
+                                    Url = GetMenuItemUrl("Setting", "DutyMessage"),
+                                    IconClass = "far fa-circle"
                                 }
                             }
                         },
@@ -390,78 +402,12 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Currencies",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Currencies"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_CURRENCIES },
-                            Url = GetMenuItemUrl("Currency",
-                            "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Access control list",
                             Title = await _localizationService.GetResourceAsync("Admin.Configuration.ACL"),
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_ACL },
                             Url = GetMenuItemUrl("Security", "Permissions"),
                             IconClass = "far fa-dot-circle"
                         },
-                        new()
-                        {
-                            SystemName = "Widgets",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Widgets"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_WIDGETS },
-                            Url = GetMenuItemUrl("Widget", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Authentication",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Authentication"),
-                            IconClass = "far fa-dot-circle",
-                            ChildNodes = new List<AdminMenuItem>
-                            {
-                                new()
-                                {
-                                    SystemName = "External authentication methods",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Authentication.ExternalMethods"),
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.Configuration.MANAGE_EXTERNAL_AUTHENTICATION_METHODS
-                                        },
-                                    Url = GetMenuItemUrl("Authentication", "ExternalMethods"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Multi-factor authentication methods",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Authentication.MultiFactorMethods"),
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.Configuration.MANAGE_MULTIFACTOR_AUTHENTICATION_METHODS
-                                        },
-                                    Url = GetMenuItemUrl("Authentication", "MultiFactorMethods"),
-                                    IconClass = "far fa-circle"
-                                }
-                            }
-                        },
-                        new()
-                        {
-                            SystemName = "Local plugins",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Plugins.Local"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_PLUGINS },
-                            Url = GetMenuItemUrl("Plugin", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "All plugins and themes",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Plugins.OfficialFeed"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_PLUGINS },
-                            Url = GetMenuItemUrl("Plugin", "OfficialFeed"),
-                            IconClass = "far fa-dot-circle"
-                        }
                     }
                 },
                 //system
@@ -530,106 +476,6 @@ public partial class AdminMenu : IAdminMenu
                             Url = GetMenuItemUrl("Common", "SeNames"),
                             IconClass = "far fa-dot-circle"
                         },
-                        new()
-                        {
-                            SystemName = "Templates",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.Templates"),
-                            PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
-                            Url = GetMenuItemUrl("Template", "List"),
-                            IconClass = "far fa-dot-circle"
-                        }
-                    }
-                },
-                //reports
-                new()
-                {
-                    SystemName = "Reports",
-                    Title = await _localizationService.GetResourceAsync("Admin.Reports"),
-                    IconClass = "fas fa-chart-line",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
-                        new()
-                        {
-                            SystemName = "Sales summary",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.SalesSummary"),
-                            PermissionNames = new List<string> { StandardPermission.Reports.SALES_SUMMARY },
-                            Url = GetMenuItemUrl("Report", "SalesSummary"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Low stock",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.LowStock"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Catalog.PRODUCTS_VIEW,
-                                    StandardPermission.Reports.LOW_STOCK
-                                },
-                            Url = GetMenuItemUrl("Report", "LowStock"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Products never purchased",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.Sales.NeverSold"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.Orders.ORDERS_VIEW,
-                                    StandardPermission.Reports.PRODUCTS_NEVER_PURCHASED
-                                },
-                            Url = GetMenuItemUrl("Report", "NeverSold"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Customers",
-                            Title = await _localizationService.GetResourceAsync("Admin.Reports.Customers"),
-                            IconClass = "far fa-dot-circle",
-                            ChildNodes = new List<AdminMenuItem>
-                            {
-                                new()
-                                {
-                                    SystemName = "Registered customers",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Reports.Customers.RegisteredCustomers"),
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.Customers.CUSTOMERS_VIEW,
-                                            StandardPermission.Reports.REGISTERED_CUSTOMERS
-                                        },
-                                    Url = GetMenuItemUrl("Report", "RegisteredCustomers"),
-                                    IconClass = "far fa-dot-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Customers by order total",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Reports.Customers.BestBy.BestByOrderTotal"),
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.Customers.CUSTOMERS_VIEW,
-                                            StandardPermission.Reports.CUSTOMERS_BY_ORDER_TOTAL
-                                        },
-                                    Url = GetMenuItemUrl("Report", "BestCustomersByOrderTotal"),
-                                    IconClass = "far fa-dot-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Customers by number of orders",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Reports.Customers.BestBy.BestByNumberOfOrders"),
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.Customers.CUSTOMERS_VIEW,
-                                            StandardPermission.Reports.CUSTOMERS_BY_NUMBER_OF_ORDERS
-                                        },
-                                    Url = GetMenuItemUrl("Report", "BestCustomersByNumberOfOrders"),
-                                    IconClass = "far fa-dot-circle"
-                                }
-                            }
-                        }
                     }
                 },
                 //third party plugins

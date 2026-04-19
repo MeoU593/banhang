@@ -1,4 +1,25 @@
-﻿/* COMMON */
+:root {
+  --app-font-family: 'Public Sans', Arial, Helvetica, sans-serif;
+  --app-font-size-base: 15px;
+  --app-font-size-small: 14px;
+  --app-line-height-base: 1.55;
+  --app-control-height: 40px;
+}
+
+*, *::before, *::after {
+  font-family: var(--app-font-family) !important;
+}
+
+pre, code, kbd, samp {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
+}
+
+body {
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-base);
+}
+
+/* COMMON */
 .content, .content-wrapper > .content {
   padding-bottom: 55px;
 }
@@ -8,7 +29,26 @@
 }
 
 .form-control {
+  min-height: var(--app-control-height);
   border-radius: 0;
+  font-size: var(--app-font-size-small);
+}
+
+.select2-container--default .select2-selection--single {
+  min-height: var(--app-control-height);
+  padding-top: 5px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: calc(var(--app-control-height) - 2px);
+}
+
+.btn:not(.btn-sm):not(.btn-xs):not(.btn-lg) {
+  min-height: var(--app-control-height);
+  padding: 0.5rem 1rem;
+  font-size: var(--app-font-size-small);
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 ul, ol {
@@ -780,7 +820,7 @@ i.false-icon {
   opacity: 100;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   border: 1px solid #aaa;
-  font-family: Verdana,Arial,sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.1em;
   text-align: right;
   max-width: 400px;

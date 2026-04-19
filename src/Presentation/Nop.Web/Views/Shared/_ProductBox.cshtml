@@ -17,18 +17,14 @@
     var leftBadge = !string.IsNullOrWhiteSpace(categoryBadge) ? categoryBadge : (hasSku ? Model.Sku : Model.ProductType.ToString());
     var rightBadge = Model.ProductPrice.AvailableForPreOrder
         ? "Đặt trước"
-        : Model.ProductPrice.DisableBuyButton || Model.ProductPrice.CallForPrice || Model.ProductPrice.HidePrices
-            ? "Liên hệ"
-            : hasPrice
-                ? "Có sẵn"
-                : "Cập nhật";
+        : Model.ProductPrice.DisableBuyButton
+            ? "Đang cung ứng"
+            : "Có sẵn";
     var rightBadgeClass = rightBadge == "Đặt trước"
         ? "bg-amber-500 text-white"
-        : rightBadge == "Liên hệ"
-            ? "bg-slate-700 text-white"
-            : rightBadge == "Có sẵn"
-                ? "bg-[#1152d4] text-white"
-                : "bg-slate-200 text-slate-700";
+        : rightBadge == "Đang cung ứng"
+            ? "bg-orange-500 text-white"
+            : "bg-emerald-600 text-white";
     var descriptionText = hasShortDescription ? Model.ShortDescription : Model.FullDescription;
     var metaRows = new List<(string Label, string Value)>();
 
@@ -92,7 +88,7 @@
         }
         @if (!string.IsNullOrWhiteSpace(rightBadge))
         {
-            <div class="absolute right-3 top-3 z-10 rounded-sm px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] @rightBadgeClass">
+            <div class="availability-badge absolute right-3 top-3 z-10 rounded-sm px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] @rightBadgeClass">
                 @rightBadge
             </div>
         }

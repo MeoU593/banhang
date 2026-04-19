@@ -1084,7 +1084,8 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             AllowCustomersToContactVendors = _vendorSettings.AllowCustomersToContactVendors,
             CatalogProductsModel = await PrepareVendorProductsModelAsync(vendor, command),
             PictureModel = await PrepareVendorPictureModelAsync(vendor),
-            ProductReviews = await PrepareVendorProductReviewsModelAsync(vendor, new VendorReviewsPagingFilteringModel())
+            ProductReviews = await PrepareVendorProductReviewsModelAsync(vendor, new VendorReviewsPagingFilteringModel()),
+            NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id)
         };
 
         if (_forumSettings.AllowPrivateMessages)
@@ -1200,7 +1201,8 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                 MetaTitle = await _localizationService.GetLocalizedAsync(vendor, x => x.MetaTitle),
                 SeName = await _urlRecordService.GetSeNameAsync(vendor),
                 AllowCustomersToContactVendors = _vendorSettings.AllowCustomersToContactVendors,
-                PictureModel = await PrepareVendorPictureModelAsync(vendor)
+                PictureModel = await PrepareVendorPictureModelAsync(vendor),
+                NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id)
             };
 
             model.Add(vendorModel);

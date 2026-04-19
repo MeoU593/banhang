@@ -154,6 +154,8 @@
 
 @if (Model.Products.Count > 0)
 {
+    var paginationSummaryLabel = ViewData["PaginationSummaryLabel"] as string ?? "sản phẩm trong danh mục này";
+
     <div class="catalog-products-refined space-y-6">
         <div class="@(Model.ViewMode == "list" ? "product-list" : "product-grid")">
             <div class="item-grid catalog-grid @(Model.ViewMode == "list" ? "grid-cols-1" : string.Empty)">
@@ -178,7 +180,7 @@
         @if (!await pager.IsEmpty())
         {
             <div class="catalog-pagination-row">
-                <p class="catalog-pagination-summary">Hiển thị @Model.FirstItem-@Model.LastItem trong số @Model.TotalItems sản phẩm trong danh mục này</p>
+                <p class="catalog-pagination-summary">Hiển thị @Model.FirstItem-@Model.LastItem trong số @Model.TotalItems @paginationSummaryLabel (Trang @Model.PageNumber/@Model.TotalPages)</p>
                 <div class="pager">
                     @pager
                 </div>

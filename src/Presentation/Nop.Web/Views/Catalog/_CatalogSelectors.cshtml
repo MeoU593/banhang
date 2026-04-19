@@ -18,26 +18,33 @@
 }
 
 @{
-    var allCategories = await categoryService.GetAllCategoriesAsync();
-    var categorySelectItems = allCategories
-        .Select(cat => new SelectListItem { Text = cat.Name, Value = cat.Id.ToString() })
-        .ToList();
+    var lockCategorySelector = ViewData["LockCategorySelector"] as bool? ?? false;
+    var currentCategoryName = (ViewData["CurrentCategoryName"] as string ?? string.Empty).Trim();
+
+    var categorySelectItems = new List<SelectListItem>();
+    var categorySeoUrls = new Dictionary<int, string>();
+    if (!lockCategorySelector)
+    {
+        var allCategories = await categoryService.GetAllCategoriesAsync();
+        categorySelectItems = allCategories
+            .Select(cat => new SelectListItem { Text = cat.Name, Value = cat.Id.ToString() })
+            .ToList();
+
+        foreach (var cat in allCategories)
+        {
+            var seName = await urlRecordService.GetSeNameAsync(cat);
+            if (!string.IsNullOrWhiteSpace(seName))
+            {
+                var catUrl = await NopUrl.RouteGenericUrlAsync<Nop.Core.Domain.Catalog.Category>(new { SeName = seName });
+                categorySeoUrls[cat.Id] = catUrl;
+            }
+        }
+    }
 
     var allManufacturers = await manufacturerService.GetAllManufacturersAsync();
     var manufacturerSelectItems = allManufacturers
         .Select(m => new SelectListItem { Text = m.Name, Value = m.Id.ToString() })
         .ToList();
-
-    var categorySeoUrls = new Dictionary<int, string>();
-    foreach (var cat in allCategories)
-    {
-        var seName = await urlRecordService.GetSeNameAsync(cat);
-        if (!string.IsNullOrWhiteSpace(seName))
-        {
-            var catUrl = await NopUrl.RouteGenericUrlAsync<Nop.Core.Domain.Catalog.Category>(new { SeName = seName });
-            categorySeoUrls[cat.Id] = catUrl;
-        }
-    }
 
     var manufacturerSeoUrls = new Dictionary<int, string>();
     foreach (var manufacturer in allManufacturers)
@@ -110,7 +117,7 @@
     }
 </style>
 
-<div class="product-selectors product-selectors-refined grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end" id="category-toolbar">
+<div class="product-selectors product-selectors-refined grid grid-cols-1 gap-4 md:grid-cols-5 md:items-end" id="category-toolbar">
     <div class="selector-field">
         <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
         <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm..." autocomplete="off" />
@@ -118,15 +125,22 @@
 
     <div class="selector-field">
         <label class="selector-label" for="products-category-select">Danh mục</label>
-        <select id="products-category-select" aria-label="Danh mục">
-            <option value="">Tất cả danh mục</option>
-            @foreach (var cat in categorySelectItems)
-            {
-                var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
-                var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
-                <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
-            }
-        </select>
+        @if (lockCategorySelector)
+        {
+            <div class="selector-panel readonly">@(string.IsNullOrWhiteSpace(currentCategoryName) ? "Danh mục hiện tại" : currentCategoryName)</div>
+        }
+        else
+        {
+            <select id="products-category-select" aria-label="Danh mục">
+                <option value="">Tất cả danh mục</option>
+                @foreach (var cat in categorySelectItems)
+                {
+                    var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
+                    var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
+                    <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
+                }
+            </select>
+        }
     </div>
 
     <div class="selector-field">
@@ -142,10 +156,18 @@
         </select>
     </div>
 
+    <div class="selector-field">
+        <label class="selector-label" for="products-status-filter">Trạng thái</label>
+        <select id="products-status-filter" aria-label="Trạng thái">
+            <option value="">Tất cả</option>
+            <option value="available">Có sẵn</option>
+            <option value="supplying">Đang cung ứng</option>
+        </select>
+    </div>
     @if (Model.AllowProductSorting)
     {
         <div class="product-sorting selector-field">
-            <label class="selector-label" for="products-orderby">Trạng thái / Sắp xếp</label>
+            <label class="selector-label" for="products-orderby">Sắp xếp</label>
             @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1152d4] focus:bg-white rounded-lg" })
         </div>
         <script asp-location="Footer">
@@ -161,13 +183,6 @@
                 });
             });
         </script>
-    }
-    else
-    {
-        <div class="selector-static">
-            <div class="selector-label">Trạng thái / Sắp xếp</div>
-            <div class="selector-panel readonly">Mặc định</div>
-        </div>
     }
 </div>
 
@@ -186,12 +201,17 @@
             });
         }
 
-        $categorySelect.on('change', function() {
-            var url = $(this).find(':selected').data('url');
-            if (url && url !== '#') {
-                window.location.href = url;
-            }
-        });
+        @if (!lockCategorySelector)
+        {
+            <text>
+            $categorySelect.on('change', function() {
+                var url = $(this).find(':selected').data('url');
+                if (url && url !== '#') {
+                    window.location.href = url;
+                }
+            });
+            </text>
+        }
 
         $manufacturerSelect.on('change', function() {
             var url = $(this).find(':selected').data('url');
@@ -199,6 +219,20 @@
                 window.location.href = url;
             }
         });
+
+        var $statusFilter = $('#products-status-filter');
+        function applyStatusFilter() {
+            var status = ($statusFilter.val() || '').toString();
+            $('.products-wrapper .item-box').each(function() {
+                if (!status) { $(this).show(); return; }
+                var badge = $(this).find('.availability-badge').first();
+                var text = (badge.text() || '').trim().toLowerCase();
+                var match = (status === 'available' && text === 'có sẵn') || (status === 'supplying' && text === 'đang cung ứng');
+                $(this).toggle(match);
+            });
+        }
+        $statusFilter.on('change', applyStatusFilter);
+        $(CatalogProducts).on('loaded', applyStatusFilter);
 
         $quickSearch.on('input', applyQuickSearch);
         $(CatalogProducts).on('loaded', applyQuickSearch);

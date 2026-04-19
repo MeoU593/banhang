@@ -65,6 +65,9 @@ public partial record CustomerInfoModel : BaseNopModel
     public bool CompanyRequired { get; set; }
     [NopResourceDisplayName("Account.Fields.Company")]
     public string Company { get; set; }
+
+    public string DutyRoleTitle { get; set; }
+
     public bool StreetAddressEnabled { get; set; }
     public bool StreetAddressRequired { get; set; }
     [NopResourceDisplayName("Account.Fields.StreetAddress")]

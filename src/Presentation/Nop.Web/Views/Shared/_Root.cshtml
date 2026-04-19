@@ -1,15 +1,42 @@
+@inject Nop.Services.Security.IPermissionService _rootPermissionService
+@inject Nop.Core.IWorkContext _rootWorkContext
+@inject Nop.Services.Common.IGenericAttributeService _rootGenericAttrService
+@inject Nop.Core.Domain.Common.DutyMessageSettings _rootDutySettings
 @{
     Layout = "_Root.Head";
     var isAuthStandalone = ViewData["AuthStandalone"] as bool? ?? false;
-    var displayName = Context.User.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(Context.User.Identity?.Name)
+    var isAuthenticated = Context.User.Identity?.IsAuthenticated == true;
+    var displayName = isAuthenticated && !string.IsNullOrWhiteSpace(Context.User.Identity?.Name)
         ? Context.User.Identity!.Name!
-        : "Sĩ quan trực ban";
-    var avatarInitial = displayName.Substring(0, 1).ToUpperInvariant();
+        : string.Empty;
+    var avatarInitial = isAuthenticated && !string.IsNullOrWhiteSpace(displayName)
+        ? displayName.Substring(0, 1).ToUpperInvariant()
+        : "?";
+    var isAdminUser = await _rootPermissionService.AuthorizeAsync(Nop.Services.Security.StandardPermission.Customers.CUSTOMERS_VIEW);
+
+    string dutyRoleTitle = "Sĩ quan điều phối hậu cần";
+    if (isAuthenticated)
+    {
+        var currentCustomer = await _rootWorkContext.GetCurrentCustomerAsync();
+        var customTitle = await _rootGenericAttrService.GetAttributeAsync<string>(currentCustomer, Nop.Core.Domain.Customers.NopCustomerDefaults.DutyRoleTitleAttribute);
+        if (!string.IsNullOrWhiteSpace(customTitle))
+            dutyRoleTitle = customTitle;
+    }
 }
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BodyStartHtmlTagAfter })
 @{ await Html.RenderPartialAsync("_Notifications"); }
 @{ await Html.RenderPartialAsync("_JavaScriptDisabledWarning"); }
-<div class="master-wrapper-page flex min-h-[100dvh] bg-slate-100 text-slate-900">
+@if (isAdminUser)
+{
+    <div style="background:#1a1a2e;color:#fed65b;padding:6px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:9999;border-bottom:2px solid #fed65b;">
+        <span style="opacity:.7;letter-spacing:.08em;text-transform:uppercase">Chế độ Admin</span>
+        <a href="/Admin" style="color:#fed65b;text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(254,214,91,.15);border:1px solid rgba(254,214,91,.4);padding:2px 10px;border-radius:6px;transition:background .15s"
+           onmouseover="this.style.background='rgba(254,214,91,.3)'" onmouseout="this.style.background='rgba(254,214,91,.15)'">
+            &#9776; Vào trang Quản trị
+        </a>
+    </div>
+}
+<div class="master-wrapper-page flex min-h-screen bg-surface-container-low text-on-surface">
     @if (!isAuthStandalone)
     {
         await Html.RenderPartialAsync("_Header");
@@ -17,38 +44,50 @@
     <div class="flex min-w-0 flex-1 flex-col">
         @if (!isAuthStandalone)
         {
-            <div class="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
-                <div class="flex h-16 items-center justify-between gap-4 px-6 lg:px-8">
+            <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-8 shadow-sm">
+                <div class="flex flex-1 items-center gap-4">
                     <form asp-route="@NopRouteNames.General.SEARCH" method="get" class="w-full max-w-md">
                         <label class="relative block">
-                            <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[20px]">search</span>
-                            <input type="search" name="q" class="h-11 w-full rounded-2xl border border-slate-200 bg-slate-100 pr-4 text-sm text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:shadow-[0_18px_35px_-24px_rgba(15,23,42,0.35)]" style="padding-left:2.75rem!important" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
+                            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 material-symbols-outlined text-[20px]">search</span>
+                            <input type="search" name="q" class="h-9 w-full rounded-full border-none bg-slate-100 pr-4 text-sm text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:ring-2 focus:ring-red-700/20 focus:bg-white" style="padding-left:2.25rem!important" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
                         </label>
                     </form>
+                </div>
 
-                    <div class="flex items-center gap-4">
-                        <button type="button" class="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-[0_14px_32px_-24px_rgba(15,23,42,0.5)] transition hover:-translate-y-[1px] hover:text-slate-900 active:scale-[0.98]" aria-label="Thông báo">
-                            <span class="material-symbols-outlined text-[22px]">notifications</span>
-                            <span class="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-military-red"></span>
-                        </button>
-
-                        <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-[0_14px_32px_-24px_rgba(15,23,42,0.5)]">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-military-green text-sm font-bold text-military-gold">@avatarInitial</div>
+                <div class="flex items-center gap-4 pl-6">
+                    <button type="button" class="relative p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors" aria-label="Thông báo">
+                        <span class="material-symbols-outlined text-[22px]">notifications</span>
+                        <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
+                    </button>
+                    <button type="button" class="p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors" aria-label="Trợ giúp">
+                        <span class="material-symbols-outlined text-[22px]">help</span>
+                    </button>
+                    <div class="h-8 w-px bg-slate-200 mx-2"></div>
+                    <div class="flex items-center gap-3">
+                        @if (isAuthenticated)
+                        {
                             <div class="hidden text-right sm:block">
-                                <div class="text-sm font-semibold text-slate-900">@displayName</div>
-                                <div class="text-xs text-slate-500">Sĩ quan điều phối hậu cần</div>
+                                <div class="text-sm font-bold leading-none text-slate-900">@displayName</div>
+                                <div class="mt-0.5 text-[10px] uppercase tracking-tight text-slate-500">@dutyRoleTitle</div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="hidden text-right sm:block">
+                                <div class="text-sm font-semibold text-slate-900">Chào mừng đồng chí</div>
+                            </div>
+                        }
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-500 bg-slate-800 text-amber-400 text-sm font-bold">@avatarInitial</div>
                     </div>
                 </div>
-            </div>
+            </header>
         }
-        <main class="master-wrapper-content flex-1" id="main">
+        <main class="master-wrapper-content flex-1 bg-surface-container-low" id="main">
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ContentBefore })
 
             @if (IsSectionDefined("Breadcrumb"))
             {
-                @RenderSection("Breadcrumb") 
+                @RenderSection("Breadcrumb")
             }
             <div class="master-column-wrapper">
                 @RenderBody()
@@ -57,7 +96,7 @@
         </main>
         @if (!isAuthStandalone)
         {
-            <div class="border-t border-slate-200 bg-white/80 px-6 py-6 text-sm text-slate-500 backdrop-blur lg:px-8">
+            <div class="border-t border-slate-200 bg-white px-8 py-5 text-sm text-slate-500">
                 @await Component.InvokeAsync(typeof(FooterViewComponent))
             </div>
         }

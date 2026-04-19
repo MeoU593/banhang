@@ -208,3 +208,8 @@ src/Tests/Nop.Tests/Connections.resx
 
 data.bak
 design-ref/
+
+# local large SQL snapshots
+nopcommerce_schema_data_ready.sql
+nopcommerce_final.sql
+nopcommerce_schema_data_windows.sql

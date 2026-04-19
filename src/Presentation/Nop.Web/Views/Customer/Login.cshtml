@@ -3,6 +3,7 @@
 @using Nop.Core.Domain.Customers
 
 @inject IWebHelper webHelper
+@inject Nop.Core.Domain.Common.DutyMessageSettings dutyMessageSettings
 @{
     Layout = "_ColumnsOne";
     ViewData["AuthStandalone"] = true;
@@ -26,17 +27,23 @@
                 </div>
                 <div class="space-y-4">
                     <p class="text-sm font-semibold uppercase tracking-[0.32em] text-military-gold">Hệ thống điều phối</p>
-                    <h1 class="text-5xl font-black tracking-tight">Cổng thông tin Hậu cần - Quân nhu</h1>
-                    <p class="text-lg text-slate-200">Bộ Tư lệnh Tăng Thiết Giáp</p>
-                    <p class="max-w-lg text-base leading-8 text-slate-300">Quản lý kho bãi, danh mục vật tư và luồng văn bản nghiệp vụ trên một giao diện thống nhất, ưu tiên tốc độ xử lý và tính sẵn sàng.</p>
+                    <h1 class="text-4xl font-black tracking-tight whitespace-nowrap">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginTitle) ? "Cổng thông tin Hậu cần - Quân nhu" : dutyMessageSettings.LoginTitle)</h1>
+                    <p class="text-lg text-slate-200">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginSubtitle) ? "Bộ Tư lệnh Tăng Thiết Giáp" : dutyMessageSettings.LoginSubtitle)</p>
+                    <p class="max-w-lg text-base leading-8 text-slate-300">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginDescription) ? "Quản lý kho bãi, danh mục vật tư và luồng văn bản nghiệp vụ trên một giao diện thống nhất, ưu tiên tốc độ xử lý và tính sẵn sàng." : dutyMessageSettings.LoginDescription)</p>
                 </div>
             </div>
 
-            <div class="relative max-w-xl rounded-[28px] border border-white/10 bg-white/10 p-6 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
-                <p class="text-sm uppercase tracking-[0.28em] text-military-gold">Thông điệp trực ban</p>
-                <blockquote class="mt-4 text-xl font-semibold leading-9 text-white">"Kỷ luật dữ liệu là nền của chỉ huy chính xác; hậu cần thông suốt là điều kiện bảo đảm chiến thắng."</blockquote>
-                <p class="mt-4 text-sm text-slate-300">Trung tâm kỹ thuật số hóa quân nhu - cụm điều hành số 02</p>
-            </div>
+            @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Message))
+            {
+                <div class="relative max-w-xl rounded-[28px] border border-white/10 bg-white/10 p-6 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
+                    <p class="text-sm uppercase tracking-[0.28em] text-military-gold">Thông điệp trực ban</p>
+                    <blockquote class="mt-4 text-xl font-semibold leading-9 text-white">"@dutyMessageSettings.Message"</blockquote>
+                    @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Author))
+                    {
+                        <p class="mt-4 text-sm text-slate-300">@dutyMessageSettings.Author</p>
+                    }
+                </div>
+            }
         </section>
 
         <section class="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-10 sm:px-6 lg:px-10">
@@ -169,6 +176,11 @@
                             <a asp-route="@NopRouteNames.Standard.PASSWORD_RECOVERY" class="font-semibold text-military-red transition hover:text-rose-700">Quên mật khẩu?</a>
                         </div>
 
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                            Chưa có tài khoản?
+                            <a href="@registerUrl" class="font-semibold text-military-red transition hover:text-rose-700">Đăng ký ngay</a>
+                        </div>
+
                         @if (Model.DisplayCaptcha)
                         {
                             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -179,8 +191,16 @@
                         <button type="submit" class="flex h-12 w-full items-center justify-center rounded-2xl bg-military-red px-4 text-sm font-bold uppercase tracking-[0.18em] text-white shadow-[0_22px_48px_-28px_rgba(185,28,28,0.85)] transition hover:-translate-y-[1px] active:scale-[0.98]">ĐĂNG NHẬP HỆ THỐNG</button>
                     </form>
 
-                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                        Hỗ trợ kỹ thuật: <span class="font-semibold text-slate-700">Phòng Kỹ thuật - BTL TTG</span>
+                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 space-y-0.5">
+                        <div>Hỗ trợ kỹ thuật: <span class="font-semibold text-slate-700">@dutyMessageSettings.SupportDepartment@(string.IsNullOrWhiteSpace(dutyMessageSettings.SupportUnit) ? "" : " - " + dutyMessageSettings.SupportUnit)</span></div>
+                        @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.SupportContactName))
+                        {
+                            <div>Người liên hệ: <span class="font-semibold text-slate-700">@dutyMessageSettings.SupportContactName@(string.IsNullOrWhiteSpace(dutyMessageSettings.SupportContactPosition) ? "" : " - " + dutyMessageSettings.SupportContactPosition)</span></div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.SupportPhone))
+                        {
+                            <div>Điện thoại: <span class="font-semibold text-slate-700">@dutyMessageSettings.SupportPhone</span></div>
+                        }
                     </div>
                 </div>
 

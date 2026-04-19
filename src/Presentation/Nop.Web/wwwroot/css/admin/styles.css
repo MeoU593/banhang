@@ -1,9 +1,44 @@
-﻿/* FONT */
-*, *::before, *::after {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+/* DESIGN TOKENS */
+:root {
+  --app-font-family: 'Public Sans', Arial, Helvetica, sans-serif;
+  --app-font-size-base: 15px;
+  --app-font-size-small: 14px;
+  --app-line-height-base: 1.55;
+  --app-control-height: 40px;
 }
+
+*, *::before, *::after {
+  font-family: var(--app-font-family) !important;
+}
+
+/* Restore FontAwesome icon fonts - must come after the wildcard above */
+.fa, .fas, .far, .fal, .fad,
+i.fa, i.fas, i.far, i.fal, i.fad,
+span.fa, span.fas, span.far {
+  font-family: "Font Awesome 5 Free" !important;
+}
+.fab {
+  font-family: "Font Awesome 5 Brands" !important;
+}
+.fa::before, .fas::before, .far::before, .fal::before, .fad::before {
+  font-family: "Font Awesome 5 Free" !important;
+}
+.fab::before {
+  font-family: "Font Awesome 5 Brands" !important;
+}
+/* Restore Material Symbols if used in admin */
+.material-symbols-outlined,
+.material-symbols-outlined::before {
+  font-family: 'Material Symbols Outlined' !important;
+}
+
 pre, code, kbd, samp {
-    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
+}
+
+body {
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-base);
 }
 
 /* COMMON */
@@ -20,7 +55,26 @@ pre, code, kbd, samp {
 }
 
 .form-control {
+  min-height: var(--app-control-height);
   border-radius: 0;
+  font-size: var(--app-font-size-small);
+}
+
+.select2-container--default .select2-selection--single {
+  min-height: var(--app-control-height);
+  padding-top: 5px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: calc(var(--app-control-height) - 2px);
+}
+
+.btn:not(.btn-sm):not(.btn-xs):not(.btn-lg) {
+  min-height: var(--app-control-height);
+  padding: 0.5rem 1rem;
+  font-size: var(--app-font-size-small);
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 ul, ol {
@@ -778,7 +832,7 @@ i.false-icon {
   opacity: 100;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   border: 1px solid #aaa;
-  font-family: Verdana,Arial,sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.1em;
   text-align: left;
   max-width: 400px;

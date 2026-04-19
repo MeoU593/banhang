@@ -6,6 +6,12 @@
   --dark-gray-color: #444;
   --error-red-color: #d51f28;
   --success-green-color: #207d4c;
+  --app-font-family: Arial, Helvetica, sans-serif;
+  --app-font-size-base: 15px;
+  --app-font-size-small: 14px;
+  --app-font-size-button: 14px;
+  --app-line-height-base: 1.55;
+  --app-control-height: 40px;
 }
 
 * {
@@ -80,7 +86,9 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   background-color: #fff;
-  font: normal 14px Arial, Helvetica, sans-serif;
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-base);
+  font-family: var(--app-font-family);
   color: var(--gray-color);
 }
 
@@ -107,7 +115,7 @@ input[type="email"],
 input[type="tel"],
 input[type="password"],
 textarea, select {
-  height: 36px; /*safari padding fix*/
+  height: var(--app-control-height); /*safari padding fix*/
   border: 1px solid #ddd;
   padding: 8px;
   vertical-align: middle;
@@ -115,8 +123,8 @@ textarea, select {
 }
 
 input, textarea, select, button {
-  font-size: 14px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--app-font-size-small);
+  font-family: var(--app-font-family);
   color: var(--gray-color);
 }
 
@@ -126,7 +134,7 @@ textarea {
 
 select {
   min-width: 50px;
-  height: 32px; /*safari padding fix*/
+  height: var(--app-control-height); /*safari padding fix*/
   padding: 6px;
 }
 
@@ -152,6 +160,8 @@ input[type="radio"] + * {
 input[type="button"], input[type="submit"],
 button, .button-1, .button-2 {
   cursor: pointer;
+  font-size: var(--app-font-size-button);
+  font-family: var(--app-font-family);
 }
 
 label, label + * {

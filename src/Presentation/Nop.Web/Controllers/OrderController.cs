@@ -69,14 +69,10 @@ public partial class OrderController : BasePublicController
 
     #region Methods
 
-    //My account / Orders
-    public virtual async Task<IActionResult> CustomerOrders(int? pageNumber, OrderHistoryPeriods limit)
+    //My account / Orders - removed, redirect to account
+    public virtual IActionResult CustomerOrders(int? pageNumber, OrderHistoryPeriods limit)
     {
-        if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
-            return Challenge();
-
-        var model = await _orderModelFactory.PrepareCustomerOrderListModelAsync(pageNumber, limit);
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
     }
 
     //My account / Recurring payments

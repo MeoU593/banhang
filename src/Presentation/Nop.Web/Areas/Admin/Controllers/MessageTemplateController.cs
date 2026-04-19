@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Nop.Core.Domain.Messages;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
@@ -27,6 +28,16 @@ public partial class MessageTemplateController : BaseAdminController
     protected readonly IWorkflowMessageService _workflowMessageService;
 
     #endregion Fields
+
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+
+        if (context.Result is not null)
+            return;
+
+        context.Result = RedirectToAction("Index", "Home");
+    }
 
     #region Ctor
 
@@ -85,16 +96,14 @@ public partial class MessageTemplateController : BaseAdminController
 
     public virtual IActionResult Index()
     {
-        return RedirectToAction("List");
+        return RedirectToAction("Overview", "Home");
     }
 
     [CheckPermission(StandardPermission.ContentManagement.MESSAGE_TEMPLATES_VIEW)]
-    public virtual async Task<IActionResult> List()
+    public virtual IActionResult List()
     {
-        //prepare model
-        var model = await _messageTemplateModelFactory.PrepareMessageTemplateSearchModelAsync(new MessageTemplateSearchModel());
-
-        return View(model);
+        _notificationService.WarningNotification("Chức năng Mẫu thông điệp đã được vô hiệu hóa.");
+        return RedirectToAction("Overview", "Home");
     }
 
     [HttpPost]

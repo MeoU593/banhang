@@ -1723,7 +1723,7 @@
     <Value>Vendor name (on {0} language) is required for meta tags generation with artificial intelligence services.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog">
-    <Value>Catalog</Value>
+    <Value>Danh mục &amp; Sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.AdditionalProductReviews.Fields.Name">
     <Value>Name</Value>
@@ -3163,10 +3163,10 @@
     <Value>None</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.DisableBuyButton">
-    <Value>Disable buy button</Value>
+    <Value>Đang cung ứng</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.DisableBuyButton.Hint">
-    <Value>Check to disable the buy button for this product. This may be necessary for products that are 'available upon request'.</Value>
+    <Value>Tích vào nếu sản phẩm đang trong quá trình cung ứng (chưa có sẵn). Bỏ tích = sản phẩm có sẵn.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.DisableWishlistButton">
     <Value>Disable wishlist button</Value>
@@ -4546,7 +4546,7 @@
     <Value>Are you sure you want to perform this action?</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.AddNew">
-    <Value>Add new</Value>
+    <Value>Thêm mới</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.AddNewRecord">
     <Value>Add new record</Value>
@@ -4576,7 +4576,7 @@
     <Value>Are you sure?</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Cancel">
-    <Value>Cancel</Value>
+    <Value>Hủy</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Change">
     <Value>Change</Value>
@@ -4591,7 +4591,7 @@
     <Value>CSV file</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Delete">
-    <Value>Delete</Value>
+    <Value>Xóa</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Delete.Selected">
     <Value>Delete (selected)</Value>
@@ -4600,7 +4600,7 @@
     <Value>Are you sure you want to delete this item?</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Edit">
-    <Value>Edit</Value>
+    <Value>Chỉnh sửa</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.EmptyItemText">
     <Value>---</Value>
@@ -4666,13 +4666,13 @@
     <Value>Preview</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Save">
-    <Value>Save</Value>
+    <Value>Lưu</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.SaveContinue">
     <Value>Save and Continue Edit</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Search">
-    <Value>Search</Value>
+    <Value>Tìm kiếm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Common.Select">
     <Value>Select</Value>
@@ -4711,7 +4711,7 @@
     <Value>Zip file</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration">
-    <Value>Configuration</Value>
+    <Value>Cấu hình</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.ACL">
     <Value>Access control list</Value>
@@ -10683,7 +10683,7 @@
     <Value>Welcome to your store!</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement">
-    <Value>Content management</Value>
+    <Value>Quản lý nội dung</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog">
     <Value>Blog</Value>
@@ -11775,7 +11775,7 @@
     <Value>Updated on</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers">
-    <Value>Customers</Value>
+    <Value>Người dùng</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers.ActivityLog">
     <Value>Activity log</Value>
@@ -11922,7 +11922,7 @@
     <Value>You need to save the customer attribute before you can add values for this customer attribute page.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers.CustomerRoles">
-    <Value>Customer roles</Value>
+    <Value>Vai trò &amp; phân quyền</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers.CustomerRoles.Added">
     <Value>The new customer role has been added successfully.</Value>
@@ -12021,7 +12021,7 @@
     <Value>The customer role has been updated successfully.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers.Customers">
-    <Value>Customers</Value>
+    <Value>Danh sách người dùng</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Customers.Customers.ActivityLog">
     <Value>Activity log</Value>
@@ -13170,16 +13170,16 @@
     <Value>The gift card has been updated successfully.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.ClearCache">
-    <Value>Clear cache</Value>
+    <Value>Xóa bộ nhớ đệm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.Logout">
-    <Value>Logout</Value>
+    <Value>Đăng xuất</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.PublicStore">
-    <Value>Public store</Value>
+    <Value>Xem trang chủ</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.RestartApplication">
-    <Value>Restart application</Value>
+    <Value>Khởi động lại</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.RestartApplication.Progress">
     <Value>Restarting the application...</Value>
@@ -13203,7 +13203,7 @@
     <Value>Training</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Home">
-    <Value>Home</Value>
+    <Value>Trang chủ</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.IAclSupportedModel.Fields.AclCustomerRoles">
     <Value>Limited to customer roles</Value>
@@ -14265,7 +14265,7 @@
     <Value>Shipping not required</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.PageTitle">
-    <Value>nopCommerce administration</Value>
+    <Value>Quản trị Hệ thống Hậu cần - BTL TTG</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Picture.RemovePicture">
     <Value>Remove picture</Value>
@@ -15786,7 +15786,7 @@
     <Value>The stock quantity has been reduced when an order item of the order #{0} was shipped</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.System">
-    <Value>System</Value>
+    <Value>Hệ thống</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.System.Log">
     <Value>Log</Value>

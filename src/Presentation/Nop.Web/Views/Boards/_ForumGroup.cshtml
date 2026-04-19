@@ -1,8 +1,8 @@
 ﻿@model ForumGroupModel
 <div class="forums-table-section forum-group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <div class="forums-table-section-title flex items-center gap-2 border-b border-slate-100 bg-slate-900 px-4 py-3 text-sm font-bold text-white">
-        <span class="material-symbols-outlined !text-base text-military-gold">forum</span>
-        @Html.RouteLink(Model.Name, NopRouteNames.Standard.FORUM_GROUP_SLUG, new { id = Model.Id, slug = Model.SeName }, new { @class = "hover:text-military-gold" })
+        <span class="material-symbols-outlined !text-base text-secondary-container">forum</span>
+        @Html.RouteLink(Model.Name, NopRouteNames.Standard.FORUM_GROUP_SLUG, new { id = Model.Id, slug = Model.SeName }, new { @class = "hover:text-secondary-container" })
     </div>
     <div class="forums-table-section-body">
         <div class="table-wrapper overflow-x-auto">

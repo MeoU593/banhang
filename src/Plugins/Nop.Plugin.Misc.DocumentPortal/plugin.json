@@ -1,0 +1,11 @@
+{
+  "Group": "Misc",
+  "FriendlyName": "Document Portal",
+  "SystemName": "Misc.DocumentPortal",
+  "Version": "1.00",
+  "SupportedVersions": [ "5.00" ],
+  "Author": "Nop Solutions, Ltd",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Misc.DocumentPortal.dll",
+  "Description": "Kho tài liệu - quản lý và tra cứu tài liệu nội bộ"
+}

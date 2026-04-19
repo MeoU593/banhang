@@ -154,9 +154,11 @@
             var catalogProductsViewData = new ViewDataDictionary(ViewData);
             catalogProductsViewData["fetchUrl"] = Html.Raw(Url.RouteUrl(NopRouteNames.Ajax.GET_CATEGORY_PRODUCTS, new { categoryId = Model.Id }));
             catalogProductsViewData["categoryName"] = Model.Name;
+            catalogProductsViewData["LockCategorySelector"] = true;
+            catalogProductsViewData["CurrentCategoryName"] = Model.Name;
         }
 
-        @await Html.PartialAsync("_CatalogSelectors", Model.CatalogProductsModel)
+        @await Html.PartialAsync("_CatalogSelectors", Model.CatalogProductsModel, catalogProductsViewData)
         @await Html.PartialAsync("_CatalogProducts", Model.CatalogProductsModel, catalogProductsViewData)
     </div>
 </div>

@@ -36,6 +36,7 @@ public class SchemaMigration : ForwardOnlyMigration
         //#6710
         var description = "The field is not used since 4.70 and is left only for the update process use the ProductAttributeCombinationPicture instead";
 
+#pragma warning disable CS0618
         this.AddOrAlterColumnFor<ProductAttributeCombination>(t => t.PictureId)
         .AsInt32()
         .Nullable()
@@ -45,6 +46,7 @@ public class SchemaMigration : ForwardOnlyMigration
             .AsInt32()
             .Nullable()
             .WithColumnDescription(description);
+#pragma warning restore CS0618
 
         // 6771
         this.AddOrAlterColumnFor<Customer>(t => t.LastIpAddress)

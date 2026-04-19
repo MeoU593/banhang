@@ -94,6 +94,7 @@ public partial class BlogModelFactory : IBlogModelFactory
         model.Title = blogPost.Title;
         model.Body = blogPost.Body;
         model.BodyOverview = blogPost.BodyOverview;
+        model.PostTypeId = blogPost.PostTypeId;
         model.AllowComments = blogPost.AllowComments;
 
         model.PreventNotRegisteredUsersToLeaveComments =

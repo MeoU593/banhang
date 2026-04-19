@@ -237,6 +237,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             model.StateProvinceId = customer.StateProvinceId;
             model.Phone = customer.Phone;
             model.Fax = customer.Fax;
+            model.DutyRoleTitle = await _genericAttributeService.GetAttributeAsync<string>(customer, NopCustomerDefaults.DutyRoleTitleAttribute);
 
             //newsletter subscriptions
             var currentSubscriptions = await _newsLetterSubscriptionService.GetNewsLetterSubscriptionsByEmailAsync(customer.Email, storeId: store.Id);
@@ -403,6 +404,9 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         ArgumentNullException.ThrowIfNull(model);
 
         var customer = await _workContext.GetCurrentCustomerAsync();
+
+        if (!excludeProperties)
+            model.DutyRoleTitle = await _genericAttributeService.GetAttributeAsync<string>(customer, NopCustomerDefaults.DutyRoleTitleAttribute);
 
         model.AllowCustomersToSetTimeZone = _dateTimeSettings.AllowCustomersToSetTimeZone;
         foreach (var tzi in _dateTimeHelper.GetSystemTimeZones())
@@ -620,13 +624,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             ItemClass = "customer-addresses"
         });
 
-        model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-        {
-            RouteName = NopRouteNames.General.CUSTOMER_ORDERS,
-            Title = await _localizationService.GetResourceAsync("Account.CustomerOrders"),
-            Tab = (int)CustomerNavigationEnum.Orders,
-            ItemClass = "customer-orders"
-        });
 
 
         var store = await _storeContext.GetCurrentStoreAsync();

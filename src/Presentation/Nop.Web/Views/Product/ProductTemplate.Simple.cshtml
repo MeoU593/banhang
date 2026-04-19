@@ -59,21 +59,22 @@
 }
 
 <style>
-.product-details-page { padding: 24px; background: #f1f5f9; }
-.product-details-page .page-body { max-width: 1200px; margin: 0 auto; }
-.product-details-page .product-essential { display: grid; grid-template-columns: 420px 1fr; gap: 32px; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; box-shadow: 0 8px 32px -16px rgba(15,23,42,0.14); }
-.product-details-page .gallery { border-radius: 12px; overflow: hidden; }
-.product-details-page .overview { display: flex; flex-direction: column; gap: 16px; }
-.product-details-page .product-name h1 { font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1.2; margin: 0; }
-.product-details-page .short-description { font-size: 14px; color: #475569; line-height: 1.7; padding: 12px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-.product-details-page .sku-panel { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #64748b; }
-.product-details-page .sku-panel label { font-weight: 600; color: #475569; }
-.product-details-page .product-price { font-size: 28px; font-weight: 900; color: #2d3a22; letter-spacing: -0.03em; }
-.product-details-page .full-description { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; margin-top: 24px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); font-size: 14px; line-height: 1.8; color: #334155; }
-.product-details-page .product-collateral { margin-top: 24px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); }
+.product-details-page { padding: 0; }
+.product-details-page .page-body { padding: 24px; }
+.product-details-page .product-essential { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: 32px; }
+.product-details-page .gallery { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; overflow: hidden; padding: 8px; box-shadow: 0 4px 16px -8px rgba(15,23,42,0.10); }
+.product-details-page .overview { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; box-shadow: 0 4px 16px -8px rgba(15,23,42,0.10); display: flex; flex-direction: column; gap: 16px; }
+.product-details-page .product-name h1 { font-size: 22px; font-weight: 800; color: #141c24; letter-spacing: -0.02em; line-height: 1.2; margin: 0; }
+.product-details-page .short-description { font-size: 14px; color: #44474c; line-height: 1.7; padding: 12px 0; border-top: 1px solid rgba(196,198,204,0.2); border-bottom: 1px solid rgba(196,198,204,0.2); }
+.product-details-page .sku-panel { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #44474c; }
+.product-details-page .sku-panel label { font-weight: 600; color: #141c24; }
+.product-details-page .product-price { font-size: 26px; font-weight: 900; color: #2d3a22; letter-spacing: -0.03em; }
+.product-details-page .full-description { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; margin-top: 24px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); font-size: 14px; line-height: 1.8; color: #334155; }
+.product-details-page .product-collateral { margin-top: 24px; background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); }
+.product-details-page .overview-buttons { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 8px; border-top: 1px solid rgba(196,198,204,0.2); }
 @@media (max-width: 900px) {
     .product-details-page .product-essential { grid-template-columns: 1fr; }
-    .product-details-page { padding: 16px; }
+    .product-details-page .page-body { padding: 16px; }
 }
 </style>
 
@@ -83,7 +84,7 @@
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsTop, additionalData = Model })
         <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form">
             <article data-productid="@Model.Id">
-                <div class="product-essential">
+                <div class="product-essential space-y-0">
                     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
                     <div class="gallery">
                         <!--product pictures-->
