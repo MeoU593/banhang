@@ -8,6 +8,7 @@ using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Stores;
+using Nop.Core.Domain.Vendors;
 using Nop.Core.Infrastructure;
 using Nop.Data;
 using Nop.Services.Customers;
@@ -906,8 +907,7 @@ public partial class ProductService : IProductService
                     from p in _productRepository.Table
                     where p.Name.Contains(keywords) ||
                           (searchDescriptions &&
-                           (p.ShortDescription.Contains(keywords) || p.FullDescription.Contains(keywords))) ||
-                          (searchManufacturerPartNumber && p.ManufacturerPartNumber == keywords) ||
+                            (p.ShortDescription.Contains(keywords) || p.FullDescription.Contains(keywords))) ||
                           (searchSku && p.Sku == keywords)
                     select p.Id;
 
@@ -972,9 +972,39 @@ public partial class ProductService : IProductService
                 }
             }
 
-            //search by manufacturer name if admin allows
+            //search by unit/manufacturer name if admin allows
             if (_catalogSettings.AllowCustomersToSearchWithManufacturerName)
             {
+                var vendors = await _vendorService.GetAllVendorsAsync(name: keywords, showHidden: showHidden);
+                if (vendors.Any())
+                {
+                    var vendorIds = vendors.Select(v => v.Id).ToList();
+                    productsByKeywords = productsByKeywords.Union(
+                        from p in _productRepository.Table
+                        where vendorIds.Contains(p.VendorId)
+                        select p.Id);
+                }
+
+                if (searchLocalizedValue)
+                {
+                    var localizedVendorIds = await _localizedPropertyRepository.Table
+                        .Where(lp => lp.LocaleKeyGroup == nameof(Vendor) &&
+                                     lp.LocaleKey == nameof(Vendor.Name) &&
+                                     lp.LocaleValue.Contains(keywords) &&
+                                     lp.LanguageId == languageId)
+                        .Select(lp => lp.EntityId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    if (localizedVendorIds.Any())
+                    {
+                        productsByKeywords = productsByKeywords.Union(
+                            from p in _productRepository.Table
+                            where localizedVendorIds.Contains(p.VendorId)
+                            select p.Id);
+                    }
+                }
+
                 var manufacturerQuery = _manufacturerRepository.Table;
 
                 if (!showHidden)
@@ -1082,7 +1112,22 @@ public partial class ProductService : IProductService
 
                 productsQuery =
                     from p in productsQuery
-                    join pm in productManufacturerQuery on p.Id equals pm.ProductId
+                    join pm in productManufacturerQuery
+                        .Union(
+                            from pv in _productRepository.Table
+                            where manufacturerIds.Contains(pv.VendorId)
+                            select new
+                            {
+                                ProductId = pv.Id,
+                                DisplayOrder = pv.DisplayOrder
+                            })
+                        .GroupBy(item => item.ProductId)
+                        .Select(grouped => new
+                        {
+                            ProductId = grouped.Key,
+                            DisplayOrder = grouped.Min(item => item.DisplayOrder)
+                        })
+                        on p.Id equals pm.ProductId
                     orderby pm.DisplayOrder, p.Name
                     select p;
             }

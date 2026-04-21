@@ -160,55 +160,27 @@ public partial class CatalogController : BasePublicController
 
     public virtual async Task<IActionResult> Manufacturer(int manufacturerId, CatalogProductsCommand command)
     {
-        var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(manufacturerId);
-
-        if (!await CheckManufacturerAvailabilityAsync(manufacturer))
+        var vendor = await ResolveVendorFromManufacturerAsync(manufacturerId);
+        if (!await CheckVendorAvailabilityAsync(vendor))
             return InvokeHttp404();
 
-        var store = await _storeContext.GetCurrentStoreAsync();
-
-        //'Continue shopping' URL
-        await _genericAttributeService.SaveAttributeAsync(await _workContext.GetCurrentCustomerAsync(),
-            NopCustomerDefaults.LastContinueShoppingPageAttribute,
-            _webHelper.GetThisPageUrl(false),
-            store.Id);
-
-        //display "edit" (manage) link
-        if (await _permissionService.AuthorizeAsync(StandardPermission.Security.ACCESS_ADMIN_PANEL) && await _permissionService.AuthorizeAsync(StandardPermission.Catalog.MANUFACTURER_VIEW))
-            DisplayEditLink(Url.Action("Edit", "Manufacturer", new { id = manufacturer.Id, area = AreaNames.ADMIN }));
-
-        //activity log
-        await _customerActivityService.InsertActivityAsync("PublicStore.ViewManufacturer",
-            string.Format(await _localizationService.GetResourceAsync("ActivityLog.PublicStore.ViewManufacturer"), manufacturer.Name), manufacturer);
-
-        //model
-        var model = await _catalogModelFactory.PrepareManufacturerModelAsync(manufacturer, command);
-
-        //template
-        var templateViewPath = await _catalogModelFactory.PrepareManufacturerTemplateViewPathAsync(manufacturer.ManufacturerTemplateId);
-
-        return View(templateViewPath, model);
+        var vendorUrl = await _nopUrlHelper.RouteGenericUrlAsync(vendor);
+        return RedirectPermanent(vendorUrl);
     }
 
     [HttpPost]
     public virtual async Task<IActionResult> GetManufacturerProducts(int manufacturerId, CatalogProductsCommand command)
     {
-        var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(manufacturerId);
-
-        if (!await CheckManufacturerAvailabilityAsync(manufacturer))
+        var vendor = await ResolveVendorFromManufacturerAsync(manufacturerId);
+        if (!await CheckVendorAvailabilityAsync(vendor))
             return NotFound();
 
-        var model = await _catalogModelFactory.PrepareManufacturerProductsModelAsync(manufacturer, command);
-
+        var model = await _catalogModelFactory.PrepareVendorProductsModelAsync(vendor, command);
         return PartialView("_ProductsInGridOrLines", model);
     }
 
-    public virtual async Task<IActionResult> ManufacturerAll()
-    {
-        var model = await _catalogModelFactory.PrepareManufacturerAllModelsAsync();
-
-        return View(model);
-    }
+    public virtual IActionResult ManufacturerAll()
+        => RedirectToAction(nameof(VendorAll));
 
     public virtual async Task<IActionResult> CategoryAll(CatalogProductsCommand command)
     {
@@ -593,6 +565,23 @@ public partial class CatalogController : BasePublicController
     #endregion
 
     #region Utilities
+
+    protected virtual async Task<Vendor> ResolveVendorFromManufacturerAsync(int manufacturerId)
+    {
+        if (manufacturerId <= 0)
+            return null;
+
+        var vendor = await _vendorService.GetVendorByIdAsync(manufacturerId);
+        if (vendor != null && !vendor.Deleted && vendor.Active)
+            return vendor;
+
+        var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(manufacturerId);
+        if (manufacturer == null || manufacturer.Deleted)
+            return null;
+
+        var candidates = await _vendorService.GetAllVendorsAsync(name: manufacturer.Name, showHidden: true, pageSize: 1);
+        return candidates.FirstOrDefault();
+    }
 
     protected virtual async Task<bool> CheckCategoryAvailabilityAsync(Category category)
     {

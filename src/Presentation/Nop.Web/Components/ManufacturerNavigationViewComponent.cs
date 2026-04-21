@@ -16,15 +16,6 @@ public partial class ManufacturerNavigationViewComponent : NopViewComponent
         _catalogModelFactory = catalogModelFactory;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync(int currentManufacturerId)
-    {
-        if (_catalogSettings.ManufacturersBlockItemsToDisplay == 0)
-            return Content("");
-
-        var model = await _catalogModelFactory.PrepareManufacturerNavigationModelAsync(currentManufacturerId);
-        if (!model.Manufacturers.Any())
-            return Content("");
-
-        return View(model);
-    }
+    public Task<IViewComponentResult> InvokeAsync(int currentManufacturerId)
+        => Task.FromResult<IViewComponentResult>(Content(""));
 }

@@ -850,8 +850,13 @@ public partial class ProductModelFactory : IProductModelFactory
             {
                 model.SelectedCategoryIds = (await _categoryService.GetProductCategoriesByProductIdAsync(product.Id, true))
                     .Select(productCategory => productCategory.CategoryId).ToList();
-                model.SelectedManufacturerIds = (await _manufacturerService.GetProductManufacturersByProductIdAsync(product.Id, true))
-                    .Select(productManufacturer => productManufacturer.ManufacturerId).ToList();
+
+                model.SelectedManufacturerIds = new List<int>();
+                if (product.VendorId > 0)
+                    model.SelectedManufacturerIds.Add(product.VendorId);
+                else
+                    model.SelectedManufacturerIds = (await _manufacturerService.GetProductManufacturersByProductIdAsync(product.Id, true))
+                        .Select(productManufacturer => productManufacturer.ManufacturerId).ToList();
             }
 
             //prepare copy product model
@@ -975,8 +980,8 @@ public partial class ProductModelFactory : IProductModelFactory
                                     && model.SelectedCategoryIds.Contains(categoryId);
         }
 
-        //prepare model manufacturers
-        await _baseAdminModelFactory.PrepareManufacturersAsync(model.AvailableManufacturers, false);
+        //prepare model units (reuse selected manufacturer field for compatibility)
+        await _baseAdminModelFactory.PrepareVendorsAsync(model.AvailableManufacturers, false);
         foreach (var manufacturerItem in model.AvailableManufacturers)
         {
             manufacturerItem.Selected = int.TryParse(manufacturerItem.Value, out var manufacturerId)

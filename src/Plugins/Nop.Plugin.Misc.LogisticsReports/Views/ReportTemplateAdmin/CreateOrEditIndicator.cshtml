@@ -1,0 +1,36 @@
+@model Nop.Plugin.Misc.LogisticsReports.Models.ReportTemplates.ReportIndicatorModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = Model.Id == 0 ? "Tạo chỉ tiêu" : "Sửa chỉ tiêu";
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">@ViewBag.PageTitle</h1>
+</div>
+
+<div class="card card-default">
+    <div class="card-body">
+        <form method="post">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="ReportTemplateId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group"><label asp-for="Code">Mã</label><input asp-for="Code" class="form-control" /><span asp-validation-for="Code" class="text-danger"></span></div>
+            <div class="form-group"><label asp-for="Name">Tên</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div>
+            <div class="form-group"><label asp-for="ParentIndicatorId">Chỉ tiêu cha</label><input asp-for="ParentIndicatorId" class="form-control" /></div>
+            <div class="form-group"><label asp-for="DisplayOrder">Thứ tự hiển thị</label><input asp-for="DisplayOrder" class="form-control" /></div>
+            <div class="form-group"><label asp-for="UnitOfMeasure">Đơn vị tính</label><input asp-for="UnitOfMeasure" class="form-control" /></div>
+            <div class="form-group"><label asp-for="DataTypeId">Kiểu dữ liệu</label><input asp-for="DataTypeId" class="form-control" /></div>
+            <div class="form-group"><label asp-for="InputModeId">Phương thức nhập liệu</label><input asp-for="InputModeId" class="form-control" /></div>
+            <div class="form-group"><label asp-for="AggregateMethodId">Phương thức tổng hợp</label><input asp-for="AggregateMethodId" class="form-control" /></div>
+            <div class="form-group"><label asp-for="FormulaExpression">Công thức</label><input asp-for="FormulaExpression" class="form-control" /></div>
+            <div class="form-group"><label asp-for="ExcelSheetName">Tên sheet Excel</label><input asp-for="ExcelSheetName" class="form-control" /></div>
+            <div class="form-group"><label asp-for="ExcelCellAddress">Ô Excel</label><input asp-for="ExcelCellAddress" class="form-control" /></div>
+            <div class="form-check"><input asp-for="IsRequired" class="form-check-input" /><label asp-for="IsRequired" class="form-check-label">Bắt buộc</label></div>
+            <div class="form-check mb-3"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">Kích hoạt</label></div>
+
+            <button type="submit" class="btn btn-primary">Lưu</button>
+            <a asp-action="Indicators" asp-route-reportTemplateId="@Model.ReportTemplateId" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>

@@ -102,7 +102,7 @@ public partial class MenuModelFactory : IMenuModelFactory
                 MenuItemType.Category => (await _categoryService.GetCategoryByIdAsync(entityId))?.Name,
                 MenuItemType.TopicPage => (await _topicService.GetTopicByIdAsync(entityId))?.Title,
                 MenuItemType.Product => (await _productService.GetProductByIdAsync(entityId))?.Name,
-                MenuItemType.Manufacturer => (await _manufacturerService.GetManufacturerByIdAsync(entityId))?.Name,
+                MenuItemType.Manufacturer => (await _vendorService.GetVendorByIdAsync(entityId))?.Name,
                 _ => null
             } ?? current.Title);
 
@@ -167,12 +167,12 @@ public partial class MenuModelFactory : IMenuModelFactory
                 }
                 case MenuItemType.Manufacturer:
                 {
-                    var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(entityId);
+                    var vendor = await _vendorService.GetVendorByIdAsync(entityId);
 
-                    if (manufacturer is null || manufacturer.Deleted)
+                    if (vendor is null || vendor.Deleted)
                         throw new NopException("Manufacturer not found");
 
-                    model.ManufacturerId = manufacturer.Id;
+                    model.ManufacturerId = vendor.Id;
                     break;
                 }
                 default:

@@ -13,6 +13,7 @@ using Nop.Core.Http;
 using Nop.Services.Catalog;
 using Nop.Services.Localization;
 using Nop.Services.Seo;
+using Nop.Services.Vendors;
 using Nop.Web.Framework.Events;
 
 namespace Nop.Web.Framework.Mvc.Routing;
@@ -29,8 +30,10 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
     protected readonly IEventPublisher _eventPublisher;
     protected readonly ILanguageService _languageService;
     protected readonly IManufacturerService _manufacturerService;
+    protected readonly IProductService _productService;
     protected readonly IStoreContext _storeContext;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
     protected readonly LocalizationSettings _localizationSettings;
 
     #endregion
@@ -42,8 +45,10 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
         IEventPublisher eventPublisher,
         ILanguageService languageService,
         IManufacturerService manufacturerService,
+        IProductService productService,
         IStoreContext storeContext,
         IUrlRecordService urlRecordService,
+        IVendorService vendorService,
         LocalizationSettings localizationSettings)
     {
         _catalogSettings = catalogSettings;
@@ -51,8 +56,10 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
         _eventPublisher = eventPublisher;
         _languageService = languageService;
         _manufacturerService = manufacturerService;
+        _productService = productService;
         _storeContext = storeContext;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
         _localizationSettings = localizationSettings;
     }
 
@@ -119,7 +126,7 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
                 return;
 
             case var name when name.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase):
-                RouteToAction(values, "Catalog", "Manufacturer", slug, (NopRoutingDefaults.RouteValue.ManufacturerId, urlRecord.EntityId));
+                RouteToAction(values, "Catalog", "Vendor", slug, (NopRoutingDefaults.RouteValue.VendorId, urlRecord.EntityId));
                 return;
 
             case var name when name.Equals(nameof(Vendor), StringComparison.InvariantCultureIgnoreCase):
@@ -176,9 +183,9 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
         var isManufacturerProductUrl = _catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.ManufacturerProduct;
         if (isManufacturerProductUrl)
         {
-            var productManufacturer = (await _manufacturerService.GetProductManufacturersByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
-            var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
-            catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
+            var product = await _productService.GetProductByIdAsync(urlRecord.EntityId);
+            var vendor = await _vendorService.GetVendorByIdAsync(product?.VendorId ?? 0);
+            catalogSeName = vendor is not null ? await _urlRecordService.GetSeNameAsync(vendor) : string.Empty;
         }
         if (string.IsNullOrEmpty(catalogSeName))
             return false;
@@ -187,7 +194,7 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
         var catalogUrlRecord = await _urlRecordService.GetBySlugAsync(catalogPath);
         if (catalogUrlRecord is null ||
             (isCategoryProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Category), StringComparison.InvariantCultureIgnoreCase)) ||
-            (isManufacturerProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Manufacturer), StringComparison.InvariantCultureIgnoreCase)) ||
+            (isManufacturerProductUrl && !catalogUrlRecord.EntityName.Equals(nameof(Vendor), StringComparison.InvariantCultureIgnoreCase)) ||
             !urlRecord.IsActive)
         {
             //permanent redirect to new URL with active catalog seName and active slug

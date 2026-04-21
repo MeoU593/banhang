@@ -12,6 +12,7 @@ using Nop.Core.Events;
 using Nop.Services.Catalog;
 using Nop.Services.Seo;
 using Nop.Services.Topics;
+using Nop.Services.Vendors;
 using Nop.Web.Framework.Events;
 
 namespace Nop.Web.Framework.Mvc.Routing;
@@ -28,10 +29,12 @@ public partial class NopUrlHelper : INopUrlHelper
     protected readonly ICategoryService _categoryService;
     protected readonly IEventPublisher _eventPublisher;
     protected readonly IManufacturerService _manufacturerService;
+    protected readonly IProductService _productService;
     protected readonly IStoreContext _storeContext;
     protected readonly ITopicService _topicService;
     protected readonly IUrlHelperFactory _urlHelperFactory;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
 
     #endregion
 
@@ -42,20 +45,24 @@ public partial class NopUrlHelper : INopUrlHelper
         ICategoryService categoryService,
         IEventPublisher eventPublisher,
         IManufacturerService manufacturerService,
+        IProductService productService,
         IStoreContext storeContext,
         ITopicService topicService,
         IUrlHelperFactory urlHelperFactory,
-        IUrlRecordService urlRecordService)
+        IUrlRecordService urlRecordService,
+        IVendorService vendorService)
     {
         _catalogSettings = catalogSettings;
         _actionContextAccessor = actionContextAccessor;
         _categoryService = categoryService;
         _eventPublisher = eventPublisher;
         _manufacturerService = manufacturerService;
+        _productService = productService;
         _storeContext = storeContext;
         _topicService = topicService;
         _urlHelperFactory = urlHelperFactory;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
     }
 
     #endregion
@@ -95,9 +102,9 @@ public partial class NopUrlHelper : INopUrlHelper
         }
         if (_catalogSettings.ProductUrlStructureTypeId == (int)ProductUrlStructureType.ManufacturerProduct)
         {
-            var productManufacturer = (await _manufacturerService.GetProductManufacturersByProductIdAsync(urlRecord.EntityId)).FirstOrDefault();
-            var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(productManufacturer?.ManufacturerId ?? 0);
-            catalogSeName = manufacturer is not null ? await _urlRecordService.GetSeNameAsync(manufacturer) : string.Empty;
+            var product = await _productService.GetProductByIdAsync(urlRecord.EntityId);
+            var vendor = await _vendorService.GetVendorByIdAsync(product?.VendorId ?? 0);
+            catalogSeName = vendor is not null ? await _urlRecordService.GetSeNameAsync(vendor) : string.Empty;
         }
         if (string.IsNullOrEmpty(catalogSeName))
             return RouteUrl(NopRoutingDefaults.RouteName.Generic.Product, values, protocol, host, fragment);
@@ -163,7 +170,7 @@ public partial class NopUrlHelper : INopUrlHelper
             var entityType when entityType == typeof(Category)
                 => RouteUrl(NopRoutingDefaults.RouteName.Generic.Category, values, protocol, host, fragment),
             var entityType when entityType == typeof(Manufacturer)
-                => RouteUrl(NopRoutingDefaults.RouteName.Generic.Manufacturer, values, protocol, host, fragment),
+                => RouteUrl(NopRoutingDefaults.RouteName.Generic.Vendor, values, protocol, host, fragment),
             var entityType when entityType == typeof(Vendor)
                 => RouteUrl(NopRoutingDefaults.RouteName.Generic.Vendor, values, protocol, host, fragment),
             var entityType when entityType == typeof(BlogPost)

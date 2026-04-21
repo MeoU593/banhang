@@ -26,6 +26,11 @@ span.fa, span.fas, span.far {
 .fab::before {
   font-family: "Font Awesome 5 Brands" !important;
 }
+.material-symbols-outlined,
+.material-symbols-rounded,
+.material-symbols-sharp {
+  font-family: 'Material Symbols Outlined' !important;
+}
 /* Restore Material Symbols if used in admin */
 .material-symbols-outlined,
 .material-symbols-outlined::before {

@@ -1,0 +1,59 @@
+@model IList<ReportIndicator>
+@{
+    Layout = "_AdminLayout";
+    var templateId = (int)ViewBag.ReportTemplateId;
+    ViewBag.PageTitle = "Chỉ tiêu";
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">Chỉ tiêu</h1>
+    <div class="float-right">
+        <a asp-action="CreateIndicator" asp-route-reportTemplateId="@templateId" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Tạo chỉ tiêu
+        </a>
+    </div>
+</div>
+
+<div class="card card-default">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên</th>
+                    <th>Sheet</th>
+                    <th>Ô</th>
+                    <th>DataType</th>
+                    <th>InputMode</th>
+                    <th class="text-center">Sửa</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center py-3">Không có dữ liệu</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Code</td>
+                        <td>@item.Name</td>
+                        <td>@item.ExcelSheetName</td>
+                        <td>@item.ExcelCellAddress</td>
+                        <td>@((IndicatorDataType)item.DataTypeId)</td>
+                        <td>@((IndicatorInputMode)item.InputModeId)</td>
+                        <td class="text-center"><a asp-action="EditIndicator" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Sửa</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a asp-action="List" class="btn btn-secondary mt-3">Quay lại</a>

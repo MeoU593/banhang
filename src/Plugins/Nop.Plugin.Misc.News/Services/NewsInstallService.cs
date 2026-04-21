@@ -86,7 +86,7 @@ public class NewsInstallService
                 AllowNotRegisteredUsersToLeaveComments = true,
                 NotifyAboutNewNewsComments = false,
                 ShowNewsOnMainPage = true,
-                MainPageNewsCount = 3,
+                MainPageNewsCount = 4,
                 NewsArchivePageSize = 10,
                 ShowHeaderRssUrl = false,
                 NewsCommentsMustBeApproved = false,

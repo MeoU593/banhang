@@ -34,4 +34,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Nop.Web.Tests\Public\Factories\ProductModelFactoryTests.cs" />
+    <Compile Remove="Nop.Web.Tests\Public\Factories\ShoppingCartModelFactoryTests.cs" />
+    <Compile Remove="Nop.Web.Tests\Public\Validators\ShoppingCart\WishlistEmailAFriendValidatorTests.cs" />
+  </ItemGroup>
+
 </Project>

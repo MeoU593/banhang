@@ -1,4 +1,5 @@
-﻿using Nop.Core.Domain.Common;
+using System.ComponentModel.DataAnnotations.Schema;
+using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Security;
@@ -122,11 +123,13 @@ public partial class Product : BaseEntity, ILocalizedEntity, ISlugSupported, IAc
     /// <summary>
     /// Gets or sets the manufacturer part number
     /// </summary>
+    [NotMapped]
     public string ManufacturerPartNumber { get; set; }
 
     /// <summary>
     /// Gets or sets the Global Trade Item Number (GTIN). These identifiers include UPC (in North America), EAN (in Europe), JAN (in Japan), and ISBN (for books).
     /// </summary>
+    [NotMapped]
     public string Gtin { get; set; }
 
     /// <summary>
@@ -147,16 +150,19 @@ public partial class Product : BaseEntity, ILocalizedEntity, ISlugSupported, IAc
     /// <summary>
     /// Gets or sets a value indicating whether the product requires that other products are added to the cart (Product X requires Product Y)
     /// </summary>
+    [NotMapped]
     public bool RequireOtherProducts { get; set; }
 
     /// <summary>
     /// Gets or sets a required product identifiers (comma separated)
     /// </summary>
+    [NotMapped]
     public string RequiredProductIds { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether required products are automatically added to the cart
     /// </summary>
+    [NotMapped]
     public bool AutomaticallyAddRequiredProducts { get; set; }
 
     /// <summary>
@@ -525,11 +531,13 @@ public partial class Product : BaseEntity, ILocalizedEntity, ISlugSupported, IAc
     /// <summary>
     /// Gets or sets a value indicating whether <see cref="MinimumAgeToPurchase"/> should be specified
     /// </summary>
+    [NotMapped]
     public bool AgeVerification { get; set; }
 
     /// <summary>
     /// Gets or sets the minimum age to purchase
     /// </summary>
+    [NotMapped]
     public int MinimumAgeToPurchase { get; set; }
 
     /// <summary>

@@ -3,7 +3,7 @@ using Nop.Web.Framework.Models;
 
 namespace Nop.Plugin.Misc.DocumentPortal.Models.Vendor;
 
-public class VendorDocumentSearchModel : BaseSearchModel
+public record VendorDocumentSearchModel : BaseSearchModel
 {
     public string? SearchKeywords { get; set; }
     public int SearchCategoryId { get; set; }

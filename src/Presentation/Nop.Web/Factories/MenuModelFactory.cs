@@ -130,20 +130,24 @@ public partial class MenuModelFactory : IMenuModelFactory
     {
         var manufacturerId = menuItem.EntityId ?? 0;
         if (manufacturerId == 0)
-            return (await _localizationService.GetLocalizedAsync(menuItem, m => m.Title), _nopUrlHelper.RouteUrl(NopRouteNames.General.MANUFACTURERS));
+            return (await _localizationService.GetLocalizedAsync(menuItem, m => m.Title), _nopUrlHelper.RouteUrl(NopRouteNames.General.VENDORS));
 
-        var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(manufacturerId);
-
-        if (manufacturer is null || manufacturer.Deleted || !manufacturer.Published ||
-            !await _aclService.AuthorizeAsync(manufacturer) ||
-            !await _storeMappingService.AuthorizeAsync(manufacturer))
+        var vendor = await _vendorService.GetVendorByIdAsync(manufacturerId);
+        if (vendor is null || vendor.Deleted || !vendor.Active)
         {
-            return (string.Empty, string.Empty);
+            var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(manufacturerId);
+            if (manufacturer is null || manufacturer.Deleted)
+                return (string.Empty, string.Empty);
+
+            var vendors = await _vendorService.GetAllVendorsAsync(name: manufacturer.Name, showHidden: true, pageSize: 1);
+            vendor = vendors.FirstOrDefault();
         }
 
-        var title = await _localizationService.GetLocalizedAsync(manufacturer, m => m.Name);
-        var url = await _nopUrlHelper.RouteGenericUrlAsync(manufacturer);
+        if (vendor is null || vendor.Deleted || !vendor.Active)
+            return (string.Empty, string.Empty);
 
+        var title = await _localizationService.GetLocalizedAsync(vendor, m => m.Name);
+        var url = await _nopUrlHelper.RouteGenericUrlAsync(vendor);
         return (title, url);
     }
 
@@ -436,17 +440,17 @@ public partial class MenuModelFactory : IMenuModelFactory
                     return item;
                 }).Take(limitItems).ToListAsync(),
 
-            MenuItemType.Manufacturer => await (await _manufacturerService.GetAllManufacturersAsync(storeId: store.Id, pageSize: limitItems))
-                .SelectAwait(async manufacturer =>
+            MenuItemType.Manufacturer => await (await _vendorService.GetAllVendorsAsync(pageSize: limitItems))
+                .SelectAwait(async vendor =>
                 {
-                    var localizedName = await _localizationService.GetLocalizedAsync(manufacturer, x => x.Name);
+                    var localizedName = await _localizationService.GetLocalizedAsync(vendor, x => x.Name);
                     var item = new MenuItemModel
                     {
-                        EntityId = manufacturer.Id,
+                        EntityId = vendor.Id,
                         Title = localizedName,
-                        Url = await _nopUrlHelper.RouteGenericUrlAsync(manufacturer),
-                        Picture = await PreparePictureModelAsync(manufacturer.PictureId, localizedName, localizedName),
-                        MenuItemType = MenuItemType.Manufacturer,
+                        Url = await _nopUrlHelper.RouteGenericUrlAsync(vendor),
+                        Picture = await PreparePictureModelAsync(vendor.PictureId, localizedName, localizedName),
+                        MenuItemType = MenuItemType.Vendor,
                         Template = MenuItemTemplate.Simple
                     };
 

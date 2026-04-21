@@ -325,7 +325,6 @@ public class Indexes : ForwardOnlyMigration
             .OnTable(nameof(Product))
             .OnColumn(nameof(Product.Name)).Ascending()
             .OnColumn(nameof(Product.Sku)).Ascending()
-            .OnColumn(nameof(Product.ManufacturerPartNumber)).Ascending()
             .OnColumn(nameof(Product.Deleted)).Ascending()
             .WithOptions().NonClustered()
             .Include(nameof(Product.Id));

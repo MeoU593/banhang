@@ -1,0 +1,71 @@
+@model Nop.Plugin.Misc.LogisticsReports.Models.Dashboard.DashboardModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = T("Plugins.Misc.LogisticsReports.Dashboard.Title").Text;
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">@T("Plugins.Misc.LogisticsReports.Dashboard.Title")</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.TotalOrganizations")</div>
+                <div class="display-4">@Model.TotalOrganizations</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.TotalTemplates")</div>
+                <div class="display-4">@Model.TotalTemplates</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.TotalPeriods")</div>
+                <div class="display-4">@Model.TotalPeriods</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.TotalUnitReports")</div>
+                <div class="display-4">@Model.TotalUnitReports</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.Submitted")</div>
+                <div class="display-4">@Model.SubmittedUnitReports</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.Returned")</div>
+                <div class="display-4">@Model.ReturnedUnitReports</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted">@T("Plugins.Misc.LogisticsReports.Dashboard.Locked")</div>
+                <div class="display-4">@Model.LockedUnitReports</div>
+            </div>
+        </div>
+    </div>
+</div>

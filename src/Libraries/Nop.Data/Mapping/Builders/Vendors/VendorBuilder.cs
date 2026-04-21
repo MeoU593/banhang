@@ -21,6 +21,10 @@ public partial class VendorBuilder : NopEntityBuilder<Vendor>
         table
             .WithColumn(nameof(Vendor.Name)).AsString(400).NotNullable()
             .WithColumn(nameof(Vendor.Email)).AsString(400).Nullable()
+            .WithColumn(nameof(Vendor.Code)).AsString(128).Nullable()
+            .WithColumn(nameof(Vendor.ParentId)).AsInt32().Nullable()
+            .WithColumn(nameof(Vendor.Level)).AsInt32().NotNullable().WithDefaultValue(0)
+            .WithColumn(nameof(Vendor.Path)).AsString(2000).Nullable()
             .WithColumn(nameof(Vendor.MetaKeywords)).AsString(400).Nullable()
             .WithColumn(nameof(Vendor.MetaTitle)).AsString(400).Nullable()
             .WithColumn(nameof(Vendor.PageSizeOptions)).AsString(200).Nullable()

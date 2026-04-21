@@ -18,6 +18,7 @@ using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Seo;
 using Nop.Services.Topics;
+using Nop.Services.Vendors;
 using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Sitemap;
@@ -49,6 +50,7 @@ public partial class SitemapModelFactory : ISitemapModelFactory
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreContext _storeContext;
     protected readonly ITopicService _topicService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
     protected readonly LocalizationSettings _localizationSettings;
@@ -77,6 +79,7 @@ public partial class SitemapModelFactory : ISitemapModelFactory
         IStaticCacheManager staticCacheManager,
         IStoreContext storeContext,
         ITopicService topicService,
+        IVendorService vendorService,
         IWebHelper webHelper,
         IWorkContext workContext,
         LocalizationSettings localizationSettings,
@@ -101,6 +104,7 @@ public partial class SitemapModelFactory : ISitemapModelFactory
         _staticCacheManager = staticCacheManager;
         _storeContext = storeContext;
         _topicService = topicService;
+        _vendorService = vendorService;
         _webHelper = webHelper;
         _workContext = workContext;
         _localizationSettings = localizationSettings;
@@ -215,11 +219,10 @@ public partial class SitemapModelFactory : ISitemapModelFactory
     /// </returns>
     protected virtual async Task<IEnumerable<SitemapUrlModel>> GetManufacturerUrlsAsync()
     {
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: store.Id);
+        var vendors = await _vendorService.GetAllVendorsAsync();
 
-        return await manufacturers
-            .SelectAwait(async manufacturer => await PrepareLocalizedSitemapUrlAsync(manufacturer, manufacturer.UpdatedOnUtc))
+        return await vendors
+            .SelectAwait(async vendor => await PrepareLocalizedSitemapUrlAsync(vendor, DateTime.UtcNow))
             .ToListAsync();
     }
 
@@ -634,12 +637,12 @@ public partial class SitemapModelFactory : ISitemapModelFactory
             if (_sitemapSettings.SitemapIncludeManufacturers)
             {
                 var manufacturersGroupTitle = await _localizationService.GetResourceAsync("Sitemap.Manufacturers");
-                var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: store.Id);
-                model.Items.AddRange(await manufacturers.SelectAwait(async manufacturer => new SitemapModel.SitemapItemModel
+                var vendors = await _vendorService.GetAllVendorsAsync();
+                model.Items.AddRange(await vendors.SelectAwait(async vendor => new SitemapModel.SitemapItemModel
                 {
                     GroupTitle = manufacturersGroupTitle,
-                    Name = await _localizationService.GetLocalizedAsync(manufacturer, x => x.Name),
-                    Url = await _nopUrlHelper.RouteGenericUrlAsync(manufacturer)
+                    Name = await _localizationService.GetLocalizedAsync(vendor, x => x.Name),
+                    Url = await _nopUrlHelper.RouteGenericUrlAsync(vendor)
                 }).ToListAsync());
             }
 

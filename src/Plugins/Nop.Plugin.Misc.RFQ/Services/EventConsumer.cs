@@ -14,7 +14,6 @@ using Nop.Services.Orders;
 using Nop.Web.Framework.Events;
 using Nop.Web.Framework.Menu;
 using Nop.Web.Framework.Models;
-using Nop.Web.Models.ShoppingCart;
 
 namespace Nop.Plugin.Misc.RFQ.Services;
 
@@ -140,39 +139,63 @@ public class EventConsumer : IConsumer<AdminMenuCreatedEvent>,
         if (!_rfqSettings.Enabled)
             return;
 
-        if (eventMessage.Model is ShoppingCartModel model)
+        var routeName = _httpContextAccessor.HttpContext?.GetEndpoint()?.Metadata.GetMetadata<RouteNameMetadata>()?.RouteName;
+        if (routeName is not NopRouteNames.General.CART)
+            return;
+
+        var model = eventMessage.Model;
+        if (model is null)
+            return;
+
+        var itemsProperty = model.GetType().GetProperty("Items");
+        if (itemsProperty?.GetValue(model) is not System.Collections.IEnumerable items)
+            return;
+
+        var shoppingCartItemModels = items.Cast<object>().ToList();
+        if (!shoppingCartItemModels.Any())
+            return;
+
+        foreach (var shoppingCartItemModel in shoppingCartItemModels)
         {
-            var routeName = _httpContextAccessor.HttpContext?.GetEndpoint()?.Metadata.GetMetadata<RouteNameMetadata>()?.RouteName;
-
-            if (routeName is not NopRouteNames.General.CART)
+            var idProperty = shoppingCartItemModel.GetType().GetProperty("Id");
+            if (idProperty?.GetValue(shoppingCartItemModel) is not int shoppingCartItemId)
                 return;
 
-            //is shopping cart created by quote
-            if (await model.Items.AnyAwaitAsync(async shoppingCartItemModel => (await _rfqService.GetQuoteItemByShoppingCartItemIdAsync(shoppingCartItemModel.Id)) == null))
+            if (await _rfqService.GetQuoteItemByShoppingCartItemIdAsync(shoppingCartItemId) == null)
                 return;
-
-            var disableEdit = false;
-
-            foreach (var shoppingCartItemModel in model.Items)
-            {
-                var quoteItem = await _rfqService.GetQuoteItemByShoppingCartItemIdAsync(shoppingCartItemModel.Id);
-
-                if (quoteItem == null)
-                    return;
-
-                shoppingCartItemModel.AllowItemEditing = false;
-                shoppingCartItemModel.DisableRemoval = true;
-                shoppingCartItemModel.Quantity = quoteItem.OfferedQty;
-
-                disableEdit = true;
-            }
-
-            if (disableEdit)
-            {
-                model.IsEditable = false;
-                model.IsReadyToCheckout = true;
-            }
         }
+
+        var disableEdit = false;
+        foreach (var shoppingCartItemModel in shoppingCartItemModels)
+        {
+            var idProperty = shoppingCartItemModel.GetType().GetProperty("Id");
+            if (idProperty?.GetValue(shoppingCartItemModel) is not int shoppingCartItemId)
+                return;
+
+            var quoteItem = await _rfqService.GetQuoteItemByShoppingCartItemIdAsync(shoppingCartItemId);
+
+            if (quoteItem == null)
+                return;
+
+            SetPropertyValue(shoppingCartItemModel, "AllowItemEditing", false);
+            SetPropertyValue(shoppingCartItemModel, "DisableRemoval", true);
+            SetPropertyValue(shoppingCartItemModel, "Quantity", quoteItem.OfferedQty);
+
+            disableEdit = true;
+        }
+
+        if (disableEdit)
+        {
+            SetPropertyValue(model, "IsEditable", false);
+            SetPropertyValue(model, "IsReadyToCheckout", true);
+        }
+    }
+
+    private static void SetPropertyValue(object model, string propertyName, object value)
+    {
+        var property = model.GetType().GetProperty(propertyName);
+        if (property?.CanWrite == true)
+            property.SetValue(model, value);
     }
 
     /// <summary>

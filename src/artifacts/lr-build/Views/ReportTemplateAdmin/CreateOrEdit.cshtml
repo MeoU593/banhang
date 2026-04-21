@@ -1,0 +1,58 @@
+@model Nop.Plugin.Misc.LogisticsReports.Models.ReportTemplates.ReportTemplateModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = Model.Id == 0 ? "Tạo mẫu báo cáo" : "Sửa mẫu báo cáo";
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">@ViewBag.PageTitle</h1>
+</div>
+
+<div class="card card-default">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            <input asp-for="Id" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group">
+                <label asp-for="Code">Mã</label>
+                <input asp-for="Code" class="form-control" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name">Tên</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description">Mô tả</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label asp-for="PeriodTypeId">Loại kỳ</label>
+                <input asp-for="PeriodTypeId" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Version">Version</label>
+                <input asp-for="Version" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="TemplateFile">File mẫu</label>
+                <input asp-for="TemplateFile" type="file" class="form-control" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ExistingTemplateFileName))
+            {
+                <div class="alert alert-info">File hiện tại: @Model.ExistingTemplateFileName</div>
+            }
+
+            <div class="form-check mb-3">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label">Kích hoạt</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Lưu</button>
+            <a asp-action="List" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>

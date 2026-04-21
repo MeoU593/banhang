@@ -1,0 +1,11 @@
+{
+  "Group": "Misc",
+  "FriendlyName": "BTL Logistics Reports",
+  "SystemName": "Misc.LogisticsReports",
+  "Version": "1.00",
+  "SupportedVersions": [ "5.00" ],
+  "Author": "OpenAI",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Misc.LogisticsReports.dll",
+  "Description": "MVP plugin for hierarchical logistics report collection, import, aggregation, and submission."
+}

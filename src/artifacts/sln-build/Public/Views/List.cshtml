@@ -1,0 +1,90 @@
+@model NewsItemListModel
+@using Nop.Plugin.Misc.News.Domain
+@using Nop.Plugin.Misc.News.Public.Models
+
+@{
+    Layout = "_ColumnsOne";
+    NopHtml.AddTitleParts(T("Plugins.Misc.News.PageTitle.NewsArchive").Text);
+    NopHtml.AppendPageCssClassParts("html-news-list-page");
+
+    var currentType = Model.ActiveType;
+    var tabActive = "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-military-green text-white shadow-sm transition";
+    var tabInactive = "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container transition";
+}
+
+<div class="page news-list-page px-6 py-8 lg:px-8">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold tracking-tight text-on-surface">TIN TỨC &amp; VĂN BẢN</h1>
+        <div class="mt-1 flex items-center gap-2">
+            <span class="h-1 w-12 rounded-full bg-military-green"></span>
+            <p class="text-sm font-medium text-on-surface-variant">Thông tin chính thống từ hệ thống quản lý</p>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+            <div class="flex flex-wrap gap-2">
+                <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=-1" class="@(currentType == -1 ? tabActive : tabInactive)">
+                    Tất cả
+                </a>
+                <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=0" class="@(currentType == 0 ? tabActive : tabInactive)">
+                    <span class="material-symbols-outlined text-[16px]" style="font-family:'Material Symbols Outlined' !important;">newspaper</span>
+                    Tin tức
+                </a>
+                <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)?type=1" class="@(currentType == 1 ? tabActive : tabInactive)">
+                    <span class="material-symbols-outlined text-[16px]" style="font-family:'Material Symbols Outlined' !important;">description</span>
+                    Công văn
+                </a>
+            </div>
+            <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsRSS, new { languageId = Model.WorkingLanguageId })" class="text-xs text-on-surface-variant hover:text-military-green transition" title="@T("Plugins.Misc.News.RSS.Hint")">
+                RSS
+            </a>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        @foreach (var item in Model.NewsItems)
+        {
+            var typeBadge = item.NewsItemTypeId == 1 ? "Công văn" : "Tin tức";
+            var typeBadgeClass = item.NewsItemTypeId == 1
+                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                : "bg-red-50 text-red-700 border border-red-100";
+            <article class="group flex gap-5 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm transition hover:shadow-md">
+                <div class="flex-1 min-w-0">
+                    <div class="mb-2 flex flex-wrap items-center gap-2">
+                        <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider @typeBadgeClass">@typeBadge</span>
+                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="text-xs text-on-surface-variant">
+                            @item.CreatedOn.ToString("dd/MM/yyyy")
+                        </time>
+                    </div>
+                    <h2 class="text-base font-bold leading-snug text-on-surface transition group-hover:text-military-green">
+                        <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))">@item.Title</a>
+                    </h2>
+                    <div class="mt-2 line-clamp-2 text-sm leading-relaxed text-on-surface-variant">
+                        @Html.Raw(item.Short)
+                    </div>
+                </div>
+                <div class="flex shrink-0 items-start pt-1">
+                    <a href="@(await NopUrl.RouteGenericUrlAsync<NewsItem>(new { SeName = item.SeName }))"
+                       class="inline-flex items-center gap-1 rounded-lg bg-surface-container px-3 py-1.5 text-xs font-bold text-on-surface-variant transition hover:bg-military-green hover:text-white">
+                        Xem
+                    </a>
+                </div>
+            </article>
+        }
+    </div>
+
+    @if (!Model.NewsItems.Any())
+    {
+        <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container px-6 py-14 text-center">
+            <p class="text-sm font-semibold text-on-surface-variant">Chưa có bài đăng nào</p>
+        </div>
+    }
+
+    @{
+        var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber").QueryParam("type");
+    }
+    @if (!(await pager.IsEmpty()))
+    {
+        <div class="mt-8 flex justify-center">
+            <div class="pager rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 shadow-sm">@pager</div>
+        </div>
+    }
+</div>

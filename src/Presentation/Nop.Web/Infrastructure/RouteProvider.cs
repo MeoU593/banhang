@@ -155,7 +155,7 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         //manufacturers
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.MANUFACTURERS,
             pattern: $"{lang}/manufacturer/all/",
-            defaults: new { controller = "Catalog", action = "ManufacturerAll" });
+            defaults: new { controller = "Catalog", action = "VendorAll" });
 
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CATEGORIES,
             pattern: $"{lang}/catalog/",

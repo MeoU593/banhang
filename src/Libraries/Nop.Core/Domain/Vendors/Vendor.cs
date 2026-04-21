@@ -108,4 +108,24 @@ public partial class Vendor : BaseEntity, ILocalizedEntity, ISlugSupported, ISof
     /// Gets or sets the customer identifier
     /// </summary>
     public int? PmCustomerId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the unit code
+    /// </summary>
+    public string Code { get; set; }
+
+    /// <summary>
+    /// Gets or sets the parent unit identifier
+    /// </summary>
+    public int? ParentId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the depth level in hierarchy
+    /// </summary>
+    public int Level { get; set; }
+
+    /// <summary>
+    /// Gets or sets the materialized unit path
+    /// </summary>
+    public string Path { get; set; }
 }

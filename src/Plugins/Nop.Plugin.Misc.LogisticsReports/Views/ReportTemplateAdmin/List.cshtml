@@ -1,0 +1,58 @@
+@model IList<ReportTemplate>
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = "Mẫu báo cáo";
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">Mẫu báo cáo</h1>
+    <div class="float-right">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Tạo mẫu
+        </a>
+    </div>
+</div>
+
+<div class="card card-default">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Mã</th>
+                    <th>Tên</th>
+                    <th>Loại kỳ</th>
+                    <th>Version</th>
+                    <th>File mẫu</th>
+                    <th class="text-center">Sửa</th>
+                    <th class="text-center">Chỉ tiêu</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="8" class="text-center py-3">Không có dữ liệu</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Code</td>
+                        <td>@item.Name</td>
+                        <td>@((PeriodType)item.PeriodTypeId)</td>
+                        <td>@item.Version</td>
+                        <td class="text-truncate" style="max-width: 320px">@item.TemplateStoredFileName</td>
+                        <td class="text-center"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Sửa</a></td>
+                        <td class="text-center"><a asp-action="Indicators" asp-route-reportTemplateId="@item.Id" class="btn btn-sm btn-outline-primary">Chỉ tiêu</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

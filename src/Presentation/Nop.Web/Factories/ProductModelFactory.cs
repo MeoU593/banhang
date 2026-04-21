@@ -1120,30 +1120,19 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(product);
 
-        var model = await (await _manufacturerService.GetProductManufacturersByProductIdAsync(product.Id))
-            .SelectAwait(async pm =>
+        var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
+        if (vendor == null || vendor.Deleted || !vendor.Active)
+            return new List<ManufacturerBriefInfoModel>();
+
+        return new List<ManufacturerBriefInfoModel>
+        {
+            new()
             {
-                var manufacturer = await _manufacturerService.GetManufacturerByIdAsync(pm.ManufacturerId);
-                var modelMan = new ManufacturerBriefInfoModel
-                {
-                    Id = manufacturer.Id,
-                    Name = await _localizationService.GetLocalizedAsync(manufacturer, x => x.Name),
-                    SeName = await _urlRecordService.GetSeNameAsync(manufacturer)
-                };
-
-                if (_gpsrSettings.Enabled)
-                {
-                    modelMan.PhysicalAddress = string.IsNullOrEmpty(manufacturer.PhysicalAddress) ? string.Empty : string.Format(await _localizationService.GetResourceAsync("Products.Manufacturers.PhysicalAddress"), manufacturer.PhysicalAddress);
-                    modelMan.ElectronicAddress = string.IsNullOrEmpty(manufacturer.ElectronicAddress) ? string.Empty : string.Format(await _localizationService.GetResourceAsync("Products.Manufacturers.ElectronicAddress"), manufacturer.ElectronicAddress);
-                    modelMan.ResponsiblePerson = string.IsNullOrEmpty(manufacturer.ResponsiblePerson) ? string.Empty : string.Format(await _localizationService.GetResourceAsync("Products.Manufacturers.ResponsiblePerson"), manufacturer.ResponsiblePerson);
-                    modelMan.ResponsiblePersonPhysicalAddress = string.IsNullOrEmpty(manufacturer.ResponsiblePersonPhysicalAddress) ? string.Empty : string.Format(await _localizationService.GetResourceAsync("Products.Manufacturers.ResponsiblePersonPhysicalAddress"), manufacturer.ResponsiblePersonPhysicalAddress);
-                    modelMan.ResponsiblePersonElectronicAddress = string.IsNullOrEmpty(manufacturer.ResponsiblePersonElectronicAddress) ? string.Empty : string.Format(await _localizationService.GetResourceAsync("Products.Manufacturers.ResponsiblePersonElectronicAddress"), manufacturer.ResponsiblePersonElectronicAddress);
-                }
-
-                return modelMan;
-            }).ToListAsync();
-
-        return model;
+                Id = vendor.Id,
+                Name = await _localizationService.GetLocalizedAsync(vendor, x => x.Name),
+                SeName = await _urlRecordService.GetSeNameAsync(vendor)
+            }
+        };
     }
 
     /// <summary>

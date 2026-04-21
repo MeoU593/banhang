@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Reflection;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Nop.Core;
@@ -208,8 +209,71 @@ public partial class ProductController : BaseAdminController
 
     #region Utilities
 
+    protected virtual bool IsFieldPosted(string fieldName)
+    {
+        if (Request?.Form is null)
+            return false;
+
+        return Request.Form.Keys.Any(key =>
+            key.Equals(fieldName, StringComparison.OrdinalIgnoreCase) ||
+            key.StartsWith($"{fieldName}.", StringComparison.OrdinalIgnoreCase) ||
+            key.StartsWith($"{fieldName}[", StringComparison.OrdinalIgnoreCase));
+    }
+
+    protected virtual Product CreateProductSnapshot(Product product)
+    {
+        var snapshot = new Product();
+
+        foreach (var propertyInfo in typeof(Product).GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (!propertyInfo.CanRead || !propertyInfo.CanWrite)
+                continue;
+            if (!IsSimplePropertyType(propertyInfo.PropertyType))
+                continue;
+
+            propertyInfo.SetValue(snapshot, propertyInfo.GetValue(product));
+        }
+
+        return snapshot;
+    }
+
+    protected virtual void RestoreUnpostedProductFields(Product source, Product destination)
+    {
+        if (Request?.Form is null)
+            return;
+
+        var postedKeys = new HashSet<string>(Request.Form.Keys, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var propertyInfo in typeof(Product).GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (!propertyInfo.CanRead || !propertyInfo.CanWrite)
+                continue;
+            if (!IsSimplePropertyType(propertyInfo.PropertyType))
+                continue;
+            if (postedKeys.Contains(propertyInfo.Name))
+                continue;
+
+            propertyInfo.SetValue(destination, propertyInfo.GetValue(source));
+        }
+    }
+
+    protected static bool IsSimplePropertyType(Type type)
+    {
+        var actualType = Nullable.GetUnderlyingType(type) ?? type;
+
+        return actualType.IsPrimitive
+               || actualType.IsEnum
+               || actualType == typeof(string)
+               || actualType == typeof(decimal)
+               || actualType == typeof(DateTime)
+               || actualType == typeof(Guid);
+    }
+
     protected virtual async Task UpdateLocalesAsync(Product product, ProductModel model)
     {
+        var hasLocalizedFullDescription = Request.Form.Keys.Any(key =>
+            key.EndsWith($".{nameof(ProductLocalizedModel.FullDescription)}", StringComparison.OrdinalIgnoreCase));
+
         foreach (var localized in model.Locales)
         {
             await _localizedEntityService.SaveLocalizedValueAsync(product,
@@ -220,10 +284,13 @@ public partial class ProductController : BaseAdminController
                 x => x.ShortDescription,
                 localized.ShortDescription,
                 localized.LanguageId);
-            await _localizedEntityService.SaveLocalizedValueAsync(product,
-                x => x.FullDescription,
-                localized.FullDescription,
-                localized.LanguageId);
+            if (hasLocalizedFullDescription)
+            {
+                await _localizedEntityService.SaveLocalizedValueAsync(product,
+                    x => x.FullDescription,
+                    localized.FullDescription,
+                    localized.LanguageId);
+            }
             await _localizedEntityService.SaveLocalizedValueAsync(product,
                 x => x.MetaKeywords,
                 localized.MetaKeywords,
@@ -338,30 +405,26 @@ public partial class ProductController : BaseAdminController
 
     protected virtual async Task SaveManufacturerMappingsAsync(Product product, ProductModel model)
     {
-        var existingProductManufacturers = await _manufacturerService.GetProductManufacturersByProductIdAsync(product.Id, true);
+        var selectedUnitId = model.SelectedManufacturerIds?.FirstOrDefault() ?? 0;
+        if (selectedUnitId == 0)
+            selectedUnitId = model.VendorId;
 
-        //delete manufacturers
-        var productManufacturersToDelete = existingProductManufacturers.Where(pm => !model.SelectedManufacturerIds.Contains(pm.ManufacturerId)).ToList();
-        await _manufacturerService.DeleteProductManufacturersAsync(productManufacturersToDelete);
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor != null)
+            selectedUnitId = currentVendor.Id;
 
-        //add manufacturers
-        foreach (var manufacturerId in model.SelectedManufacturerIds)
+        if (product.VendorId != selectedUnitId)
         {
-            if (_manufacturerService.FindProductManufacturer(existingProductManufacturers, product.Id, manufacturerId) == null)
-            {
-                //find next display order
-                var displayOrder = 1;
-                var existingManufacturerMapping = await _manufacturerService.GetProductManufacturersByManufacturerIdAsync(manufacturerId, showHidden: true);
-                if (existingManufacturerMapping.Any())
-                    displayOrder = existingManufacturerMapping.Max(x => x.DisplayOrder) + 1;
-                await _manufacturerService.InsertProductManufacturerAsync(new ProductManufacturer
-                {
-                    ProductId = product.Id,
-                    ManufacturerId = manufacturerId,
-                    DisplayOrder = displayOrder
-                });
-            }
+            product.VendorId = selectedUnitId;
+            product.UpdatedOnUtc = DateTime.UtcNow;
+            await _productService.UpdateProductAsync(product);
         }
+
+        var existingProductManufacturers = await _manufacturerService.GetProductManufacturersByProductIdAsync(product.Id, true);
+        if (!existingProductManufacturers.Any())
+            return;
+
+        await _manufacturerService.DeleteProductManufacturersAsync(existingProductManufacturers);
     }
 
     protected virtual async Task SaveDiscountMappingsAsync(Product product, ProductModel model)
@@ -1093,13 +1156,15 @@ public partial class ProductController : BaseAdminController
             await SaveManufacturerMappingsAsync(product, model);
 
             //stores
-            await _storeMappingService.SaveStoreMappingsAsync(product, model.SelectedStoreIds);
+            if (IsFieldPosted(nameof(ProductModel.SelectedStoreIds)))
+                await _storeMappingService.SaveStoreMappingsAsync(product, model.SelectedStoreIds);
 
             //discounts
             await SaveDiscountMappingsAsync(product, model);
 
             //tags
-            await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
+            if (IsFieldPosted(nameof(ProductModel.SelectedProductTags)))
+                await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
 
             //warehouses
             await SaveProductWarehouseInventoryAsync(product, model);
@@ -1215,9 +1280,11 @@ public partial class ProductController : BaseAdminController
             var previousWarehouseId = product.WarehouseId;
             var previousProductType = product.ProductType;
             var previousRequiredProductIds = product.RequiredProductIds;
+            var snapshotProduct = CreateProductSnapshot(product);
 
             //product
             product = model.ToEntity(product);
+            RestoreUnpostedProductFields(snapshotProduct, product);
 
             product.UpdatedOnUtc = DateTime.UtcNow;
 
@@ -1264,7 +1331,8 @@ public partial class ProductController : BaseAdminController
             await UpdateLocalesAsync(product, model);
 
             //tags
-            await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
+            if (IsFieldPosted(nameof(ProductModel.SelectedProductTags)))
+                await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
 
             //warehouses
             await SaveProductWarehouseInventoryAsync(product, model);
@@ -1276,7 +1344,8 @@ public partial class ProductController : BaseAdminController
             await SaveManufacturerMappingsAsync(product, model);
 
             //stores
-            await _storeMappingService.SaveStoreMappingsAsync(product, model.SelectedStoreIds);
+            if (IsFieldPosted(nameof(ProductModel.SelectedStoreIds)))
+                await _storeMappingService.SaveStoreMappingsAsync(product, model.SelectedStoreIds);
 
             //discounts
             await SaveDiscountMappingsAsync(product, model);

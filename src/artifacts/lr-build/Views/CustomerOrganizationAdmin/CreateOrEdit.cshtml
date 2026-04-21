@@ -1,0 +1,46 @@
+@model Nop.Plugin.Misc.LogisticsReports.Models.Organizations.CustomerOrganizationUnitModel
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = Model.Id > 0 ? "Sửa ánh xạ" : "Tạo ánh xạ";
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">@ViewBag.PageTitle</h1>
+</div>
+
+<div class="card card-default">
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group">
+                <label>Người dùng</label>
+                <select asp-for="CustomerId" class="form-control">
+                    @foreach (var item in Model.Customers)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Đơn vị</label>
+                <select asp-for="OrganizationUnitId" class="form-control">
+                    @foreach (var item in Model.Organizations)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-check"><input asp-for="IsPrimary" class="form-check-input" /> <label asp-for="IsPrimary" class="form-check-label">Đơn vị chính</label></div>
+            <div class="form-check"><input asp-for="CanInputReport" class="form-check-input" /> <label asp-for="CanInputReport" class="form-check-label">Được nhập liệu</label></div>
+            <div class="form-check"><input asp-for="CanReviewChildReports" class="form-check-input" /> <label asp-for="CanReviewChildReports" class="form-check-label">Được duyệt cấp dưới</label></div>
+            <div class="form-check"><input asp-for="CanSubmitReport" class="form-check-input" /> <label asp-for="CanSubmitReport" class="form-check-label">Được gửi báo cáo</label></div>
+            <div class="form-check mb-3"><input asp-for="CanLockReport" class="form-check-input" /> <label asp-for="CanLockReport" class="form-check-label">Được khóa</label></div>
+
+            <button type="submit" class="btn btn-primary">Lưu</button>
+            <a class="btn btn-secondary" href="@Url.Action("List")">Quay lại</a>
+        </form>
+    </div>
+</div>

@@ -34,7 +34,6 @@ public class AddIndexesMigration : ForwardOnlyMigration
         var productTableName = nameof(Product);
         var nameColumnName = nameof(Product.Name);
         var skuColumnName = nameof(Product.Sku);
-        var manufacturerPartNumberColumnName = nameof(Product.ManufacturerPartNumber);
         var idColumnName = nameof(Product.Id);
         var deletedColumnName = nameof(Product.Deleted);
         var productSearchIndexName = "IX_Product_Search";
@@ -44,7 +43,6 @@ public class AddIndexesMigration : ForwardOnlyMigration
                 .OnTable(productTableName)
                 .OnColumn(nameColumnName).Ascending()
                 .OnColumn(skuColumnName).Ascending()
-                .OnColumn(manufacturerPartNumberColumnName).Ascending()
                 .OnColumn(deletedColumnName).Ascending()
                 .WithOptions().NonClustered()
                 .Include(idColumnName);

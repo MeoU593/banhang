@@ -1,0 +1,136 @@
+@model NewsItemModel
+
+@{
+    Layout = "_ColumnsOne";
+
+    NopHtml.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Title);
+    NopHtml.AddMetaDescriptionParts(Model.MetaDescription);
+    NopHtml.AddMetaKeywordParts(Model.MetaKeywords);
+    NopHtml.AppendPageCssClassParts("html-news-item-page");
+
+    var typeBadge = Model.NewsItemTypeId == 1 ? "Công văn" : "Tin tức";
+    var typeBadgeClass = Model.NewsItemTypeId == 1
+        ? "bg-amber-50 text-amber-700 border border-amber-200"
+        : "bg-red-50 text-red-700 border border-red-100";
+}
+
+<div class="page news-item-page px-6 py-8 lg:px-8">
+    <div class="max-w-4xl">
+        <nav class="mb-6 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-on-surface-variant">
+            <a href="/" class="hover:text-military-green transition-colors">Trang chủ</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <a href="@Url.RouteUrl(NewsDefaults.Routes.Public.NewsArchive)" class="hover:text-military-green transition-colors">Tin tức &amp; Văn bản</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span class="text-on-surface font-bold">@Model.Title</span>
+        </nav>
+
+        <article class="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-8 shadow-sm">
+            <div class="mb-6">
+                <span class="inline-flex rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider @typeBadgeClass">@typeBadge</span>
+            </div>
+
+            <h1 class="mb-6 text-3xl font-extrabold leading-tight tracking-tight text-on-surface">@Model.Title</h1>
+
+            <div class="mb-8 flex flex-wrap items-center gap-5 border-b border-outline-variant/20 pb-6 text-sm text-on-surface-variant">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-military-green">calendar_today</span>
+                    <time datetime="@Model.CreatedOn.ToString("yyyy-MM-dd")">@Model.CreatedOn.ToString("dd/MM/yyyy HH:mm")</time>
+                </div>
+            </div>
+
+            <div class="prose prose-slate max-w-none leading-relaxed text-on-surface">
+                @Html.Raw(Model.Full)
+            </div>
+        </article>
+
+        @if (Model.AllowComments)
+        {
+            <div class="mt-6 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm" id="comments">
+                <h2 class="mb-4 text-xl font-bold text-on-surface">@T("Plugins.Misc.News.Comments.LeaveYourComment")</h2>
+                <div class="mb-4">
+                    <div asp-validation-summary="ModelOnly" class="message-error rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                    @{
+                        var result = TempData["nop.news.addcomment.result"] as string;
+                    }
+                    @if (!string.IsNullOrEmpty(result))
+                    {
+                        <div class="result rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">@result</div>
+                    }
+                </div>
+                <form asp-controller="News" asp-action="NewsCommentAdd" asp-route-newsitemid="@Model.Id" method="post" class="space-y-4">
+                    <div class="form-fields space-y-4">
+                        <div class="inputs">
+                            <label asp-for="AddNewComment.CommentTitle" asp-postfix=":" class="mb-1.5 block text-sm font-semibold text-on-surface"></label>
+                            <input asp-for="AddNewComment.CommentTitle" class="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2.5 text-sm text-on-surface outline-none transition focus:border-military-green focus:ring-2 focus:ring-military-green/10" asp-disabled="@Model.PreventNotRegisteredUsersToLeaveComments" />
+                            <nop-required />
+                            <span asp-validation-for="AddNewComment.CommentTitle"></span>
+                        </div>
+                        <div class="inputs">
+                            <label asp-for="AddNewComment.CommentText" asp-postfix=":" class="mb-1.5 block text-sm font-semibold text-on-surface"></label>
+                            <textarea asp-for="AddNewComment.CommentText" class="w-full min-h-[120px] rounded-lg border border-outline-variant bg-surface-container px-3 py-2.5 text-sm text-on-surface outline-none transition focus:border-military-green focus:ring-2 focus:ring-military-green/10" asp-disabled="@Model.PreventNotRegisteredUsersToLeaveComments"></textarea>
+                            <nop-required />
+                            <span asp-validation-for="AddNewComment.CommentText"></span>
+                        </div>
+                        @if (Model.AddNewComment.DisplayCaptcha)
+                        {
+                            <nop-captcha action-name="NewsCommentAdd" />
+                        }
+                    </div>
+                    @if (!Model.PreventNotRegisteredUsersToLeaveComments)
+                    {
+                        <button type="submit" name="add-comment" class="inline-flex h-10 items-center justify-center rounded-lg bg-military-green px-5 text-sm font-semibold text-white transition hover:bg-military-green/90">@T("Plugins.Misc.News.Comments.SubmitButton")</button>
+                    }
+                    else
+                    {
+                        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@T("Plugins.Misc.News.Comments.OnlyRegisteredUsersLeaveComments")</div>
+                    }
+                </form>
+            </div>
+
+            if (Model.Comments.Any())
+            {
+                <div class="mt-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm">
+                    <h2 class="mb-4 text-xl font-bold text-on-surface">@T("Plugins.Misc.News.Comments")</h2>
+                    <div class="comments space-y-4">
+                        @foreach (var comment in Model.Comments)
+                        {
+                            <div class="rounded-lg border border-outline-variant/20 bg-surface-container p-4">
+                                <div class="mb-2 flex flex-wrap items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(comment.CustomerAvatarUrl))
+                                    {
+                                        @if (comment.AllowViewingProfiles)
+                                        {
+                                            <a href="@Url.RouteUrl(NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = comment.CustomerId })">
+                                                <img src="@(comment.CustomerAvatarUrl)" class="h-9 w-9 rounded-full object-cover" alt="avatar" />
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <img src="@(comment.CustomerAvatarUrl)" class="h-9 w-9 rounded-full object-cover" alt="avatar" />
+                                        }
+                                    }
+                                    @if (comment.AllowViewingProfiles)
+                                    {
+                                        <a href="@Url.RouteUrl(NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = comment.CustomerId })" class="text-sm font-bold text-on-surface hover:text-military-green">@(comment.CustomerName)</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-sm font-bold text-on-surface">@(comment.CustomerName)</span>
+                                    }
+                                    <span class="text-xs text-on-surface-variant">@comment.CreatedOn.ToString("g")</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(comment.CommentTitle))
+                                {
+                                    <div class="mb-1 text-sm font-semibold text-on-surface">@comment.CommentTitle</div>
+                                }
+                                <div class="text-sm leading-6 text-on-surface-variant">
+                                    @Html.Raw(htmlFormatter.FormatText(comment.CommentText, false, true, false, false, false, false))
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

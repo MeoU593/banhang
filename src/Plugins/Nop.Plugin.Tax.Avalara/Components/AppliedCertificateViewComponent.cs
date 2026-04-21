@@ -5,7 +5,6 @@ using Nop.Services.Customers;
 using Nop.Services.Tax;
 using Nop.Web.Framework.Components;
 using Nop.Web.Framework.Infrastructure;
-using Nop.Web.Models.ShoppingCart;
 
 namespace Nop.Plugin.Tax.Avalara.Components;
 
@@ -77,8 +76,9 @@ public class AppliedCertificateViewComponent : NopViewComponent
         if (!widgetZone.Equals(PublicWidgetZones.OrderSummaryContentBefore))
             return Content(string.Empty);
 
-        //ensure that model is passed
-        if (additionalData is not ShoppingCartModel cartModel || cartModel.OrderReviewData?.Display != true)
+        //ensure that model is passed and currently displays order review data
+        var orderReviewData = additionalData?.GetType().GetProperty("OrderReviewData")?.GetValue(additionalData);
+        if (orderReviewData?.GetType().GetProperty("Display")?.GetValue(orderReviewData) is not bool display || !display)
             return Content(string.Empty);
 
         var store = await _storeContext.GetCurrentStoreAsync();

@@ -107,14 +107,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "Manufacturers",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.Manufacturers"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.MANUFACTURER_VIEW },
-                            Url = GetMenuItemUrl("Manufacturer", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Product reviews",
                             Title = await _localizationService.GetResourceAsync("Admin.Catalog.ProductReviews"),
                             PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_REVIEWS_VIEW },
@@ -154,6 +146,14 @@ public partial class AdminMenu : IAdminMenu
                             Title = await _localizationService.GetResourceAsync("Admin.Customers.CustomerRoles"),
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMER_ROLES_VIEW },
                             Url = GetMenuItemUrl("CustomerRole", "List"),
+                            IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Vendors",
+                            Title = await _localizationService.GetResourceAsync("Admin.Vendors"),
+                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
+                            Url = GetMenuItemUrl("Vendor", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()

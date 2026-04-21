@@ -234,30 +234,30 @@ public partial class CatalogModelFactory : ICatalogModelFactory
     /// Prepares the manufacturer filter model
     /// </summary>
     /// <param name="selectedManufacturers">The selected manufacturers to filter the products</param>
-    /// <param name="availableManufacturers">The available manufacturers to filter the products</param>
+    /// <param name="availableVendors">The available units to filter the products</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the specification filter model
     /// </returns>
-    protected virtual async Task<ManufacturerFilterModel> PrepareManufacturerFilterModel(IList<int> selectedManufacturers, IList<Manufacturer> availableManufacturers)
+    protected virtual async Task<ManufacturerFilterModel> PrepareManufacturerFilterModel(IList<int> selectedManufacturers, IList<Vendor> availableVendors)
     {
         var model = new ManufacturerFilterModel();
 
-        if (availableManufacturers?.Any() == true)
+        if (availableVendors?.Any() == true)
         {
             model.Enabled = true;
 
             var workingLanguage = await _workContext.GetWorkingLanguageAsync();
 
-            foreach (var manufacturer in availableManufacturers)
+            foreach (var vendor in availableVendors)
             {
                 model.Manufacturers.Add(new SelectListItem
                 {
-                    Value = manufacturer.Id.ToString(),
+                    Value = vendor.Id.ToString(),
                     Text = await _localizationService
-                        .GetLocalizedAsync(manufacturer, x => x.Name, workingLanguage.Id),
+                        .GetLocalizedAsync(vendor, x => x.Name, workingLanguage.Id),
                     Selected = selectedManufacturers?
-                        .Any(manufacturerId => manufacturerId == manufacturer.Id) == true
+                        .Any(vendorId => vendorId == vendor.Id) == true
                 });
             }
         }
@@ -784,12 +784,11 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         if (_catalogSettings.EnableSpecificationAttributeFiltering)
             model.SpecificationFilter = await PrepareSpecificationFilterModel(command.Specs, filterableOptions);
 
-        //filterable manufacturers
+        //filterable units (mapped through manufacturer query parameter for compatibility)
         if (_catalogSettings.EnableManufacturerFiltering)
         {
-            var manufacturers = await _manufacturerService.GetManufacturersByCategoryIdAsync(category.Id);
-
-            model.ManufacturerFilter = await PrepareManufacturerFilterModel(command.Ms, manufacturers);
+            var vendors = await _vendorService.GetAllVendorsAsync();
+            model.ManufacturerFilter = await PrepareManufacturerFilterModel(command.Ms, vendors.ToList());
         }
 
         var filteredSpecs = command.Specs is null ? null : filterableOptions.Where(fo => command.Specs.Contains(fo.Id)).ToList();
@@ -1585,21 +1584,21 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             }
         }
 
-        var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: currentStore.Id);
-        if (manufacturers.Any())
+        var vendorsForUnitFilter = await _vendorService.GetAllVendorsAsync();
+        if (vendorsForUnitFilter.Any())
         {
             model.AvailableManufacturers.Add(new SelectListItem
             {
                 Value = "0",
                 Text = await _localizationService.GetResourceAsync("Common.All")
             });
-            foreach (var m in manufacturers)
+            foreach (var vendor in vendorsForUnitFilter)
             {
                 model.AvailableManufacturers.Add(new SelectListItem
                 {
-                    Value = m.Id.ToString(),
-                    Text = await _localizationService.GetLocalizedAsync(m, x => x.Name),
-                    Selected = model.mid == m.Id
+                    Value = vendor.Id.ToString(),
+                    Text = await _localizationService.GetLocalizedAsync(vendor, x => x.Name),
+                    Selected = model.mid == vendor.Id
                 });
             }
         }
@@ -1714,6 +1713,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                     searchInProductTags = searchModel.sit;
                 }
 
+                if (vendorId == 0 && manufacturerId > 0)
+                    vendorId = manufacturerId;
+
                 var workingLanguage = await _workContext.GetWorkingLanguageAsync();
 
                 //price range
@@ -1727,7 +1729,6 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                     {
                         var products = await _productService.SearchProductsAsync(0, 1,
                             categoryIds: categoryIds,
-                            manufacturerIds: new List<int> { manufacturerId },
                             storeId: currentStore.Id,
                             visibleIndividuallyOnly: true,
                             keywords: searchTerms,
@@ -1763,14 +1764,13 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                 }
 
                 //products
-                products = await _productService.SearchProductsAsync(
-                    command.PageNumber - 1,
-                    command.PageSize,
-                    categoryIds: categoryIds,
-                    manufacturerIds: new List<int> { manufacturerId },
-                    storeId: currentStore.Id,
-                    visibleIndividuallyOnly: true,
-                    keywords: searchTerms,
+                    products = await _productService.SearchProductsAsync(
+                        command.PageNumber - 1,
+                        command.PageSize,
+                        categoryIds: categoryIds,
+                        storeId: currentStore.Id,
+                        visibleIndividuallyOnly: true,
+                        keywords: searchTerms,
                     priceMin: selectedPriceRange?.From,
                     priceMax: selectedPriceRange?.To,
                     searchDescriptions: searchInDescriptions,

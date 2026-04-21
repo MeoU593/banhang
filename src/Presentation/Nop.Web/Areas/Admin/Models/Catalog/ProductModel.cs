@@ -420,7 +420,7 @@ public partial record ProductModel : BaseNopEntityModel,
     public IList<SelectListItem> AvailableCategories { get; set; }
 
     //manufacturers
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Manufacturers")]
+    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Vendor")]
     public IList<int> SelectedManufacturerIds { get; set; }
     public IList<SelectListItem> AvailableManufacturers { get; set; }
 
