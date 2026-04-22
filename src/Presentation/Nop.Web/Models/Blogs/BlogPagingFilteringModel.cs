@@ -39,5 +39,7 @@ public partial record BlogPagingFilteringModel : BasePageableModel
 
     public string Tag { get; set; }
 
+    public int? PostTypeId { get; set; }
+
     #endregion
 }

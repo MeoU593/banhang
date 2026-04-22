@@ -54,6 +54,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IAttributeService<CustomerAttribute, CustomerAttributeValue> _customerAttributeService;
     protected readonly IAuthenticationPluginManager _authenticationPluginManager;
     protected readonly ICountryService _countryService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerService _customerService;
     protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IExternalAuthenticationModelFactory _externalAuthenticationModelFactory;
@@ -98,6 +99,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IAttributeService<CustomerAttribute, CustomerAttributeValue> customerAttributeService,
         IAuthenticationPluginManager authenticationPluginManager,
         ICountryService countryService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
         IDateTimeHelper dateTimeHelper,
         IExternalAuthenticationModelFactory externalAuthenticationModelFactory,
@@ -140,6 +142,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _customerAttributeService = customerAttributeService;
         _authenticationPluginManager = authenticationPluginManager;
         _countryService = countryService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
         _dateTimeHelper = dateTimeHelper;
         _gdprService = gdprService;
@@ -237,7 +240,16 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             model.StateProvinceId = customer.StateProvinceId;
             model.Phone = customer.Phone;
             model.Fax = customer.Fax;
-            model.DutyRoleTitle = await _genericAttributeService.GetAttributeAsync<string>(customer, NopCustomerDefaults.DutyRoleTitleAttribute);
+
+            var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(customer.Id);
+            if (militaryProfile != null)
+            {
+                model.MilitaryCode = militaryProfile.MilitaryCode;
+                model.Rank = militaryProfile.Rank;
+                model.UnitName = militaryProfile.UnitName;
+                model.PositionTitle = militaryProfile.PositionTitle;
+                model.EnlistmentDate = militaryProfile.EnlistmentDate;
+            }
 
             //newsletter subscriptions
             var currentSubscriptions = await _newsLetterSubscriptionService.GetNewsLetterSubscriptionsByEmailAsync(customer.Email, storeId: store.Id);
@@ -404,9 +416,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         ArgumentNullException.ThrowIfNull(model);
 
         var customer = await _workContext.GetCurrentCustomerAsync();
-
-        if (!excludeProperties)
-            model.DutyRoleTitle = await _genericAttributeService.GetAttributeAsync<string>(customer, NopCustomerDefaults.DutyRoleTitleAttribute);
 
         model.AllowCustomersToSetTimeZone = _dateTimeSettings.AllowCustomersToSetTimeZone;
         foreach (var tzi in _dateTimeHelper.GetSystemTimeZones())
@@ -610,8 +619,16 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
         model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
         {
+            RouteName = NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT,
+            Title = "Hồ sơ cá nhân",
+            Tab = (int)CustomerNavigationEnum.Profile,
+            ItemClass = "customer-profile"
+        });
+
+        model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
+        {
             RouteName = NopRouteNames.General.CUSTOMER_INFO,
-            Title = await _localizationService.GetResourceAsync("Account.CustomerInfo"),
+            Title = "Chỉnh sửa hồ sơ",
             Tab = (int)CustomerNavigationEnum.Info,
             ItemClass = "customer-info"
         });

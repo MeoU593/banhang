@@ -151,6 +151,52 @@
             </div>
         </div>
     }
+    <div class="form-group row">
+        <div class="col-md-3">
+            <label class="control-label" for="@Html.IdFor(model => model.MilitaryCode)">Mã quân nhân</label>
+        </div>
+        <div class="col-md-9">
+            <nop-editor asp-for="MilitaryCode" />
+            <nop-required />
+            <span asp-validation-for="MilitaryCode"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-3">
+            <label class="control-label" for="@Html.IdFor(model => model.Rank)">Cấp bậc</label>
+        </div>
+        <div class="col-md-9">
+            <nop-editor asp-for="Rank" />
+            <span asp-validation-for="Rank"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-3">
+            <label class="control-label" for="@Html.IdFor(model => model.UnitName)">Đơn vị</label>
+        </div>
+        <div class="col-md-9">
+            <nop-editor asp-for="UnitName" />
+            <span asp-validation-for="UnitName"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-3">
+            <label class="control-label" for="@Html.IdFor(model => model.PositionTitle)">Chức vụ</label>
+        </div>
+        <div class="col-md-9">
+            <nop-editor asp-for="PositionTitle" />
+            <span asp-validation-for="PositionTitle"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-3">
+            <label class="control-label" for="@Html.IdFor(model => model.EnlistmentDate)">Ngày nhập ngũ</label>
+        </div>
+        <div class="col-md-9">
+            <nop-editor asp-for="EnlistmentDate" />
+            <span asp-validation-for="EnlistmentDate"></span>
+        </div>
+    </div>
     @if (Model.StreetAddressEnabled)
     {
         <div class="form-group row">

@@ -27,6 +27,8 @@
         ? Context.User.Identity!.Name!
         : string.Empty;
     var blogArchiveUrl = Url.RouteUrl(NopRouteNames.General.BLOG);
+    var blogNewsUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS);
+    var blogDocumentsUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS);
     var productListingUrl = Url.RouteUrl(NopRouteNames.General.CATEGORIES);
 }
 
@@ -69,10 +71,10 @@
                             <span class="material-symbols-outlined text-[20px] text-military-green" style="font-variation-settings:'FILL' 1">newspaper</span>
                             TIN TỨC HOẠT ĐỘNG
                         </h2>
-                        <a href="@blogArchiveUrl" class="text-sm font-bold text-military-green transition hover:underline">Xem tất cả →</a>
+                        <a href="@blogNewsUrl" class="text-sm font-bold text-military-green transition hover:underline">Xem tất cả →</a>
                     </div>
                     <div class="p-5">
-                        @await Component.InvokeAsync("HomepageNews", new { newsItemTypeId = 0 })
+                        @await Component.InvokeAsync(typeof(HomepageBlogPostsViewComponent), new { postTypeId = 0, take = 4 })
                     </div>
                 </div>
 
@@ -82,9 +84,10 @@
                             <span class="material-symbols-outlined text-[20px] text-military-green" style="font-variation-settings:'FILL' 1">gavel</span>
                             VĂN BẢN MỚI NHẤT
                         </h2>
+                        <a href="@blogDocumentsUrl" class="text-sm font-bold text-military-green transition hover:underline">Xem tất cả →</a>
                     </div>
                     <div class="p-5">
-                        @await Component.InvokeAsync("HomepageNews", new { newsItemTypeId = 1 })
+                        @await Component.InvokeAsync(typeof(HomepageBlogPostsViewComponent), new { postTypeId = 1, take = 4 })
                     </div>
                 </div>
             </div>

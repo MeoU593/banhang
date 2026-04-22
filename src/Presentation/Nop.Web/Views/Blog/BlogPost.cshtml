@@ -10,6 +10,15 @@
     NopHtml.AddMetaKeywordParts(Model.MetaKeywords);
     //page class
     NopHtml.AppendPageCssClassParts("html-blogpost-page");
+
+    var isDocument = Model.PostTypeId == 1;
+    var typeLabel = isDocument ? "Văn bản" : "Tin tức";
+    var typeArchiveUrl = isDocument
+        ? Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS)
+        : Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS);
+    var typeBadgeClass = isDocument
+        ? "bg-amber-50 text-amber-700 border border-amber-200"
+        : "bg-red-50 text-red-700 border border-red-100";
 }
 @section left {
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogBefore, additionalData = Model })
@@ -25,7 +34,7 @@
         <nav class="mb-6 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-on-surface-variant">
             <a href="/" class="hover:text-military-green transition-colors">Trang chủ</a>
             <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <a href="@Url.RouteUrl(NopRouteNames.General.BLOG)" class="hover:text-military-green transition-colors">Bản tin nội bộ</a>
+            <a href="@typeArchiveUrl" class="hover:text-military-green transition-colors">@typeLabel</a>
             <span class="material-symbols-outlined text-[14px]">chevron_right</span>
             <span class="text-on-surface font-bold line-clamp-1">@Model.Title</span>
         </nav>
@@ -34,7 +43,7 @@
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBeforeBody, additionalData = Model })
 
             <article class="post-body rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-8 shadow-sm">
-                <span class="inline-flex rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-100 mb-4">Bản tin</span>
+                <span class="mb-4 inline-flex rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider @typeBadgeClass">@typeLabel</span>
                 <h1 class="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-on-surface">@Model.Title</h1>
                 <div class="mb-6 flex flex-wrap items-center gap-4 border-b border-outline-variant/20 pb-5 text-sm text-on-surface-variant">
                     <div class="flex items-center gap-1.5">

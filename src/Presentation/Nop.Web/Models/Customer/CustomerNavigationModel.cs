@@ -24,7 +24,8 @@ public partial record CustomerNavigationItemModel : BaseNopModel
 
 public enum CustomerNavigationEnum
 {
-    Info = 0,
+    Profile = 0,
+    Info = 5,
     Addresses = 10,
     Orders = 20,
     BackInStockSubscriptions = 30,

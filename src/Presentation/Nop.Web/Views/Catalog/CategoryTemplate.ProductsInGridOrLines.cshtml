@@ -27,105 +27,156 @@
 }
 
 <style>
-    .category-page-refined {
-        background: #f1f5f9;
+    .category-page-command {
+        background: #edf4ff;
         padding: 24px;
     }
 
-    .category-page-refined .category-page-header {
+    .category-page-command .category-hero {
+        border: 1px solid rgba(196, 198, 204, 0.35);
+        border-radius: 18px;
+        background: linear-gradient(130deg, #ffffff 0%, #f7f9ff 56%, #edf4ff 100%);
+        padding: 26px;
+        box-shadow: 0 22px 44px -34px rgba(15, 23, 42, 0.5);
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 16px;
+        gap: 20px;
         margin-bottom: 24px;
     }
 
-    .category-page-refined .category-breadcrumbs {
+    .category-page-command .hero-meta {
+        max-width: 760px;
+    }
+
+    .category-page-command .category-breadcrumbs {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 8px;
-        margin: 0 0 8px;
+        margin: 0 0 10px;
         color: #64748b;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
     }
 
-    .category-page-refined .category-breadcrumb-separator {
-        color: #94a3b8;
-    }
-
-    .category-page-refined .category-breadcrumbs a {
+    .category-page-command .category-breadcrumbs a {
         color: inherit;
         text-decoration: none;
     }
 
-    .category-page-refined .category-breadcrumbs a:hover {
-        color: #0f172a;
+    .category-page-command .category-breadcrumbs a:hover {
+        color: #141c24;
     }
 
-    .category-page-refined .category-title {
-        margin: 0;
-        color: #0f172a;
-        font-size: 28px;
+    .category-page-command .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        color: #2e0001;
+        font-size: 11px;
         font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+    }
+
+    .category-page-command .category-title {
+        margin: 0;
+        color: #2e0001;
+        font-size: 34px;
+        font-weight: 900;
         line-height: 1.1;
         letter-spacing: -0.03em;
     }
 
-    .category-page-refined .category-header-action {
+    .category-page-command .category-description {
+        margin-top: 10px;
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.75;
+        max-width: 700px;
+    }
+
+    .category-page-command .category-hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .category-page-command .hero-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #dbe3ef;
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 6px 12px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .category-page-command .category-header-action {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 48px;
-        padding: 0 24px;
+        gap: 8px;
+        min-height: 46px;
+        padding: 0 22px;
         border: 0;
-        background: #b91c1c;
-        color: #fff;
+        border-radius: 12px;
+        background: #2e0001;
+        color: #ffffff;
         text-decoration: none;
-        font-size: 14px;
-        font-weight: 700;
-        box-shadow: 0 18px 36px -24px rgba(127, 29, 29, 0.6);
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: 0 24px 34px -28px rgba(46, 0, 1, 0.9);
         transition: transform 0.2s ease, background-color 0.2s ease;
     }
 
-    .category-page-refined .category-header-action:hover {
-        background: #991b1b;
+    .category-page-command .category-header-action:hover {
+        background: #550005;
         color: #fff;
         transform: translateY(-1px);
     }
 
-    .category-page-refined .category-page-flow {
+    .category-page-command .category-page-flow {
         display: grid;
-        gap: 24px;
+        gap: 22px;
     }
 
     @@media (max-width: 767px) {
-        .category-page-refined {
-            padding: 16px;
+        .category-page-command {
+            padding: 14px;
         }
 
-        .category-page-refined .category-title {
+        .category-page-command .category-hero {
+            padding: 18px;
+        }
+
+        .category-page-command .category-title {
             font-size: 28px;
         }
 
-        .category-page-refined .category-header-action {
+        .category-page-command .category-header-action {
             width: 100%;
         }
     }
 </style>
 
-<div class="page category-page category-page-refined">
-    <div class="category-page-header">
-        <div>
+<div class="page category-page category-page-command">
+    <header class="category-hero">
+        <div class="hero-meta">
             @if (Model.DisplayCategoryBreadcrumb)
             {
                 <nav class="category-breadcrumbs" aria-label="Breadcrumb">
                     <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)">Trang chủ</a>
-                    <span class="category-breadcrumb-separator">@breadcrumbDelimiter</span>
+                    <span>@breadcrumbDelimiter</span>
                     <a href="@Url.RouteUrl(NopRouteNames.General.CATEGORIES)">Sản phẩm &amp; Năng lực</a>
                     @foreach (var cat in Model.CategoryBreadcrumb)
                     {
@@ -144,10 +195,31 @@
                     }
                 </nav>
             }
+            <div class="hero-label">
+                <span class="material-symbols-outlined text-[16px]">bookmark</span>
+                <span>Danh mục lưu trữ</span>
+            </div>
             <h1 class="category-title">@Model.Name</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="category-description">@Html.Raw(Model.Description)</div>
+            }
+            <div class="category-hero-stats">
+                <span class="hero-stat">
+                    <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                    @Model.CatalogProductsModel.TotalItems sản phẩm
+                </span>
+                <span class="hero-stat">
+                    <span class="material-symbols-outlined text-[16px]">layers</span>
+                    @Model.CatalogProductsModel.TotalPages trang dữ liệu
+                </span>
+            </div>
         </div>
-        <a class="category-header-action" href="#category-products">@(Model.CatalogProductsModel.TotalItems > 0 ? $"Xem {Model.CatalogProductsModel.TotalItems} sản phẩm" : "Mở danh sách")</a>
-    </div>
+        <a class="category-header-action" href="#category-products">
+            <span>@(Model.CatalogProductsModel.TotalItems > 0 ? $"Xem {Model.CatalogProductsModel.TotalItems} sản phẩm" : "Mở danh sách")</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+        </a>
+    </header>
 
     <div class="category-page-flow" id="category-products">
         @{

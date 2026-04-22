@@ -27,13 +27,12 @@ public partial class HomepageBlogPostsViewComponent : NopViewComponent
             ? await _blogModelFactory.PrepareBlogPostListModelAsync(new BlogPagingFilteringModel
             {
                 PageNumber = 1,
-                PageSize = Math.Max(take * 5, 20)
+                PageSize = Math.Max(take * 5, 20),
+                PostTypeId = postTypeId
             })
             : new BlogPostListModel();
 
         var posts = model.BlogPosts.AsEnumerable();
-        if (postTypeId.HasValue)
-            posts = posts.Where(post => post.PostTypeId == postTypeId.Value);
 
         model.BlogPosts = posts
             .OrderByDescending(post => post.CreatedOn)

@@ -149,12 +149,12 @@ public partial class BlogModelFactory : IBlogModelFactory
         var language = await _workContext.GetWorkingLanguageAsync();
         var store = await _storeContext.GetCurrentStoreAsync();
         var blogPosts = string.IsNullOrEmpty(command.Tag)
-            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize)
+            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize, postTypeId: command.PostTypeId)
             : await _blogService.GetAllBlogPostsByTagAsync(store.Id, language.Id, command.Tag, command.PageNumber - 1, command.PageSize);
 
         var model = new BlogPostListModel
         {
-            PagingFilteringContext = { Tag = command.Tag, Month = command.Month },
+            PagingFilteringContext = { Tag = command.Tag, Month = command.Month, PostTypeId = command.PostTypeId },
             WorkingLanguageId = language.Id,
             BlogPosts = await blogPosts.SelectAwait(async blogPost =>
             {

@@ -21,6 +21,10 @@ public partial class CustomerInfoValidator : BaseNopValidator<CustomerInfoModel>
             .IsEmailAddress()
             .WithMessageAwait(localizationService.GetResourceAsync("Common.WrongEmail"));
 
+        RuleFor(x => x.MilitaryCode)
+            .NotEmpty()
+            .WithMessage("Military code is required");
+
         if (customerSettings.FirstNameEnabled && customerSettings.FirstNameRequired)
             RuleFor(x => x.FirstName).NotEmpty().WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.FirstName.Required"));
         if (customerSettings.LastNameEnabled && customerSettings.LastNameRequired)

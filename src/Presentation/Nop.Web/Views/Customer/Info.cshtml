@@ -1,14 +1,16 @@
-﻿@using Nop.Core
+@using Nop.Core
 @model CustomerInfoModel
 @inject Nop.Core.IWebHelper webHelper
 @{
     Layout = "_ColumnsTwo";
 
-    //title
     NopHtml.AddTitleParts(T("PageTitle.Account").Text);
-    //page class
     NopHtml.AppendPageCssClassParts("html-account-page");
     NopHtml.AppendPageCssClassParts("html-customer-info-page");
+
+    var fullName = $"{Model.FirstName} {Model.LastName}".Trim();
+    if (string.IsNullOrWhiteSpace(fullName))
+        fullName = Context.User.Identity?.Name ?? "Hồ sơ quân nhân";
 }
 
 @section left
@@ -17,540 +19,599 @@
 }
 
 <style>
-.customer-info-page {
-    padding: 24px;
-    background: transparent;
+.command-edit-page {
+    padding: 28px;
+    background: #edf4ff;
     min-height: calc(100vh - 4rem);
 }
 
-.customer-info-page .page-title {
-    display: block !important;
-    margin: 0 0 20px;
-    border: 1px solid rgba(196, 198, 204, 0.3);
-    border-radius: 12px;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 62%, #2d3a22 100%);
-    padding: 20px;
-    box-shadow: 0 20px 40px -32px rgba(15, 23, 42, 0.85);
+.command-header {
+    margin-bottom: 18px;
 }
-.customer-info-page .page-title h1 {
+
+.command-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.command-chip {
+    border-radius: 6px;
+    padding: 3px 8px;
+    background: #dbe3ef;
+    color: #44474c;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.command-header h1 {
     margin: 0;
-    font-size: 28px;
+    color: #2e0001;
+    font-size: 34px;
     font-weight: 900;
     letter-spacing: -0.02em;
-    color: #fff;
-    border: 0;
-    padding: 0;
 }
 
-.customer-info-page .page-body {
+.command-header p {
+    margin: 6px 0 0;
+    color: #44474c;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.command-shell {
     display: grid;
-    gap: 16px;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: 20px;
 }
 
-.customer-info-page form {
-    display: grid;
-    gap: 16px;
-}
-
-.customer-info-page .fieldset {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 20px 45px -35px rgba(15, 23, 42, 0.45);
-}
-
-.customer-info-page .fieldset .title {
-    margin: 0 0 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(196, 198, 204, 0.3);
-    font-size: 12px;
-    font-weight: 800;
-    color: #2d3a22;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-}
-
-.customer-info-page .form-fields {
-    display: grid;
-    gap: 12px;
-}
-
-.customer-info-page .inputs {
-    margin: 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    background: #f8fafc;
-    padding: 12px;
-}
-
-.customer-info-page .inputs > label:not(.forcheckbox) {
-    display: block;
-    margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #475569;
-}
-
-.customer-info-page .inputs input[type="text"],
-.customer-info-page .inputs input[type="email"],
-.customer-info-page .inputs input[type="tel"],
-.customer-info-page .inputs select,
-.customer-info-page .inputs textarea {
-    min-height: 42px;
-    width: 100%;
-    border: 1px solid #e2e8f0;
+.profile-side-card,
+.command-card,
+.command-footer {
     border-radius: 12px;
-    background: #f8fafc;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #0f172a;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    background: #fff;
+    box-shadow: 0 20px 40px -34px rgba(20, 28, 36, 0.25);
 }
 
-.customer-info-page .inputs input:focus,
-.customer-info-page .inputs select:focus,
-.customer-info-page .inputs textarea:focus {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+.profile-side-card {
+    padding: 26px;
+    text-align: center;
+}
+
+.profile-photo-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 16px;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #0f172a 0%, #29313a 100%);
+    border: 4px solid #dbe3ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffe088;
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.profile-photo-link {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: #2e0001;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.profile-side-card h2 {
+    margin: 0;
+    color: #2e0001;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.profile-meta {
+    margin-top: 8px;
+    color: #735c00;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.profile-side-action {
+    margin-top: 18px;
+    display: block;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #edf4ff;
+    color: #141c24;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.command-card {
+    overflow: hidden;
+}
+
+.command-section {
+    padding: 24px;
     background: #fff;
 }
 
-.customer-info-page .inputs span.field-validation-error {
-    display: block;
-    margin-top: 6px;
-    font-size: 12px;
-    color: #dc2626;
+.command-section + .command-section {
+    background: #f7f9ff;
 }
 
-.customer-info-page .inputs .field-validation-valid {
-    display: none;
-}
-
-.customer-info-page .inputs .nop-required {
-    margin-left: 6px;
-}
-
-.customer-info-page .inputs .readonly-username {
+.command-section h3 {
+    margin: 0 0 16px;
     display: flex;
     align-items: center;
-    min-height: 42px;
-    color: #334155;
-    font-size: 13px;
+    gap: 10px;
+    color: #2e0001;
+    font-size: 18px;
+    font-weight: 800;
 }
 
-.customer-info-page .gender {
-    display: flex;
-    flex-wrap: wrap;
+.command-section h3::before {
+    content: "";
+    width: 6px;
+    height: 24px;
+    border-radius: 999px;
+    background: #735c00;
+}
+
+.command-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-    align-items: center;
 }
 
-.customer-info-page .gender label {
-    margin: 0 0 0 6px;
-    margin-left: 6px;
+.command-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.command-field > label,
+.command-field .label {
+    margin: 0;
+    color: #44474c;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.input-shell {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #75777c;
+    font-size: 18px;
+    pointer-events: none;
+}
+
+.command-field input[type="text"],
+.command-field input[type="email"],
+.command-field input[type="tel"],
+.command-field input[type="password"],
+.command-field input[type="date"],
+.command-field select,
+.command-field textarea,
+.command-readonly {
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(196, 198, 204, 0.35);
+    padding: 11px 12px 11px 40px;
+    color: #141c24;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    text-align: left;
+    transition: box-shadow .18s ease;
 }
 
-.customer-info-page .date-of-birth .date-picker-wrapper {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+.command-field textarea {
+    min-height: 96px;
+    padding-top: 12px;
 }
 
-.customer-info-page .attributes ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 10px;
+.command-field input:focus,
+.command-field select:focus,
+.command-field textarea:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(115, 92, 0, 0.45);
 }
 
-.customer-info-page .attributes li,
-.customer-info-page .accept-consent {
+.command-readonly {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    background: #edf4ff;
+    color: #44474c;
 }
 
-.customer-info-page .email-to-revalidate,
-.customer-info-page .vat-status,
-.customer-info-page .vat-note,
-.customer-info-page .email-to-revalidate-note,
-.customer-info-page .please-wait {
-    display: block;
-    margin-top: 6px;
+.field-validation-error {
+    color: #ba1a1a;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.message-error {
+    margin-bottom: 14px;
+    border-radius: 10px;
+    background: #ffdad6;
+    color: #93000a;
+    padding: 10px 14px;
     font-size: 12px;
-    color: #64748b;
+    font-weight: 600;
 }
 
-.customer-info-page .message-error {
-    border: 1px solid #fecaca;
-    border-radius: 12px;
-    background: #fef2f2;
-    color: #dc2626;
-    padding: 12px 14px;
-    font-size: 13px;
+.gdpr-row,
+.newsletter-row,
+.attribute-box {
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(196, 198, 204, 0.3);
+    padding: 10px 12px;
 }
 
-.customer-info-page .table-wrapper {
+.gdpr-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.newsletter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.auth-table-wrap {
     overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(196, 198, 204, 0.3);
+    background: #fff;
 }
 
-.customer-info-page .data-table {
+.auth-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.customer-info-page .data-table th,
-.customer-info-page .data-table td {
-    border-bottom: 1px solid #e2e8f0;
+.auth-table th,
+.auth-table td {
     padding: 10px;
-    vertical-align: top;
+    font-size: 12px;
     text-align: left;
-    font-size: 13px;
+    border-bottom: 1px solid rgba(196, 198, 204, 0.3);
 }
 
-.customer-info-page .data-table th {
-    font-weight: 700;
-    color: #334155;
-    background: #f8fafc;
+.auth-table th {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #44474c;
+    font-size: 10px;
 }
 
-.customer-info-page .data-table td {
-    color: #475569;
+.security-tip {
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(254, 214, 91, 0.55);
+    padding: 10px 12px;
+    color: #745c00;
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 600;
 }
 
-.customer-info-page .buttons {
-    margin-top: 8px;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 18px;
+.command-footer {
+    margin-top: 0;
+    padding: 18px 24px;
+    background: #e7eefa;
     display: flex;
-    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
     gap: 12px;
 }
 
-.customer-info-page .save-customer-info-button {
-    height: 44px;
+.command-cancel {
     border: 0;
-    border-radius: 12px;
-    background: #2d3a22;
-    color: #fff;
-    padding: 0 22px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    background: transparent;
+    color: #44474c;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     cursor: pointer;
-    transition: transform 0.15s, filter 0.2s;
 }
 
-.customer-info-page .save-customer-info-button:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.06);
+.command-save {
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 18px;
+    background: #2e0001;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
 }
 
-@@media (max-width: 991px) {
-    .customer-info-page {
-        padding: 16px;
+.command-save:hover {
+    background: #550005;
+}
+
+@@media (max-width: 1200px) {
+    .command-shell {
+        grid-template-columns: 1fr;
     }
+}
 
-    .customer-info-page .fieldset {
+@@media (max-width: 768px) {
+    .command-edit-page {
         padding: 14px;
     }
 
-    .customer-info-page .page-title {
-        padding: 16px;
+    .command-header h1 {
+        font-size: 27px;
     }
 
-    .customer-info-page .page-title h1 {
-        font-size: 22px;
-    }
-
-    .customer-info-page .date-of-birth .date-picker-wrapper {
+    .command-grid {
         grid-template-columns: 1fr;
+    }
+
+    .command-footer {
+        justify-content: stretch;
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 </style>
 
-<div class="page account-page customer-info-page">
-    <div class="page-title">
-        <h1>@T("Account.MyAccount") - @T("Account.CustomerInfo")</h1>
+<div class="page account-page command-edit-page customer-info-page">
+    <div class="command-header">
+        <div class="command-breadcrumb">
+            <span class="command-chip">Hệ thống</span>
+            <span class="material-symbols-outlined" style="font-size:16px;color:#75777c;">chevron_right</span>
+            <span class="command-chip" style="color:#2e0001;background:#ffdad6;">Hồ sơ cá nhân</span>
+        </div>
+        <h1>Chỉnh sửa hồ sơ quân nhân</h1>
+        <p>Cập nhật thông tin cá nhân, hồ sơ quân nhân và liên lạc nội bộ theo chuẩn hệ thống chỉ huy.</p>
     </div>
-    <div class="page-body">
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoTop, additionalData = Model })
-        <form asp-route="@NopRouteNames.General.CUSTOMER_INFO" method="post">
-            <div asp-validation-summary="ModelOnly" class="message-error"></div>
-            <section class="fieldset">
-                <h2 class="title">
-                    @T("Account.YourPersonalDetails")
-                </h2>
-                <div class="form-fields">
-                    @if (Model.GenderEnabled)
-                    {
-                        <div class="inputs">
-                            <label>@T("Account.Fields.Gender"):</label>
-                            <div class="gender">
-                                <span class="male">
-                                    <input type="radio" asp-for="Gender" value="M" checked="@(Model.Gender == "M")" id="gender-male" />
-                                    <label class="forcheckbox" for="gender-male">@T("Account.Fields.Gender.Male")</label>
-                                </span>
-                                <span class="female">
-                                    <input type="radio" asp-for="Gender" value="F" checked="@(Model.Gender == "F")" id="gender-female" />
-                                    <label class="forcheckbox" for="gender-female">@T("Account.Fields.Gender.Female")</label>
-                                </span>
-                                @if (Model.NeutralGenderEnabled)
-                                {
-                                    <span class="Neutral">
-                                        <input type="radio" asp-for="Gender" value="N" checked="@(Model.Gender == "N")" id="gender-neutral" />
-                                        <label class="forcheckbox" for="gender-neutral">@T("Account.Fields.Gender.Neutral")</label>
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                    }
-                    @if (Model.FirstNameEnabled)
-                    {
-                        <div class="inputs">
-                            <label asp-for="FirstName" asp-postfix=":"></label>
-                            <input asp-for="FirstName" />
-                            @if (Model.FirstNameRequired)
-                            {
-                                <nop-required />
-                            }
-                            <span asp-validation-for="FirstName"></span>
-                        </div>
-                    }
-                    @if (Model.LastNameEnabled)
-                    {
-                        <div class="inputs">
-                            <label asp-for="LastName" asp-postfix=":"></label>
-                            <input asp-for="LastName" />
-                            @if (Model.LastNameRequired)
-                            {
-                                <nop-required />
-                            }
-                            <span asp-validation-for="LastName"></span>
-                        </div>
-                    }
-                    @if (Model.DateOfBirthEnabled)
-                    {
-                        <div class="inputs date-of-birth">
-                            <label>@T("Account.Fields.DateOfBirth"):</label>
-                            <nop-date-picker asp-day-name="@Html.NameFor(x => x.DateOfBirthDay)"
-                            asp-month-name="@Html.NameFor(x => x.DateOfBirthMonth)"
-                            asp-year-name="@Html.NameFor(x => x.DateOfBirthYear)"
-                            asp-begin-year="@(DateTime.Now.AddYears(-110))"
-                            asp-end-year="@(DateTime.UtcNow)"
-                            asp-selected-date="@Model.ParseDateOfBirth()" />
 
-                            @if (Model.DateOfBirthRequired)
-                            {
-                                <nop-required />
-                            }
-                            <span asp-validation-for="DateOfBirthDay"></span>
-                            <span asp-validation-for="DateOfBirthMonth"></span>
-                            <span asp-validation-for="DateOfBirthYear"></span>
-                        </div>
-                    }
-                    <div class="inputs">
-                        <label asp-for="Email" asp-postfix=":"></label>
-                        <input asp-for="Email" />
-                        <nop-required />
-                        <span asp-validation-for="Email"></span>
+    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoTop, additionalData = Model })
+
+    <form asp-route="@NopRouteNames.General.CUSTOMER_INFO" method="post">
+        <div asp-validation-summary="ModelOnly" class="message-error"></div>
+
+        <div class="command-shell">
+            <aside>
+                <div class="profile-side-card">
+                    <div class="profile-photo-wrap">
+                        <div class="profile-photo">@fullName.Substring(0, 1).ToUpperInvariant()</div>
+                        <a class="profile-photo-link" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" title="Đổi ảnh đại diện">
+                            <span class="material-symbols-outlined" style="font-size:18px;">photo_camera</span>
+                        </a>
                     </div>
-                    @if (!string.IsNullOrEmpty(Model.EmailToRevalidate))
-                    {
-                        <div class="inputs">
-                            <label asp-for="EmailToRevalidate"></label>
-                            <span class="email-to-revalidate">@Model.EmailToRevalidate</span>
-                            <span class="email-to-revalidate-note">
-                                <em>@T("Account.Fields.EmailToRevalidate.Note")</em>
-                            </span>
-                        </div>
-                    }
-                    @if (Model.UsernamesEnabled)
-                    {
-                        if (Model.AllowUsersToChangeUsernames)
-                        {
-                            <div class="inputs">
-                                <label asp-for="Username" asp-postfix=":"></label>
-                                <input asp-for="Username" />
-                                <nop-required />
-                                <span asp-validation-for="Username"></span>
-                                @if (Model.CheckUsernameAvailabilityEnabled)
-                                {
-                                    @await Html.PartialAsync("_CheckUsernameAvailability")
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="inputs">
-                                <label asp-for="Username" asp-postfix=":"></label>
-                                <span class="readonly-username">@Model.Username</span>
-                            </div>
-                        }
-                    }
+
+                    <h2>@fullName</h2>
+                    <div class="profile-meta">Mã quân nhân: @(string.IsNullOrWhiteSpace(Model.MilitaryCode) ? "Chưa cập nhật" : Model.MilitaryCode)</div>
+
+                    <a class="profile-side-action" asp-route="@NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT">Xem hồ sơ hiển thị</a>
                 </div>
-            </section>
-            @if (Model.CompanyEnabled || Model.DisplayVatNumber)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.CompanyDetails")
-                    </h2>
-                    <div class="form-fields">
-                        @if (Model.CompanyEnabled)
+            </aside>
+
+            <div class="command-card">
+                <section class="command-section">
+                    <h3>Thông tin Quân nhân</h3>
+                    <div class="command-grid">
+                        @if (Model.FirstNameEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="Company" asp-postfix=":"></label>
-                                <input asp-for="Company" />
-                                @if (Model.CompanyRequired)
+                            <div class="command-field">
+                                <label asp-for="FirstName"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">person</span>
+                                    <input asp-for="FirstName" />
+                                </div>
+                                @if (Model.FirstNameRequired)
                                 {
                                     <nop-required />
                                 }
-                                <span asp-validation-for="Company"></span>
+                                <span asp-validation-for="FirstName"></span>
                             </div>
                         }
-                        @if (Model.DisplayVatNumber)
+
+                        @if (Model.LastNameEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="VatNumber" asp-postfix=":"></label>
-                                <input asp-for="VatNumber" />
-                                @if (Model.VatNumberRequired)
+                            <div class="command-field">
+                                <label asp-for="LastName"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">badge</span>
+                                    <input asp-for="LastName" />
+                                </div>
+                                @if (Model.LastNameRequired)
                                 {
                                     <nop-required />
                                 }
-                                <span asp-validation-for="VatNumber"></span>
-                                <span class="vat-status">@Model.VatNumberStatusNote</span>
-                                <span class="vat-note">
-                                    <em>@T("Account.Fields.VatNumber.Note")</em>
-                                </span>
+                                <span asp-validation-for="LastName"></span>
                             </div>
                         }
-                    </div>
-                </section>
-            }
-            @if (Model.StreetAddressEnabled ||
-        Model.StreetAddress2Enabled ||
-        Model.ZipPostalCodeEnabled ||
-        Model.CityEnabled ||
-        Model.CountyEnabled ||
-        Model.CountryEnabled)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.YourAddress")
-                    </h2>
-                    <div class="form-fields">
-                        @if (Model.StreetAddressEnabled)
+
+                        <div class="command-field">
+                            <label for="@Html.IdFor(model => model.MilitaryCode)">Số hiệu quân nhân</label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">military_tech</span>
+                                <input asp-for="MilitaryCode" maxlength="100" />
+                            </div>
+                            <nop-required />
+                            <span asp-validation-for="MilitaryCode"></span>
+                        </div>
+
+                        <div class="command-field">
+                            <label for="@Html.IdFor(model => model.Rank)">Cấp bậc</label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">workspace_premium</span>
+                                <input asp-for="Rank" maxlength="255" />
+                            </div>
+                            <span asp-validation-for="Rank"></span>
+                        </div>
+
+                        <div class="command-field">
+                            <label for="@Html.IdFor(model => model.UnitName)">Đơn vị công tác</label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">home_work</span>
+                                <input asp-for="UnitName" maxlength="500" />
+                            </div>
+                            <span asp-validation-for="UnitName"></span>
+                        </div>
+
+                        <div class="command-field">
+                            <label for="@Html.IdFor(model => model.PositionTitle)">Chức vụ</label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">stars</span>
+                                <input asp-for="PositionTitle" maxlength="255" />
+                            </div>
+                            <span asp-validation-for="PositionTitle"></span>
+                        </div>
+
+                        <div class="command-field">
+                            <label for="@Html.IdFor(model => model.EnlistmentDate)">Ngày nhập ngũ</label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">event</span>
+                                <input asp-for="EnlistmentDate" type="date" />
+                            </div>
+                            <span asp-validation-for="EnlistmentDate"></span>
+                        </div>
+
+                        @if (Model.DateOfBirthEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="StreetAddress" asp-postfix=":"></label>
-                                <input asp-for="StreetAddress" />
-                                @if (Model.StreetAddressRequired)
+                            <div class="command-field">
+                                <span class="label">Ngày sinh</span>
+                                <nop-date-picker asp-day-name="@Html.NameFor(x => x.DateOfBirthDay)"
+                                    asp-month-name="@Html.NameFor(x => x.DateOfBirthMonth)"
+                                    asp-year-name="@Html.NameFor(x => x.DateOfBirthYear)"
+                                    asp-begin-year="@(DateTime.Now.AddYears(-110))"
+                                    asp-end-year="@(DateTime.UtcNow)"
+                                    asp-selected-date="@Model.ParseDateOfBirth()" />
+                                @if (Model.DateOfBirthRequired)
                                 {
                                     <nop-required />
                                 }
-                                <span asp-validation-for="StreetAddress"></span>
+                                <span asp-validation-for="DateOfBirthDay"></span>
+                                <span asp-validation-for="DateOfBirthMonth"></span>
+                                <span asp-validation-for="DateOfBirthYear"></span>
                             </div>
                         }
-                        @if (Model.StreetAddress2Enabled)
+
+                        @if (Model.GenderEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="StreetAddress2" asp-postfix=":"></label>
-                                <input asp-for="StreetAddress2" />
-                                @if (Model.StreetAddress2Required)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="StreetAddress2"></span>
-                            </div>
-                        }
-                        @if (Model.ZipPostalCodeEnabled)
-                        {
-                            <div class="inputs">
-                                <label asp-for="ZipPostalCode" asp-postfix=":"></label>
-                                <input asp-for="ZipPostalCode" />
-                                @if (Model.ZipPostalCodeRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="ZipPostalCode"></span>
-                            </div>
-                        }
-                        @if (Model.CityEnabled)
-                        {
-                            <div class="inputs">
-                                <label asp-for="City" asp-postfix=":"></label>
-                                <input asp-for="City" />
-                                @if (Model.CityRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="City"></span>
-                            </div>
-                        }
-                        @if (Model.CountyEnabled)
-                        {
-                            <div class="inputs">
-                                <label asp-for="County" asp-postfix=":"></label>
-                                <input asp-for="County" />
-                                @if (Model.CountyRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="County"></span>
-                            </div>
-                        }
-                        @if (Model.CountryEnabled)
-                        {
-                            <div class="inputs">
-                                <label asp-for="CountryId" asp-postfix=":"></label>
-                                <select asp-for="CountryId" asp-items="Model.AvailableCountries"
-                                data-trigger="country-select"
-                                data-url="@(Url.RouteUrl(NopRouteNames.Ajax.GET_STATES_BY_COUNTRY_ID))"
-                                data-stateprovince="#@Html.IdFor(model => model.StateProvinceId)"
-                                data-loading="#states-loading-progress"></select>
-                                @if (Model.CountryRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="CountryId"></span>
-                            </div>
-                        }
-                        @if (Model.CountryEnabled && Model.StateProvinceEnabled)
-                        {
-                            <div class="inputs">
-                                <label asp-for="StateProvinceId" asp-postfix=":"></label>
-                                <select asp-for="StateProvinceId" asp-items="Model.AvailableStates"></select>
-                                @if (Model.StateProvinceRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span id="states-loading-progress" style="display: none;" class="please-wait">@T("Common.Wait")</span>
-                                <span asp-validation-for="StateProvinceId"></span>
+                            <div class="command-field">
+                                <span class="label">Giới tính</span>
+                                <div class="gdpr-row">
+                                    <span>
+                                        <input type="radio" asp-for="Gender" value="M" checked="@(Model.Gender == "M")" id="gender-male" />
+                                        <label class="forcheckbox" for="gender-male">@T("Account.Fields.Gender.Male")</label>
+                                    </span>
+                                    <span>
+                                        <input type="radio" asp-for="Gender" value="F" checked="@(Model.Gender == "F")" id="gender-female" />
+                                        <label class="forcheckbox" for="gender-female">@T("Account.Fields.Gender.Female")</label>
+                                    </span>
+                                    @if (Model.NeutralGenderEnabled)
+                                    {
+                                        <span>
+                                            <input type="radio" asp-for="Gender" value="N" checked="@(Model.Gender == "N")" id="gender-neutral" />
+                                            <label class="forcheckbox" for="gender-neutral">@T("Account.Fields.Gender.Neutral")</label>
+                                        </span>
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
                 </section>
-            }
-            @if (Model.PhoneEnabled || Model.FaxEnabled)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.YourContactInformation")
-                    </h2>
-                    <div class="form-fields">
+
+                <section class="command-section">
+                    <h3>Liên lạc & Truy cập</h3>
+                    <div class="command-grid">
+                        <div class="command-field">
+                            <label asp-for="Email"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">mail</span>
+                                <input asp-for="Email" />
+                            </div>
+                            <nop-required />
+                            <span asp-validation-for="Email"></span>
+                            @if (!string.IsNullOrEmpty(Model.EmailToRevalidate))
+                            {
+                                <span class="field-validation-error">@T("Account.Fields.EmailToRevalidate"): @Model.EmailToRevalidate</span>
+                            }
+                        </div>
+
+                        @if (Model.UsernamesEnabled)
+                        {
+                            if (Model.AllowUsersToChangeUsernames)
+                            {
+                                <div class="command-field">
+                                    <label asp-for="Username"></label>
+                                    <div class="input-shell">
+                                        <span class="material-symbols-outlined input-icon">alternate_email</span>
+                                        <input asp-for="Username" />
+                                    </div>
+                                    <nop-required />
+                                    <span asp-validation-for="Username"></span>
+                                    @if (Model.CheckUsernameAvailabilityEnabled)
+                                    {
+                                        @await Html.PartialAsync("_CheckUsernameAvailability")
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="command-field">
+                                    <label asp-for="Username"></label>
+                                    <div class="input-shell">
+                                        <span class="material-symbols-outlined input-icon">alternate_email</span>
+                                        <div class="command-readonly">@Model.Username</div>
+                                    </div>
+                                </div>
+                            }
+                        }
+
                         @if (Model.PhoneEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="Phone" asp-postfix=":"></label>
-                                <input asp-for="Phone" />
+                            <div class="command-field">
+                                <label asp-for="Phone"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">call</span>
+                                    <input asp-for="Phone" />
+                                </div>
                                 @if (Model.PhoneRequired)
                                 {
                                     <nop-required />
@@ -558,11 +619,15 @@
                                 <span asp-validation-for="Phone"></span>
                             </div>
                         }
+
                         @if (Model.FaxEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="Fax" asp-postfix=":"></label>
-                                <input asp-for="Fax" />
+                            <div class="command-field">
+                                <label asp-for="Fax"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">print</span>
+                                    <input asp-for="Fax" />
+                                </div>
                                 @if (Model.FaxRequired)
                                 {
                                     <nop-required />
@@ -572,192 +637,305 @@
                         }
                     </div>
                 </section>
-            }
 
-            @if (Model.NewsletterEnabled &&  Model.NewsLetterSubscriptions.Count > 0)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.SubscribeToNewsletter")
-                    </h2>
-                    <div class="form-fields">
-                        <div class="inputs">
-                            <div class="attributes">
-                                <ul>
-                                    @for (int i = 0; i < Model.NewsLetterSubscriptions.Count; i++)
-                                    {
-                                        <li>
-                                            <label for="@Html.IdFor(m => m.NewsLetterSubscriptions[i].IsActive)">@Model.NewsLetterSubscriptions[i].Name</label>
-                                            <input type="hidden" asp-for="NewsLetterSubscriptions[i].TypeId" />
-                                            <input class="form-check-input" type="checkbox" asp-for="NewsLetterSubscriptions[i].IsActive" />
-                                        </li>
-                                    }
-                                </ul>
+                <section class="command-section">
+                    <h3>Thông tin bổ sung</h3>
+                    <div class="command-grid">
+                        @if (Model.CompanyEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="Company"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">business_center</span>
+                                    <input asp-for="Company" />
+                                </div>
+                                @if (Model.CompanyRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="Company"></span>
                             </div>
-                        </div>
-                    </div>
-                </section>
-            }
-            @if (Model.CustomerAttributes.Count > 0)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.Options")
-                    </h2>
-                    <div class="form-fields">
-                        @await Html.PartialAsync("_CustomerAttributes", Model.CustomerAttributes)
-                    </div>
-                </section>
-            }
-            
-            @if (Model.AllowCustomersToSetTimeZone || Model.SignatureEnabled)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.Preferences")
-                    </h2>
-                    <div class="form-fields">
+                        }
+
+                        @if (Model.DisplayVatNumber)
+                        {
+                            <div class="command-field">
+                                <label asp-for="VatNumber"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">receipt_long</span>
+                                    <input asp-for="VatNumber" />
+                                </div>
+                                @if (Model.VatNumberRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="VatNumber"></span>
+                            </div>
+                        }
+
+                        @if (Model.StreetAddressEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="StreetAddress"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">location_on</span>
+                                    <input asp-for="StreetAddress" />
+                                </div>
+                                @if (Model.StreetAddressRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="StreetAddress"></span>
+                            </div>
+                        }
+
+                        @if (Model.StreetAddress2Enabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="StreetAddress2"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">pin_drop</span>
+                                    <input asp-for="StreetAddress2" />
+                                </div>
+                                @if (Model.StreetAddress2Required)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="StreetAddress2"></span>
+                            </div>
+                        }
+
+                        @if (Model.CityEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="City"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">apartment</span>
+                                    <input asp-for="City" />
+                                </div>
+                                @if (Model.CityRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="City"></span>
+                            </div>
+                        }
+
+                        @if (Model.CountyEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="County"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">map</span>
+                                    <input asp-for="County" />
+                                </div>
+                                @if (Model.CountyRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="County"></span>
+                            </div>
+                        }
+
+                        @if (Model.ZipPostalCodeEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="ZipPostalCode"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">markunread_mailbox</span>
+                                    <input asp-for="ZipPostalCode" />
+                                </div>
+                                @if (Model.ZipPostalCodeRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="ZipPostalCode"></span>
+                            </div>
+                        }
+
+                        @if (Model.CountryEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="CountryId"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">flag</span>
+                                    <select asp-for="CountryId" asp-items="Model.AvailableCountries"
+                                        data-trigger="country-select"
+                                        data-url="@(Url.RouteUrl(NopRouteNames.Ajax.GET_STATES_BY_COUNTRY_ID))"
+                                        data-stateprovince="#@Html.IdFor(model => model.StateProvinceId)"
+                                        data-loading="#states-loading-progress"></select>
+                                </div>
+                                @if (Model.CountryRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span asp-validation-for="CountryId"></span>
+                            </div>
+                        }
+
+                        @if (Model.CountryEnabled && Model.StateProvinceEnabled)
+                        {
+                            <div class="command-field">
+                                <label asp-for="StateProvinceId"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">location_city</span>
+                                    <select asp-for="StateProvinceId" asp-items="Model.AvailableStates"></select>
+                                </div>
+                                @if (Model.StateProvinceRequired)
+                                {
+                                    <nop-required />
+                                }
+                                <span id="states-loading-progress" style="display:none;" class="field-validation-error">@T("Common.Wait")</span>
+                                <span asp-validation-for="StateProvinceId"></span>
+                            </div>
+                        }
+
                         @if (Model.AllowCustomersToSetTimeZone)
                         {
-                            <div class="inputs">
-                                <label asp-for="TimeZoneId" asp-postfix=":"></label>
-                                <select asp-for="TimeZoneId" asp-items="Model.AvailableTimeZones"></select>
+                            <div class="command-field">
+                                <label asp-for="TimeZoneId"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">schedule</span>
+                                    <select asp-for="TimeZoneId" asp-items="Model.AvailableTimeZones"></select>
+                                </div>
                                 <span asp-validation-for="TimeZoneId"></span>
                             </div>
                         }
+
                         @if (Model.SignatureEnabled)
                         {
-                            <div class="inputs">
-                                <label asp-for="Signature" asp-postfix=":"></label>
-                                <textarea asp-for="Signature" class="account-signature-text"></textarea>
+                            <div class="command-field">
+                                <label asp-for="Signature"></label>
+                                <div class="input-shell">
+                                    <span class="material-symbols-outlined input-icon">draw</span>
+                                    <textarea asp-for="Signature"></textarea>
+                                </div>
                             </div>
                         }
                     </div>
                 </section>
-            }
-            @if (Model.NumberOfExternalAuthenticationProviders > 0)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.AssociatedExternalAuth")
-                    </h2>
-                    @if (Model.AssociatedExternalAuthRecords.Count > 0)
-                    {
-                        //existing associated external records
-                        <div class="table-wrapper">
-                            <table class="data-table">
-                                <colgroup>
-                                    <col />
-                                    <col />
-                                    <col />
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th class="auth-method-name">
-                                            @T("Account.AssociatedExternalAuth.AuthMethodName")
-                                        </th>
-                                        <th class="email">
-                                            @T("Account.AssociatedExternalAuth.Email")
-                                        </th>
-                                        <th class="external-id">
-                                            @T("Account.AssociatedExternalAuth.ExternalIdentifier")
-                                        </th>
-                                        @if (Model.AllowCustomersToRemoveAssociations)
-                                        {
-                                            <th class="remove">
-                                                @T("Account.AssociatedExternalAuth.Remove")
-                                            </th>
-                                        }
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model.AssociatedExternalAuthRecords)
-                                    {
+
+                @if (Model.NewsletterEnabled && Model.NewsLetterSubscriptions.Count > 0)
+                {
+                    <section class="command-section">
+                        <h3>Đăng ký bản tin</h3>
+                        <div class="command-grid" style="grid-template-columns:1fr;">
+                            @for (int i = 0; i < Model.NewsLetterSubscriptions.Count; i++)
+                            {
+                                <div class="newsletter-row">
+                                    <label for="@Html.IdFor(m => m.NewsLetterSubscriptions[i].IsActive)">@Model.NewsLetterSubscriptions[i].Name</label>
+                                    <div>
+                                        <input type="hidden" asp-for="NewsLetterSubscriptions[i].TypeId" />
+                                        <input type="checkbox" asp-for="NewsLetterSubscriptions[i].IsActive" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+
+                @if (Model.CustomerAttributes.Count > 0)
+                {
+                    <section class="command-section">
+                        <h3>Thuộc tính bổ sung</h3>
+                        <div class="attribute-box">
+                            @await Html.PartialAsync("_CustomerAttributes", Model.CustomerAttributes)
+                        </div>
+                    </section>
+                }
+
+                @if (Model.NumberOfExternalAuthenticationProviders > 0)
+                {
+                    <section class="command-section">
+                        <h3>Tài khoản liên kết</h3>
+                        @if (Model.AssociatedExternalAuthRecords.Count > 0)
+                        {
+                            <div class="auth-table-wrap">
+                                <table class="auth-table">
+                                    <thead>
                                         <tr>
-                                            <td class="auth-method-name">
-                                                @item.AuthMethodName
-                                            </td>
-                                            <td class="email">
-                                                @item.Email
-                                            </td>
-                                            <td class="external-id">
-                                                @CommonHelper.EnsureMaximumLength(item.ExternalIdentifier, 40, "...")
-                                            </td>
+                                            <th>@T("Account.AssociatedExternalAuth.AuthMethodName")</th>
+                                            <th>@T("Account.AssociatedExternalAuth.Email")</th>
+                                            <th>@T("Account.AssociatedExternalAuth.ExternalIdentifier")</th>
                                             @if (Model.AllowCustomersToRemoveAssociations)
                                             {
-                                                <td class="remove">
-                                                    <a href="#" onclick="return removeexternalassociation(@item.Id)">@T("Account.AssociatedExternalAuth.Remove")</a>
-                                                </td>
+                                                <th>@T("Account.AssociatedExternalAuth.Remove")</th>
                                             }
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    @if (Model.NumberOfExternalAuthenticationProviders > Model.AssociatedExternalAuthRecords.Count)
-                    {
-                        //we can add more external records
-                        var loginUrl = Url.RouteUrl(NopRouteNames.General.LOGIN, null, webHelper.GetCurrentRequestProtocol());
-                        <div class="form-fields add-more-external-records">
-                            @T("Account.AssociatedExternalAuth.AddMoreRecords")
-                            <a href="@loginUrl">@loginUrl</a>
-                        </div>
-                    }
-                </section>
-            }
-
-            @if (Model.GdprConsents.Count > 0)
-            {
-                <section class="fieldset">
-                    <h2 class="title">
-                        @T("Account.UserAgreement")
-                    </h2>
-                    <div class="form-fields">
-                        @foreach (var consent in Model.GdprConsents)
-                        {
-                            if (consent.IsRequired)
-                            {
-                                <script asp-location="Footer">
-                                    $(function() {
-                                        $('#save-info-button').on('click', function() {
-                                            if ($('#consent@(consent.Id)').is(':checked')) {
-                                                    //do some stuff
-                                                    return true;
-                                                } else {
-                                                    //just show validation errors, don't post
-                                               alert('@Html.Raw(JavaScriptEncoder.Default.Encode(consent.RequiredMessage))');
-                                                    return false;
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.AssociatedExternalAuthRecords)
+                                        {
+                                            <tr>
+                                                <td>@item.AuthMethodName</td>
+                                                <td>@item.Email</td>
+                                                <td>@CommonHelper.EnsureMaximumLength(item.ExternalIdentifier, 40, "...")</td>
+                                                @if (Model.AllowCustomersToRemoveAssociations)
+                                                {
+                                                    <td><a href="#" onclick="return removeexternalassociation(@item.Id)">@T("Account.AssociatedExternalAuth.Remove")</a></td>
                                                 }
-                                            });
-                                    });
-                                </script>
-                            }
-                            <div class="inputs accept-consent">
-                                <input id="consent@(consent.Id)" type="checkbox" name="consent@(consent.Id)" checked="@consent.Accepted" />
-                                <label for="consent@(consent.Id)">@consent.Message</label>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
                         }
+                        @if (Model.NumberOfExternalAuthenticationProviders > Model.AssociatedExternalAuthRecords.Count)
+                        {
+                            var loginUrl = Url.RouteUrl(NopRouteNames.General.LOGIN, null, webHelper.GetCurrentRequestProtocol());
+                            <div class="field-validation-error" style="margin-top:8px;">@T("Account.AssociatedExternalAuth.AddMoreRecords") <a href="@loginUrl">@loginUrl</a></div>
+                        }
+                    </section>
+                }
+
+                @if (Model.GdprConsents.Count > 0)
+                {
+                    <section class="command-section">
+                        <h3>Xác nhận dữ liệu</h3>
+                        <div class="command-grid" style="grid-template-columns:1fr;">
+                            @foreach (var consent in Model.GdprConsents)
+                            {
+                                if (consent.IsRequired)
+                                {
+                                    <script asp-location="Footer">
+                                        $(function() {
+                                            $('#save-info-button').on('click', function() {
+                                                if ($('#consent@(consent.Id)').is(':checked'))
+                                                    return true;
+
+                                                alert('@Html.Raw(JavaScriptEncoder.Default.Encode(consent.RequiredMessage))');
+                                                return false;
+                                            });
+                                        });
+                                    </script>
+                                }
+
+                                <div class="gdpr-row">
+                                    <input id="consent@(consent.Id)" type="checkbox" name="consent@(consent.Id)" checked="@consent.Accepted" />
+                                    <label for="consent@(consent.Id)">@consent.Message</label>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+
+                <section class="command-section">
+                    <h3>Đổi mật khẩu</h3>
+                    <div class="security-tip">
+                        Để thay đổi mật khẩu theo chuẩn bảo mật nội bộ, sử dụng trang đổi mật khẩu riêng của tài khoản.
+                        <a asp-route="@NopRouteNames.Standard.CUSTOMER_CHANGE_PASSWORD" style="font-weight:800;color:#2e0001;">Mở trang đổi mật khẩu</a>.
                     </div>
                 </section>
-            }
-            <section class="fieldset">
-                <h2 class="title">Thông tin đơn vị &amp; vai trò</h2>
-                <div class="form-fields">
-                    <div class="inputs">
-                        <label for="duty-role-title">Chức vụ / Vai trò tự khai:</label>
-                        <input id="duty-role-title" name="DutyRoleTitle" type="text" value="@Model.DutyRoleTitle"
-                               placeholder="Ví dụ: Sĩ quan hậu cần, Trưởng đơn vị, Trợ lý tham mưu..." maxlength="100" />
-                        <span class="block mt-1 text-xs text-slate-500">Hiển thị dưới tên của bạn trong hệ thống. Tùy chọn.</span>
-                    </div>
+
+                <div class="command-footer">
+                    <button type="button" class="command-cancel" onclick="window.location.href='@Url.RouteUrl(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT)'">Hủy thay đổi</button>
+                    <button type="submit" id="save-info-button" name="save-info-button" class="command-save">Cập nhật hồ sơ</button>
                 </div>
-            </section>
-            <section class="buttons">
-                <button type="submit" id="save-info-button" name="save-info-button" class="button-1 save-customer-info-button">@T("Common.Save")</button>
-            </section>
-        </form>
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoBottom, additionalData = Model })
-    </div>
+            </div>
+        </div>
+    </form>
+
+    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoBottom, additionalData = Model })
 </div>
 
 <script asp-location="Footer">
@@ -781,6 +959,7 @@
                 }
             });
         }
+
         return false;
     }
 </script>

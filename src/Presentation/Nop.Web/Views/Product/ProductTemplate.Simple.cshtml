@@ -1,8 +1,9 @@
-﻿@model ProductDetailsModel
+@model ProductDetailsModel
 
 @using Nop.Core
 @using Nop.Core.Domain.Catalog
 @using Nop.Core.Domain.Seo
+@using Nop.Core.Domain.Vendors
 @using Nop.Services.Html
 
 @inject IHtmlFormatter htmlFormatter
@@ -12,22 +13,17 @@
 @{
     Layout = "_ColumnsOne";
 
-    //title
     NopHtml.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
-    //meta
     NopHtml.AddMetaDescriptionParts(Model.MetaDescription);
     NopHtml.AddMetaKeywordParts(Model.MetaKeywords);
-    //page class
     NopHtml.AppendPageCssClassParts("html-product-details-page");
 
-    //canonical URL
     if (seoSettings.CanonicalUrlsEnabled)
     {
         var productUrl = (await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }, webHelper.GetCurrentRequestProtocol())).ToLowerInvariant();
         NopHtml.AddCanonicalUrlParts(productUrl, seoSettings.QueryStringInCanonicalUrlsEnabled);
     }
 
-    //open graph META tags
     if (seoSettings.OpenGraphMetaTags)
     {
         NopHtml.AddHeadCustomParts("<meta property=\"og:type\" content=\"product\" />");
@@ -39,7 +35,6 @@
         NopHtml.AddHeadCustomParts("<meta property=\"og:site_name\" content=\"" + Html.Encode(Model.CurrentStoreName) + "\" />");
     }
 
-    //Twitter META tags
     if (seoSettings.TwitterMetaTags)
     {
         NopHtml.AddHeadCustomParts("<meta property=\"twitter:card\" content=\"summary\" />");
@@ -49,146 +44,491 @@
         NopHtml.AddHeadCustomParts("<meta property=\"twitter:image\" content=\"" + Model.DefaultPictureModel.ImageUrl + "\" />");
         NopHtml.AddHeadCustomParts("<meta property=\"twitter:url\" content=\"" + webHelper.GetThisPageUrl(false) + "\" />");
     }
-    
+
     NopHtml.AddJsonLdParts(Model.JsonLd);
+
+    var availabilityState = Model.AddToCart.AvailableForPreOrder
+        ? "preorder"
+        : Model.AddToCart.DisableBuyButton
+            ? "supplying"
+            : "available";
+    var availabilityText = availabilityState == "preorder"
+        ? "Đặt trước"
+        : availabilityState == "supplying"
+            ? "Đang cung ứng"
+            : "Có sẵn";
+    var availabilityClass = availabilityState == "preorder"
+        ? "is-preorder"
+        : availabilityState == "supplying"
+            ? "is-supplying"
+            : "is-available";
+    var codeHint = !string.IsNullOrWhiteSpace(Model.Sku)
+        ? Model.Sku
+        : !string.IsNullOrWhiteSpace(Model.ManufacturerPartNumber)
+            ? Model.ManufacturerPartNumber
+            : !string.IsNullOrWhiteSpace(Model.Gtin)
+                ? Model.Gtin
+                : $"ID-{Model.Id}";
+    var hasSpecifications = Model.ProductSpecificationModel.Groups.Any(group => group.Attributes.Any());
+    var hasTags = Model.ProductTags.Any();
+    var vendorUrl = Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.SeName)
+        ? await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = Model.VendorModel.SeName })
+        : string.Empty;
 }
-<!--product breadcrumb-->
+
 @section Breadcrumb
 {
     @await Html.PartialAsync("_ProductBreadcrumb", Model.Breadcrumb)
 }
 
 <style>
-.product-details-page { padding: 0; }
-.product-details-page .page-body { padding: 24px; }
-.product-details-page .product-essential { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: 32px; }
-.product-details-page .gallery { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; overflow: hidden; padding: 8px; box-shadow: 0 4px 16px -8px rgba(15,23,42,0.10); }
-.product-details-page .overview { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; box-shadow: 0 4px 16px -8px rgba(15,23,42,0.10); display: flex; flex-direction: column; gap: 16px; }
-.product-details-page .product-name h1 { font-size: 22px; font-weight: 800; color: #141c24; letter-spacing: -0.02em; line-height: 1.2; margin: 0; }
-.product-details-page .short-description { font-size: 14px; color: #44474c; line-height: 1.7; padding: 12px 0; border-top: 1px solid rgba(196,198,204,0.2); border-bottom: 1px solid rgba(196,198,204,0.2); }
-.product-details-page .sku-panel { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #44474c; }
-.product-details-page .sku-panel label { font-weight: 600; color: #141c24; }
-.product-details-page .product-price { font-size: 26px; font-weight: 900; color: #2d3a22; letter-spacing: -0.03em; }
-.product-details-page .full-description { background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; margin-top: 24px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); font-size: 14px; line-height: 1.8; color: #334155; }
-.product-details-page .product-collateral { margin-top: 24px; background: #fff; border: 1px solid rgba(196,198,204,0.3); border-radius: 16px; padding: 28px; box-shadow: 0 4px 14px -8px rgba(15,23,42,0.08); }
-.product-details-page .overview-buttons { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 8px; border-top: 1px solid rgba(196,198,204,0.2); }
-@@media (max-width: 900px) {
-    .product-details-page .product-essential { grid-template-columns: 1fr; }
-    .product-details-page .page-body { padding: 16px; }
-}
+    .logistics-product-page {
+        padding: 0;
+    }
+
+    .logistics-product-page .page-body {
+        padding: 24px;
+        display: grid;
+        gap: 22px;
+    }
+
+    .logistics-product-page .product-shell {
+        display: grid;
+        gap: 22px;
+    }
+
+    .logistics-product-page .product-hero {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        align-items: start;
+    }
+
+    .logistics-product-page .gallery-card,
+    .logistics-product-page .overview-card,
+    .logistics-product-page .product-section {
+        border: 1px solid rgba(196, 198, 204, 0.35);
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 20px 38px -34px rgba(15, 23, 42, 0.6);
+    }
+
+    .logistics-product-page .gallery-card {
+        padding: 10px;
+    }
+
+    .logistics-product-page .overview-card {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .logistics-product-page .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .logistics-product-page .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .logistics-product-page .status-pill.is-available {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .logistics-product-page .status-pill.is-supplying {
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fdba74;
+    }
+
+    .logistics-product-page .status-pill.is-preorder {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fcd34d;
+    }
+
+    .logistics-product-page .product-name h1 {
+        margin: 0;
+        color: #141c24;
+        font-size: 30px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    .logistics-product-page .product-code-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+    }
+
+    .logistics-product-page .short-description {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.7;
+        padding: 12px 0;
+        border-top: 1px solid #edf2f7;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .logistics-product-page .overview-info {
+        display: grid;
+        gap: 10px;
+    }
+
+    .logistics-product-page .overview-info .stock,
+    .logistics-product-page .overview-info .sku,
+    .logistics-product-page .overview-info .manufacturer-part-number,
+    .logistics-product-page .overview-info .gtin,
+    .logistics-product-page .overview-info .product-vendor,
+    .logistics-product-page .overview-info .delivery-date,
+    .logistics-product-page .overview-info .free-shipping,
+    .logistics-product-page .overview-info .manufacturers {
+        border-radius: 10px;
+        border: 1px solid #edf2f7;
+        background: #f8fafc;
+        padding: 8px 10px;
+        color: #334155;
+        font-size: 13px;
+    }
+
+    .logistics-product-page .overview-info .label {
+        margin-right: 4px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .logistics-product-page .overview-info .value,
+    .logistics-product-page .overview-info a {
+        color: #334155;
+    }
+
+    .logistics-product-page .overview-info a:hover {
+        color: #2e0001;
+    }
+
+    .logistics-product-page .overview-info .manufacturers ul {
+        margin: 8px 0 0 16px;
+    }
+
+    .logistics-product-page .overview-info .product-reviews-overview {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        border-radius: 10px;
+        border: 1px solid #edf2f7;
+        background: #f8fafc;
+        padding: 8px 10px;
+    }
+
+    .logistics-product-page .overview-info .product-review-links a {
+        color: #2e0001;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .logistics-product-page .prices {
+        border-radius: 14px;
+        border: 1px solid #dbe3ef;
+        background: #f7f9ff;
+        padding: 12px;
+        display: grid;
+        gap: 6px;
+    }
+
+    .logistics-product-page .product-price {
+        color: #2e0001;
+        font-size: 29px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    .logistics-product-page .old-product-price {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .logistics-product-page .overview-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #edf2f7;
+    }
+
+    .logistics-product-page .overview-actions .button-2 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid #dbe3ef;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0 12px;
+        transition: all 0.2s ease;
+    }
+
+    .logistics-product-page .overview-actions .button-2:hover {
+        border-color: #2e0001;
+        background: #2e0001;
+        color: #fff;
+    }
+
+    .logistics-product-page .contact-card {
+        border-radius: 12px;
+        border: 1px solid #dbe3ef;
+        background: #f8fafc;
+        padding: 12px;
+    }
+
+    .logistics-product-page .contact-card-label {
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+    }
+
+    .logistics-product-page .contact-card-link {
+        margin-top: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #141c24;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .logistics-product-page .contact-card-link:hover {
+        color: #2e0001;
+    }
+
+    .logistics-product-page .product-section {
+        padding: 24px;
+    }
+
+    .logistics-product-page .section-title {
+        margin: 0 0 14px;
+        color: #141c24;
+        font-size: 19px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+    }
+
+    .logistics-product-page .full-description {
+        color: #334155;
+        font-size: 14px;
+        line-height: 1.85;
+    }
+
+    .logistics-product-page .product-specs-box,
+    .logistics-product-page .product-tags-box {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 14px;
+        margin-top: 14px;
+    }
+
+    .logistics-product-page .product-specs-box .title,
+    .logistics-product-page .product-tags-box .title {
+        margin: 0 0 10px;
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .logistics-product-page .product-share-button {
+        padding-top: 2px;
+    }
+
+    .logistics-product-page .related-products-grid,
+    .logistics-product-page .also-purchased-products-grid {
+        margin-top: 0;
+    }
+
+    @@media (max-width: 1200px) {
+        .logistics-product-page .product-hero {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .logistics-product-page .page-body {
+            padding: 14px;
+        }
+
+        .logistics-product-page .overview-card,
+        .logistics-product-page .product-section {
+            padding: 16px;
+        }
+
+        .logistics-product-page .product-name h1 {
+            font-size: 24px;
+        }
+    }
 </style>
 
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsAfterBreadcrumb, additionalData = Model })
-<div class="page product-details-page">
+<div class="page product-details-page logistics-product-page">
     <div class="page-body">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsTop, additionalData = Model })
         <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form">
-            <article data-productid="@Model.Id">
-                <div class="product-essential space-y-0">
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
-                    <div class="gallery">
-                        <!--product pictures-->
+            <article class="product-shell" data-productid="@Model.Id">
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
+
+                <section class="product-hero">
+                    <div class="gallery-card">
                         @await Html.PartialAsync("_ProductDetailsPictures", Model)
-                        <!--product videos-->
                         @await Html.PartialAsync("_ProductDetailsVideos", Model)
                     </div>
-                    <div class="overview">
+
+                    <aside class="overview-card">
                         @await Html.PartialAsync("_Discontinued", Model)
-                        <div class="product-name">
-                            <h1>
-                                @Model.Name
-                            </h1>
+
+                        <div class="status-row">
+                            <span class="status-pill @availabilityClass">
+                                <span class="material-symbols-outlined text-[15px]">verified</span>
+                                <span>@availabilityText</span>
+                            </span>
+                            <span class="product-code-chip">
+                                <span class="material-symbols-outlined text-[15px]">qr_code</span>
+                                <span>@codeHint</span>
+                            </span>
                         </div>
+
+                        <div class="product-name">
+                            <h1>@Model.Name</h1>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(Model.ShortDescription))
                         {
-                            <div class="short-description">
-                                @Html.Raw(Model.ShortDescription)
-                            </div>
+                            <div class="short-description">@Html.Raw(Model.ShortDescription)</div>
                         }
+
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewTop, additionalData = Model })
-                        <!--product reviews-->
-                        @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
-                        <!--manufacturers-->
-                        @await Html.PartialAsync("_ProductManufacturers", Model.ProductManufacturers)
-                        <!--availability-->
-                        @await Html.PartialAsync("_Availability", Model)
-                        <!--SKU, MAN, GTIN, vendor-->
-                        @await Html.PartialAsync("_SKU_Man_GTIN_Ven", Model)
-                        <!--delivery-->
-                        @await Html.PartialAsync("_DeliveryInfo", Model)
-                        <!--sample download-->
-                        @await Html.PartialAsync("_DownloadSample", Model)
-                        <!--attributes-->
+
+                        <div class="overview-info">
+                            @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
+                            @await Html.PartialAsync("_ProductManufacturers", Model.ProductManufacturers)
+                            @await Html.PartialAsync("_Availability", Model)
+                            @await Html.PartialAsync("_SKU_Man_GTIN_Ven", Model)
+                            @await Html.PartialAsync("_DeliveryInfo", Model)
+                            @await Html.PartialAsync("_DownloadSample", Model)
+                        </div>
+
                         @{
                             var dataDictAttributes = new ViewDataDictionary(ViewData);
                             dataDictAttributes.TemplateInfo.HtmlFieldPrefix = $"attributes_{Model.Id}";
                             @await Html.PartialAsync("_ProductAttributes", Model, dataDictAttributes)
                         }
-                        <!--gift card-->
+
                         @{
                             var dataDictGiftCard = new ViewDataDictionary(ViewData);
                             dataDictGiftCard.TemplateInfo.HtmlFieldPrefix = $"giftcard_{Model.Id}";
                             @await Html.PartialAsync("_GiftCardInfo", Model.GiftCard, dataDictGiftCard)
                         }
-                        <!--rental info-->
+
                         @{
                             var dataDictRental = new ViewDataDictionary(ViewData);
                             dataDictRental.TemplateInfo.HtmlFieldPrefix = $"rental_{Model.Id}";
                             @await Html.PartialAsync("_RentalInfo", Model, dataDictRental)
                         }
-                        <!--price & add to cart & estimate shipping-->
+
                         @{
                             var dataDictPrice = new ViewDataDictionary(ViewData);
                             dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceTop, additionalData = Model })
                             @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceBottom, additionalData = Model })
-
                             @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)
 
                             var dataDictAddToCart = new ViewDataDictionary(ViewData);
                             dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";
                             @await Html.PartialAsync("_AddToCart", Model.AddToCart, dataDictAddToCart)
-
                         }
-                        <!--wishlist, compare, email a friend-->
-                        <div class="overview-buttons">
+
+                        <div class="overview-actions">
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsBefore, additionalData = Model })
-                            @{
-                                var dataDictAddToWishlist = new ViewDataDictionary(ViewData);
-                                dataDictAddToWishlist.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";
-                                @await Html.PartialAsync("_AddToWishlist", Model.AddToCart, dataDictAddToWishlist)
-                            }
                             @await Html.PartialAsync("_CompareProductsButton", Model)
                             @await Html.PartialAsync("_ProductEmailAFriendButton", Model)
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsAfter, additionalData = Model })
                         </div>
+
+                        @if (Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.Name) && !string.IsNullOrWhiteSpace(vendorUrl))
+                        {
+                            <div class="contact-card">
+                                <div class="contact-card-label">Đơn vị phụ trách</div>
+                                <a class="contact-card-link" href="@vendorUrl">
+                                    <span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+                                    <span>@Model.VendorModel.Name</span>
+                                </a>
+                            </div>
+                        }
+
                         @await Html.PartialAsync("_ShareButton", Model)
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewBottom, additionalData = Model })
-                    </div>
-                    @if (!string.IsNullOrEmpty(Model.FullDescription))
-                    {
-                        <div class="full-description">
-                            @Html.Raw(Model.FullDescription)
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
-                </div>
-                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBeforeCollateral, additionalData = Model })
-                <section class="product-collateral">
-                    @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecificationModel)
-                    @await Html.PartialAsync("_ProductTags", Model.ProductTags)
+                    </aside>
                 </section>
+
+                @if (!string.IsNullOrEmpty(Model.FullDescription))
+                {
+                    <section class="product-section">
+                        <h2 class="section-title">Mô tả chi tiết</h2>
+                        <div class="full-description">@Html.Raw(Model.FullDescription)</div>
+                    </section>
+                }
+
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBeforeCollateral, additionalData = Model })
+
+                @if (hasSpecifications || hasTags)
+                {
+                    <section class="product-section product-collateral">
+                        <h2 class="section-title">Thông số và hồ sơ</h2>
+                        @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecificationModel)
+                        @await Html.PartialAsync("_ProductTags", Model.ProductTags)
+                    </section>
+                }
+
                 @await Component.InvokeAsync(typeof(ProductsAlsoPurchasedViewComponent), new { productId = Model.Id })
                 @await Component.InvokeAsync(typeof(RelatedProductsViewComponent), new { productId = Model.Id })
                 @await Component.InvokeAsync(typeof(CompatibleWithFilterLevelValuesViewComponent), new { productId = Model.Id })
             </article>
         </form>
-        <!--product reviews-->
+
         @if (Model.ProductReviewOverview.AllowCustomerReviews)
         {
             @await Html.PartialAsync("_ProductReviews", Model.ProductReviews)
         }
+
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBottom, additionalData = Model })
     </div>
 </div>

@@ -3,7 +3,60 @@
 <link rel="stylesheet" href="~/lib_npm/magnific-popup/magnific-popup.css" />
 <script asp-exclude-from-bundle="true" src="~/lib_npm/magnific-popup/jquery.magnific-popup.min.js" asp-location="Footer"></script>
 
-<div class="picture-gallery">
+<style>
+    .command-picture-gallery .picture {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #f1f5f9;
+    }
+
+    .command-picture-gallery .picture img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+    }
+
+    .command-picture-gallery .picture-thumbs {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .command-picture-gallery .thumb-item {
+        border: 2px solid #dbe3ef;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+        cursor: pointer;
+    }
+
+    .command-picture-gallery .thumb-item:hover {
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+    }
+
+    .command-picture-gallery .thumb-item.active {
+        border-color: #2e0001;
+        box-shadow: 0 0 0 2px rgba(46, 0, 1, 0.1);
+    }
+
+    .command-picture-gallery .thumb-item img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+    }
+
+    @@media (max-width: 767px) {
+        .command-picture-gallery .picture-thumbs {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+</style>
+
+<div class="picture-gallery command-picture-gallery" id="command-picture-gallery-@Model.Id">
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBeforePictures, additionalData = Model })
     <div class="picture">
         @if (Model.DefaultPictureZoomEnabled && Model.PictureModels.Count == 1)
@@ -25,8 +78,9 @@
     @if (Model.PictureModels.Count > 1 && Model.DefaultPictureZoomEnabled)
     {
         <div class="picture-thumbs">
-            @foreach (var picture in Model.PictureModels)
+            @for (var pictureIndex = 0; pictureIndex < Model.PictureModels.Count; pictureIndex++)
             {
+                var picture = Model.PictureModels[pictureIndex];
                 <a class="thumb-item" data-pictureid="@picture.Id" href="@picture.FullSizeImageUrl" alt="@picture.AlternateText" title="@picture.Title">
                     <img src="@picture.ThumbImageUrl" alt="@picture.AlternateText" title="@picture.Title" data-defaultsize="@picture.ImageUrl" data-fullsize="@picture.FullSizeImageUrl" />
                 </a>
@@ -34,7 +88,9 @@
         </div>
         <script asp-location="Footer">
             $(function() {
-                $('.picture-thumbs').magnificPopup(
+                var $gallery = $('#command-picture-gallery-@Model.Id');
+
+                $gallery.find('.picture-thumbs').magnificPopup(
                     {
                         type: 'image',
                         delegate: 'a',
@@ -54,14 +110,20 @@
         </script>
         <script asp-location="Footer">
             $(function() {
-                $('.thumb-item > img').on('click',
+                var $gallery = $('#command-picture-gallery-@Model.Id');
+
+                $gallery.find('.thumb-item > img').on('click',
                     function() {
+                        $gallery.find('.thumb-item').removeClass('active');
+                        $(this).closest('.thumb-item').addClass('active');
                         $('#main-product-img-@Model.Id').attr('src', $(this).attr('data-defaultsize'));
                         $('#main-product-img-@Model.Id').attr('title', $(this).attr('title'));
                         $('#main-product-img-@Model.Id').attr('alt', $(this).attr('alt'));
                         $('#main-product-img-lightbox-anchor-@Model.Id').attr('href', $(this).attr('data-fullsize'));
                         $('#main-product-img-lightbox-anchor-@Model.Id').attr('title', $(this).attr('title'));
                     });
+
+                $gallery.find('.thumb-item').first().addClass('active');
             });
         </script>
     }
@@ -70,8 +132,9 @@
         if (Model.PictureModels.Count > 1)
         {
             <div class="picture-thumbs">
-                @foreach (var picture in Model.PictureModels)
+                @for (var pictureIndex = 0; pictureIndex < Model.PictureModels.Count; pictureIndex++)
                 {
+                    var picture = Model.PictureModels[pictureIndex];
                     <div class="thumb-item" data-pictureid="@picture.Id">
                         <img src="@picture.ThumbImageUrl" alt="@picture.AlternateText" title="@picture.Title" data-defaultsize="@picture.ImageUrl" data-fullsize="@picture.FullSizeImageUrl" />
                     </div>
@@ -79,8 +142,12 @@
             </div>
             <script asp-location="Footer">
                 $(function() {
-                    $('.thumb-item img').on('click',
+                    var $gallery = $('#command-picture-gallery-@Model.Id');
+
+                    $gallery.find('.thumb-item img').on('click',
                         function() {
+                            $gallery.find('.thumb-item').removeClass('active');
+                            $(this).closest('.thumb-item').addClass('active');
                             $('#main-product-img-@Model.Id').attr('src', $(this).attr('data-defaultsize'));
                             $('#main-product-img-@Model.Id').attr('title', $(this).attr('title'));
                             $('#main-product-img-@Model.Id').attr('alt', $(this).attr('alt'));
@@ -88,6 +155,8 @@
                                 .attr('href', $(this).attr('data-fullsize'));
                             $('#main-product-img-lightbox-anchor-@Model.Id').attr('title', $(this).attr('title'));
                         });
+
+                    $gallery.find('.thumb-item').first().addClass('active');
                 });
             </script>
         }

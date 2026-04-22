@@ -165,6 +165,7 @@ public partial class NopStartup : INopStartup
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<ICustomerRegistrationService, CustomerRegistrationService>();
         services.AddScoped<ICustomerReportService, CustomerReportService>();
+        services.AddScoped<ICustomerMilitaryProfileService, CustomerMilitaryProfileService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IAclService, AclService>();
         services.AddScoped<IPriceCalculationService, PriceCalculationService>();

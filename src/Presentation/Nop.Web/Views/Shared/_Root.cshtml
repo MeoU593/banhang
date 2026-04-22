@@ -1,6 +1,6 @@
 @inject Nop.Services.Security.IPermissionService _rootPermissionService
 @inject Nop.Core.IWorkContext _rootWorkContext
-@inject Nop.Services.Common.IGenericAttributeService _rootGenericAttrService
+@inject Nop.Services.Customers.ICustomerMilitaryProfileService _rootCustomerMilitaryProfileService
 @inject Nop.Core.Domain.Common.DutyMessageSettings _rootDutySettings
 @{
     Layout = "_Root.Head";
@@ -18,9 +18,9 @@
     if (isAuthenticated)
     {
         var currentCustomer = await _rootWorkContext.GetCurrentCustomerAsync();
-        var customTitle = await _rootGenericAttrService.GetAttributeAsync<string>(currentCustomer, Nop.Core.Domain.Customers.NopCustomerDefaults.DutyRoleTitleAttribute);
-        if (!string.IsNullOrWhiteSpace(customTitle))
-            dutyRoleTitle = customTitle;
+        var militaryProfile = await _rootCustomerMilitaryProfileService.GetByCustomerIdAsync(currentCustomer.Id);
+        if (!string.IsNullOrWhiteSpace(militaryProfile?.PositionTitle))
+            dutyRoleTitle = militaryProfile.PositionTitle;
     }
 }
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BodyStartHtmlTagAfter })

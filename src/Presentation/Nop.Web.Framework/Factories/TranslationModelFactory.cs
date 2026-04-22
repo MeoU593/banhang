@@ -153,7 +153,10 @@ public partial class TranslationModelFactory : ITranslationModelFactory
 
                     //DeepL: stop translate if one of the languages aren't support
                     //to reduce error count
-                    if (e.Message.Contains("Value for 'target_lang' not supported", StringComparison.InvariantCultureIgnoreCase) || e.Message.Contains("Value for 'source_lang' not supported", StringComparison.InvariantCultureIgnoreCase))
+                    if (e.Message.Contains("Value for 'target_lang' not supported", StringComparison.InvariantCultureIgnoreCase)
+                        || e.Message.Contains("Value for 'source_lang' not supported", StringComparison.InvariantCultureIgnoreCase)
+                        || e.Message.Contains("SOURCE_LANG_", StringComparison.InvariantCultureIgnoreCase)
+                        || e.Message.Contains("TARGET_LANG_", StringComparison.InvariantCultureIgnoreCase))
                         break;
                 }
             }
@@ -236,12 +239,27 @@ public partial class TranslationModelFactory : ITranslationModelFactory
 
             if (_deeplClient != null)
             {
-                var response = await _deeplClient.TranslateTextAsync(originText, originalLanguage.UniqueSeoCode, targetLanguage.UniqueSeoCode, new TextTranslateOptions
+                var textTranslateOptions = new TextTranslateOptions
                 {
                     TagHandling = isHtml ? "html" : null
-                });
+                };
 
-                return response.Text;
+                var sourceLanguageCode = originalLanguage?.UniqueSeoCode?.ToUpperInvariant();
+                var targetLanguageCode = targetLanguage?.UniqueSeoCode?.ToUpperInvariant();
+
+                string translatedText;
+
+                try
+                {
+                    translatedText = (await _deeplClient.TranslateTextAsync(originText, sourceLanguageCode, targetLanguageCode, textTranslateOptions)).Text;
+                }
+                catch (Exception ex) when (ex.Message.Contains("SOURCE_LANG_", StringComparison.InvariantCultureIgnoreCase)
+                                           || ex.Message.Contains("Value for 'source_lang' not supported", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    translatedText = (await _deeplClient.TranslateTextAsync(originText, null, targetLanguageCode, textTranslateOptions)).Text;
+                }
+
+                return translatedText;
             }
 
             return string.Empty;

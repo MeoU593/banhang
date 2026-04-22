@@ -15,16 +15,26 @@
     var hasBasePrice = !string.IsNullOrWhiteSpace(Model.ProductPrice.BasePricePAngV);
     var categoryBadge = ViewData["categoryName"] as string;
     var leftBadge = !string.IsNullOrWhiteSpace(categoryBadge) ? categoryBadge : (hasSku ? Model.Sku : Model.ProductType.ToString());
-    var rightBadge = Model.ProductPrice.AvailableForPreOrder
-        ? "Đặt trước"
+    var availabilityStatus = Model.ProductPrice.AvailableForPreOrder
+        ? "preorder"
         : Model.ProductPrice.DisableBuyButton
+            ? "supplying"
+            : "available";
+    var availabilityText = availabilityStatus == "preorder"
+        ? "Đặt trước"
+        : availabilityStatus == "supplying"
             ? "Đang cung ứng"
             : "Có sẵn";
-    var rightBadgeClass = rightBadge == "Đặt trước"
+    var availabilityBadgeClass = availabilityStatus == "preorder"
         ? "bg-amber-500 text-white"
-        : rightBadge == "Đang cung ứng"
+        : availabilityStatus == "supplying"
             ? "bg-orange-500 text-white"
             : "bg-emerald-600 text-white";
+    var availabilityDotClass = availabilityStatus == "preorder"
+        ? "bg-amber-500"
+        : availabilityStatus == "supplying"
+            ? "bg-orange-500"
+            : "bg-emerald-500";
     var descriptionText = hasShortDescription ? Model.ShortDescription : Model.FullDescription;
     var metaRows = new List<(string Label, string Value)>();
 
@@ -38,104 +48,112 @@
 
             metaRows.Add((attribute.Name, firstValue));
             if (metaRows.Count == 2)
-            {
                 break;
-            }
         }
 
         if (metaRows.Count == 2)
-        {
             break;
-        }
     }
 
     if (metaRows.Count < 2 && hasSku)
-    {
         metaRows.Add(("Mã sản phẩm", Model.Sku));
-    }
-
-    if (metaRows.Count < 2 && hasPrice)
-    {
-        metaRows.Add(("Mức giá", Model.ProductPrice.Price));
-    }
 
     if (metaRows.Count < 2 && hasBasePrice)
-    {
         metaRows.Add(("Đơn vị", Model.ProductPrice.BasePricePAngV));
-    }
+
+    if (metaRows.Count < 2 && hasPrice)
+        metaRows.Add(("Mức giá", Model.ProductPrice.Price));
 
     if (metaRows.Count < 2)
-    {
         metaRows.Add(("Loại", Model.ProductType.ToString()));
-    }
 
+    var supplierText = metaRows.FirstOrDefault().Value;
+    var detailText = metaRows.Skip(1).FirstOrDefault().Value;
     var searchData = string.Join(" ", new[]
     {
         Model.Name,
         leftBadge,
+        availabilityText,
         descriptionText,
+        supplierText,
+        detailText,
         string.Join(" ", metaRows.Select(meta => $"{meta.Label} {meta.Value}"))
     }.Where(value => !string.IsNullOrWhiteSpace(value)));
 }
 
-<article class="product-item group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_28px_-24px_rgba(15,23,42,0.22)] transition duration-300 hover:shadow-[0_18px_36px_-24px_rgba(15,23,42,0.24)]" data-productid="@Model.Id" data-product-search="@searchData">
-    <div class="picture relative h-48 overflow-hidden bg-slate-100">
-        @if (!string.IsNullOrWhiteSpace(leftBadge))
-        {
-            <div class="absolute left-3 top-3 z-10 rounded-sm border border-slate-200 bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-700">
-                @leftBadge
-            </div>
-        }
-        @if (!string.IsNullOrWhiteSpace(rightBadge))
-        {
-            <div class="availability-badge absolute right-3 top-3 z-10 rounded-sm px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] @rightBadgeClass">
-                @rightBadge
-            </div>
-        }
-        <a class="block h-full w-full" href="@productUrl" title="@picture?.Title">
-            <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" alt="@picture?.AlternateText" src="@picture?.ImageUrl" title="@picture?.Title" />
+<article class="command-product-card product-item group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_32px_-28px_rgba(15,23,42,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-30px_rgba(15,23,42,0.55)]" data-productid="@Model.Id" data-product-search="@searchData" data-product-status="@availabilityStatus">
+    <div class="picture relative h-52 overflow-hidden bg-slate-100">
+        <div class="absolute left-3 top-3 z-20 rounded-sm bg-slate-900/80 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
+            @leftBadge
+        </div>
+        <div class="availability-badge absolute right-3 top-3 z-20 rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] @availabilityBadgeClass">
+            @availabilityText
+        </div>
+        <a class="block h-full w-full" href="@productUrl" title="@(picture?.Title ?? Model.Name)">
+            @if (!string.IsNullOrWhiteSpace(picture?.ImageUrl))
+            {
+                <img class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" alt="@(picture?.AlternateText ?? Model.Name)" src="@picture.ImageUrl" title="@(picture?.Title ?? Model.Name)" />
+            }
+            else
+            {
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-slate-500">
+                    <span class="material-symbols-outlined text-4xl">inventory_2</span>
+                </div>
+            }
         </a>
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent"></div>
     </div>
 
     <div class="details flex flex-1 flex-col gap-4 p-5">
-        <div class="space-y-1">
-            <h2 class="product-title text-lg font-bold leading-tight text-slate-900">
-                <a class="transition group-hover:text-[#1152d4]" href="@productUrl">@Model.Name</a>
+        <div class="space-y-2">
+            <h2 class="product-title text-base font-extrabold leading-tight text-slate-900">
+                <a class="transition group-hover:text-primary" href="@productUrl">@Model.Name</a>
             </h2>
+
+            @if (!string.IsNullOrWhiteSpace(supplierText))
+            {
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                    <span aria-hidden="true" class="material-symbols-outlined text-[17px]">store</span>
+                    <span class="truncate">@Html.Raw(supplierText)</span>
+                </div>
+            }
 
             @if (!string.IsNullOrWhiteSpace(descriptionText))
             {
-                <div class="description line-clamp-2 text-xs font-medium leading-5 text-slate-500">
+                <div class="description text-xs leading-5 text-slate-500" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     @Html.Raw(descriptionText)
                 </div>
             }
         </div>
 
-        <div class="add-info flex flex-1 flex-col">
+        <div class="add-info mt-auto flex flex-col gap-4">
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoBefore, additionalData = Model })
 
-            <div class="space-y-2 text-sm text-slate-600">
-                @for (var metaIndex = 0; metaIndex < Math.Min(2, metaRows.Count); metaIndex++)
+            <div class="space-y-2">
+                @if (!string.IsNullOrWhiteSpace(detailText))
                 {
-                    var meta = metaRows[metaIndex];
-                    var metaIcon = metaIndex == 0 ? "domain" : "inventory";
-
-                    <div class="flex items-center gap-2 text-slate-600">
-                        <span aria-hidden="true" class="material-symbols-outlined" style="font-size:18px; font-family:'Material Symbols Outlined' !important;">@metaIcon</span>
-                        <span class="truncate text-sm">@Html.Raw(meta.Value)</span>
+                    <div class="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                        @Html.Raw(detailText)
                     </div>
                 }
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full @availabilityDotClass @(availabilityStatus == "available" ? "animate-pulse" : string.Empty)"></span>
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">@availabilityText</span>
+                    </div>
+                    @if (hasPrice)
+                    {
+                        <span class="text-base font-black tracking-tight text-primary">@Html.Raw(Model.ProductPrice.Price)</span>
+                    }
+                </div>
             </div>
 
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoMiddle, additionalData = Model })
 
-            <div class="buttons mt-4 pt-2">
-                <a href="@productUrl" class="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-bold text-slate-900 transition hover:bg-[#1152d4] hover:text-white active:scale-[0.98]">
+            <div class="buttons pt-1">
+                <a href="@productUrl" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-bold text-slate-800 transition hover:border-primary hover:bg-primary hover:text-white active:scale-[0.98]">
                     <span>Xem chi tiết</span>
-                    <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3.33334 8H12.6667" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
-                        <path d="M8.66669 4L12.6667 8L8.66669 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
-                    </svg>
+                    <span class="material-symbols-outlined text-[18px]">arrow_right_alt</span>
                 </a>
             </div>
 

@@ -47,6 +47,7 @@ public partial class CustomerController : BaseAdminController
     protected readonly IAttributeParser<CustomerAttribute, CustomerAttributeValue> _customerAttributeParser;
     protected readonly IAttributeService<CustomerAttribute, CustomerAttributeValue> _customerAttributeService;
     protected readonly ICustomerActivityService _customerActivityService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerModelFactory _customerModelFactory;
     protected readonly ICustomerRegistrationService _customerRegistrationService;
     protected readonly ICustomerService _customerService;
@@ -84,6 +85,7 @@ public partial class CustomerController : BaseAdminController
         IAttributeParser<CustomerAttribute, CustomerAttributeValue> customerAttributeParser,
         IAttributeService<CustomerAttribute, CustomerAttributeValue> customerAttributeService,
         ICustomerActivityService customerActivityService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerModelFactory customerModelFactory,
         ICustomerRegistrationService customerRegistrationService,
         ICustomerService customerService,
@@ -116,6 +118,7 @@ public partial class CustomerController : BaseAdminController
         _customerAttributeParser = customerAttributeParser;
         _customerAttributeService = customerAttributeService;
         _customerActivityService = customerActivityService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerModelFactory = customerModelFactory;
         _customerRegistrationService = customerRegistrationService;
         _customerService = customerService;
@@ -257,6 +260,37 @@ public partial class CustomerController : BaseAdminController
         var customers = await _customerService.GetAllCustomersAsync(customerRoleIds: [(await _customerService.GetCustomerRoleBySystemNameAsync(NopCustomerDefaults.AdministratorsRoleName)).Id]);
 
         return customers.Any(c => c.Active && c.Id != customer.Id);
+    }
+
+    protected virtual async Task SaveCustomerMilitaryProfileAsync(Customer customer, CustomerModel model)
+    {
+        var now = DateTime.UtcNow;
+        var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(customer.Id);
+        if (militaryProfile == null)
+        {
+            militaryProfile = new CustomerMilitaryProfile
+            {
+                CustomerId = customer.Id,
+                CreatedOnUtc = now
+            };
+
+            PopulateMilitaryProfile(militaryProfile, model, now);
+            await _customerMilitaryProfileService.InsertAsync(militaryProfile);
+            return;
+        }
+
+        PopulateMilitaryProfile(militaryProfile, model, now);
+        await _customerMilitaryProfileService.UpdateAsync(militaryProfile);
+    }
+
+    protected virtual void PopulateMilitaryProfile(CustomerMilitaryProfile militaryProfile, CustomerModel model, DateTime updatedOnUtc)
+    {
+        militaryProfile.MilitaryCode = model.MilitaryCode?.Trim();
+        militaryProfile.Rank = model.Rank?.Trim();
+        militaryProfile.UnitName = model.UnitName?.Trim();
+        militaryProfile.PositionTitle = model.PositionTitle?.Trim();
+        militaryProfile.EnlistmentDate = model.EnlistmentDate;
+        militaryProfile.UpdatedOnUtc = updatedOnUtc;
     }
 
     #endregion
@@ -422,6 +456,7 @@ public partial class CustomerController : BaseAdminController
             }
 
             await _customerService.UpdateCustomerAsync(customer);
+            await SaveCustomerMilitaryProfileAsync(customer, model);
 
             //ensure that a customer with a vendor associated is not in "Administrators" role
             //otherwise, he won't have access to other functionality in admin area
@@ -637,6 +672,7 @@ public partial class CustomerController : BaseAdminController
                 }
 
                 await _customerService.UpdateCustomerAsync(customer);
+                await SaveCustomerMilitaryProfileAsync(customer, model);
 
                 //ensure that a customer with a vendor associated is not in "Administrators" role
                 //otherwise, he won't have access to the other functionality in admin area

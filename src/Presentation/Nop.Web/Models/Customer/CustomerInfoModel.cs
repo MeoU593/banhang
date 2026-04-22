@@ -17,6 +17,8 @@ public partial record CustomerInfoModel : BaseNopModel
         CustomerAttributes = new List<CustomerAttributeModel>();
         GdprConsents = new List<GdprConsentModel>();
         NewsLetterSubscriptions = new List<NewsLetterSubscriptionModel>();
+        RecentActivities = new List<RecentActivityModel>();
+        PostedDocuments = new List<PostedDocumentModel>();
     }
 
     [DataType(DataType.EmailAddress)]
@@ -66,7 +68,15 @@ public partial record CustomerInfoModel : BaseNopModel
     [NopResourceDisplayName("Account.Fields.Company")]
     public string Company { get; set; }
 
-    public string DutyRoleTitle { get; set; }
+    public string MilitaryCode { get; set; }
+
+    public string Rank { get; set; }
+
+    public string UnitName { get; set; }
+
+    public string PositionTitle { get; set; }
+
+    public DateTime? EnlistmentDate { get; set; }
 
     public bool StreetAddressEnabled { get; set; }
     public bool StreetAddressRequired { get; set; }
@@ -149,6 +159,10 @@ public partial record CustomerInfoModel : BaseNopModel
 
     public IList<GdprConsentModel> GdprConsents { get; set; }
 
+    public IList<RecentActivityModel> RecentActivities { get; set; }
+
+    public IList<PostedDocumentModel> PostedDocuments { get; set; }
+
     #region Nested classes
 
     public partial record AssociatedExternalAuthModel : BaseNopEntityModel
@@ -158,6 +172,32 @@ public partial record CustomerInfoModel : BaseNopModel
         public string ExternalIdentifier { get; set; }
 
         public string AuthMethodName { get; set; }
+    }
+
+    public partial record RecentActivityModel : BaseNopModel
+    {
+        public string ActivityTypeName { get; set; }
+
+        public string Comment { get; set; }
+
+        public string EntityName { get; set; }
+
+        public string IpAddress { get; set; }
+
+        public DateTime CreatedOnUtc { get; set; }
+    }
+
+    public partial record PostedDocumentModel : BaseNopEntityModel
+    {
+        public string Title { get; set; }
+
+        public string Code { get; set; }
+
+        public string Slug { get; set; }
+
+        public bool Published { get; set; }
+
+        public DateTime CreatedOnUtc { get; set; }
     }
 
     #endregion

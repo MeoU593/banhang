@@ -7,10 +7,19 @@
     NopHtml.AddTitleParts(T("PageTitle.Blog").Text);
     NopHtml.AppendPageCssClassParts("html-blog-page");
 
+    var currentType = Model.PagingFilteringContext.PostTypeId;
+    var newsListUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS);
+    var documentListUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS);
+    var allListUrl = Url.RouteUrl(NopRouteNames.General.BLOG);
+
     var pageTitle = string.Empty;
     if (string.IsNullOrEmpty(Model.PagingFilteringContext.Tag))
     {
-        if (Model.PagingFilteringContext.GetParsedMonth().HasValue)
+        if (currentType.HasValue)
+        {
+            pageTitle = currentType.Value == 1 ? "Văn bản" : "Tin tức";
+        }
+        else if (Model.PagingFilteringContext.GetParsedMonth().HasValue)
         {
             pageTitle = string.Format(T("Blog.FilteredByMonth").Text,
                 Model.PagingFilteringContext.GetParsedMonth().Value.Year,
@@ -40,7 +49,25 @@
         <h2 class="text-2xl font-bold tracking-tight text-on-surface">@pageTitle</h2>
         <div class="mt-1 flex items-center gap-2">
             <span class="h-1 w-12 rounded-full bg-military-green"></span>
-            <p class="text-sm font-medium text-on-surface-variant">Cập nhật thông báo và hướng dẫn tác chiến từ hệ thống</p>
+            <p class="text-sm font-medium text-on-surface-variant">
+                @if (currentType == 1)
+                {
+                    @:Kho văn bản nội bộ được quản lý trong blog
+                }
+                else if (currentType == 0)
+                {
+                    @:Cập nhật tin tức và thông báo mới nhất
+                }
+                else
+                {
+                    @:Hệ thống blog hợp nhất cho tin tức và văn bản
+                }
+            </p>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+            <a href="@allListUrl" class="@(currentType.HasValue ? "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container" : "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition")">Tất cả</a>
+            <a href="@newsListUrl" class="@(currentType == 0 ? "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition" : "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container")">Tin tức</a>
+            <a href="@documentListUrl" class="@(currentType == 1 ? "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition" : "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container")">Văn bản</a>
         </div>
     </div>
 
@@ -50,13 +77,18 @@
         <div class="blog-posts space-y-4">
             @foreach (var item in Model.BlogPosts)
             {
-                var postUrl = await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
-                var commentsUrl = await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName }, fragment: "comments");
+                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                var commentsUrl = $"{postUrl}#comments";
+                var typeLabel = item.PostTypeId == 1 ? "Văn bản" : "Tin tức";
+                var typeClass = item.PostTypeId == 1
+                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                    : "bg-red-50 text-red-700 border border-red-100";
 
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePost, additionalData = item })
                 <article class="post group rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm transition hover:shadow-md">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
-                        <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-100">Bản tin</span>
+                        <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider @typeClass">@typeLabel</span>
                         <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="text-xs text-on-surface-variant">
                             @item.CreatedOn.ToString("dd/MM/yyyy")
                         </time>

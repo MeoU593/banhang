@@ -171,11 +171,6 @@ public static partial class NopCustomerDefaults
     public static string SelectedMultiFactorAuthenticationProviderAttribute => "SelectedMultiFactorAuthProvider";
 
     /// <summary>
-    /// Gets a name of generic attribute to store the value of 'DutyRoleTitle'
-    /// </summary>
-    public static string DutyRoleTitleAttribute => "DutyRoleTitle";
-
-    /// <summary>
     /// Gets a name of session key
     /// </summary>
     public static string CustomerMultiFactorAuthenticationInfo => "CustomerMultiFactorAuthenticationInfo";

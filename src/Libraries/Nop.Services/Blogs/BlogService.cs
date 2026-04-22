@@ -75,13 +75,14 @@ public partial class BlogService : IBlogService
     /// <param name="pageSize">Page size</param>
     /// <param name="showHidden">A value indicating whether to show hidden records</param>
     /// <param name="title">Filter by blog post title</param>
+    /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the blog posts
     /// </returns>
     public virtual async Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
         DateTime? dateFrom = null, DateTime? dateTo = null,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null)
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null)
     {
         return await _blogPostRepository.GetAllPagedAsync(async query =>
         {
@@ -96,6 +97,9 @@ public partial class BlogService : IBlogService
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(b => b.Title.Contains(title));
+
+            if (postTypeId.HasValue)
+                query = query.Where(b => b.PostTypeId == postTypeId.Value);
 
             if (!showHidden || storeId > 0)
             {

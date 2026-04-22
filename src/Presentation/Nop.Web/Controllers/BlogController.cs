@@ -11,6 +11,7 @@ using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Messages;
+using Nop.Services.Seo;
 using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Web.Factories;
@@ -39,6 +40,7 @@ public partial class BlogController : BasePublicController
     protected readonly IPermissionService _permissionService;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreMappingService _storeMappingService;
+    protected readonly IUrlRecordService _urlRecordService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
     protected readonly IWorkflowMessageService _workflowMessageService;
@@ -60,6 +62,7 @@ public partial class BlogController : BasePublicController
         IPermissionService permissionService,
         IStoreContext storeContext,
         IStoreMappingService storeMappingService,
+        IUrlRecordService urlRecordService,
         IWebHelper webHelper,
         IWorkContext workContext,
         IWorkflowMessageService workflowMessageService,
@@ -77,6 +80,7 @@ public partial class BlogController : BasePublicController
         _permissionService = permissionService;
         _storeContext = storeContext;
         _storeMappingService = storeMappingService;
+        _urlRecordService = urlRecordService;
         _webHelper = webHelper;
         _workContext = workContext;
         _workflowMessageService = workflowMessageService;
@@ -112,6 +116,36 @@ public partial class BlogController : BasePublicController
 
         var model = await _blogModelFactory.PrepareBlogPostListModelAsync(command);
         return View("List", model);
+    }
+
+    public virtual async Task<IActionResult> ListByType(BlogPagingFilteringModel command, int postTypeId)
+    {
+        if (!_blogSettings.Enabled)
+            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
+
+        command.PostTypeId = postTypeId;
+
+        var model = await _blogModelFactory.PrepareBlogPostListModelAsync(command);
+        return View("List", model);
+    }
+
+    public virtual async Task<IActionResult> PostByType(int postTypeId, string seName)
+    {
+        if (!_blogSettings.Enabled)
+            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
+
+        if (string.IsNullOrWhiteSpace(seName))
+            return InvokeHttp404();
+
+        var urlRecord = await _urlRecordService.GetBySlugAsync(seName);
+        if (urlRecord == null || !urlRecord.EntityName.Equals(nameof(BlogPost), StringComparison.InvariantCultureIgnoreCase))
+            return InvokeHttp404();
+
+        var blogPost = await _blogService.GetBlogPostByIdAsync(urlRecord.EntityId);
+        if (blogPost == null || blogPost.PostTypeId != postTypeId)
+            return InvokeHttp404();
+
+        return await BlogPost(blogPost.Id);
     }
 
     [CheckLanguageSeoCode(ignore: true)]
@@ -220,7 +254,10 @@ public partial class BlogController : BasePublicController
                 ? await _localizationService.GetResourceAsync("Blog.Comments.SuccessfullyAdded")
                 : await _localizationService.GetResourceAsync("Blog.Comments.SeeAfterApproving");
 
-            var blogPostUrl = await _nopUrlHelper.RouteGenericUrlAsync(blogPost, languageId: blogPost.LanguageId, ensureTwoPublishedLanguages: false);
+            var routeName = blogPost.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+            var blogPostSeName = await _urlRecordService.GetSeNameAsync(blogPost, blogPost.LanguageId, ensureTwoPublishedLanguages: false);
+            var blogPostUrl = Url.RouteUrl(routeName, new { SeName = blogPostSeName })
+                              ?? await _nopUrlHelper.RouteGenericUrlAsync(blogPost, languageId: blogPost.LanguageId, ensureTwoPublishedLanguages: false);
             return LocalRedirect(blogPostUrl);
         }
 

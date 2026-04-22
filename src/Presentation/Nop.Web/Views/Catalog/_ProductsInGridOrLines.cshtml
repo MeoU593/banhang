@@ -3,7 +3,7 @@
 <style>
     .catalog-products-refined .catalog-grid {
         display: grid;
-        gap: 24px;
+        gap: 20px;
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }
 
@@ -59,16 +59,44 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        padding-top: 24px;
-        border-top: 1px solid #e2e8f0;
+        gap: 14px;
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
+        background: #ffffff;
+        padding: 12px 16px;
+        box-shadow: 0 18px 32px -30px rgba(15, 23, 42, 0.45);
     }
 
     .catalog-products-refined .catalog-pagination-summary {
         margin: 0;
-        color: #64748b;
+        color: #475569;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 700;
+    }
+
+    .catalog-products-refined .catalog-pagination-legend {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .catalog-products-refined .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        background: #f8fafc;
+        padding: 4px 10px;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .catalog-products-refined .legend-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
     }
 
     .catalog-products-refined .pager {
@@ -93,11 +121,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
-        height: 32px;
+        min-width: 34px;
+        height: 34px;
         padding: 0 10px;
-        border: 1px solid transparent;
-        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
         background: transparent;
         color: #475569;
         font-size: 12px;
@@ -109,6 +137,7 @@
     .catalog-products-refined .pager a:hover {
         background: #f8fafc;
         color: #0f172a;
+        border-color: #dbe3ef;
     }
 
     .catalog-products-refined .pager .current-page span {
@@ -124,6 +153,20 @@
     .catalog-products-refined .pager .last-page a {
         border-color: #e2e8f0;
         background: #ffffff;
+    }
+
+    .catalog-products-refined .catalog-empty {
+        border: 2px dashed #c4c6cc;
+        border-radius: 16px;
+        background: #f8fafc;
+        padding: 38px 16px;
+        text-align: center;
+    }
+
+    .catalog-products-refined .catalog-empty .material-symbols-outlined {
+        color: #94a3b8;
+        font-size: 36px;
+        margin-bottom: 8px;
     }
 
     @@media (min-width: 768px) {
@@ -143,6 +186,16 @@
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
     }
+
+    @@media (max-width: 767px) {
+        .catalog-products-refined .catalog-pagination-row {
+            padding: 12px;
+        }
+
+        .catalog-products-refined .catalog-pagination-summary {
+            width: 100%;
+        }
+    }
 </style>
 
 @if (!string.IsNullOrEmpty(Model.WarningMessage))
@@ -155,6 +208,9 @@
 @if (Model.Products.Count > 0)
 {
     var paginationSummaryLabel = ViewData["PaginationSummaryLabel"] as string ?? "sản phẩm trong danh mục này";
+    var availableCount = Model.Products.Count(product => !product.ProductPrice.DisableBuyButton && !product.ProductPrice.AvailableForPreOrder);
+    var supplyingCount = Model.Products.Count(product => product.ProductPrice.DisableBuyButton && !product.ProductPrice.AvailableForPreOrder);
+    var preOrderCount = Model.Products.Count(product => product.ProductPrice.AvailableForPreOrder);
 
     <div class="catalog-products-refined space-y-6">
         <div class="@(Model.ViewMode == "list" ? "product-list" : "product-grid")">
@@ -181,6 +237,14 @@
         {
             <div class="catalog-pagination-row">
                 <p class="catalog-pagination-summary">Hiển thị @Model.FirstItem-@Model.LastItem trong số @Model.TotalItems @paginationSummaryLabel (Trang @Model.PageNumber/@Model.TotalPages)</p>
+                <div class="catalog-pagination-legend">
+                    <span class="legend-item"><span class="legend-dot bg-emerald-500"></span> @availableCount Có sẵn</span>
+                    <span class="legend-item"><span class="legend-dot bg-orange-500"></span> @supplyingCount Đang cung ứng</span>
+                    @if (preOrderCount > 0)
+                    {
+                        <span class="legend-item"><span class="legend-dot bg-amber-500"></span> @preOrderCount Đặt trước</span>
+                    }
+                </div>
                 <div class="pager">
                     @pager
                 </div>
@@ -190,10 +254,13 @@
 }
 else if (!string.IsNullOrEmpty(Model.NoResultMessage))
 {
-    <div class="no-result border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
-        <div class="text-lg font-bold tracking-tight text-slate-900">Không tìm thấy sản phẩm phù hợp</div>
+    <div class="catalog-products-refined">
+        <div class="catalog-empty">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <div class="text-lg font-bold tracking-tight text-slate-900">Không tìm thấy sản phẩm phù hợp</div>
         <div class="mt-2 text-sm leading-7 text-slate-500">
             @Model.NoResultMessage
+        </div>
         </div>
     </div>
 }

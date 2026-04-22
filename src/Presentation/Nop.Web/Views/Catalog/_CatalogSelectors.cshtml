@@ -63,16 +63,11 @@
 
 <style>
     .product-selectors-refined {
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border: 1px solid rgba(196, 198, 204, 0.45);
+        border-radius: 16px;
         background: #ffffff;
         padding: 16px;
-        box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.22);
-    }
-
-    .product-selectors-refined .selector-field,
-    .product-selectors-refined .selector-static {
-        min-height: 100%;
+        box-shadow: 0 22px 34px -30px rgba(15, 23, 42, 0.45);
     }
 
     .product-selectors-refined .selector-label {
@@ -80,7 +75,7 @@
         display: block;
         color: #64748b;
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.14em;
         padding: 0 4px;
@@ -90,16 +85,16 @@
     .product-selectors-refined .selector-search,
     .product-selectors-refined select {
         width: 100%;
-        min-height: 42px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        background: #f8fafc;
+        min-height: 44px;
+        border: 1px solid #dbe3ef;
+        border-radius: 10px;
+        background: #edf4ff;
         padding: 0 12px;
-        color: #0f172a;
-        font-size: 14px;
-        font-weight: 500;
+        color: #141c24;
+        font-size: 13px;
+        font-weight: 600;
         outline: none;
-        transition: border-color 0.2s ease, background-color 0.2s ease;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .product-selectors-refined .selector-panel {
@@ -109,20 +104,70 @@
     }
 
     .product-selectors-refined .selector-panel.readonly {
-        font-weight: 600;
+        font-weight: 700;
+    }
+
+    .product-selectors-refined .selector-search-wrap,
+    .product-selectors-refined .selector-select-wrap {
+        position: relative;
+    }
+
+    .product-selectors-refined .selector-search {
+        padding-left: 38px;
+    }
+
+    .product-selectors-refined .selector-search-icon,
+    .product-selectors-refined .selector-select-icon {
+        pointer-events: none;
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 18px;
+    }
+
+    .product-selectors-refined .selector-select-wrap select {
+        padding-left: 38px;
     }
 
     .product-selectors-refined .selector-search:focus,
     .product-selectors-refined select:focus {
-        border-color: #1152d4;
+        border-color: #2e0001;
         background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(46, 0, 1, 0.08);
+    }
+
+    .product-selectors-refined .selector-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid #dbe3ef;
+        border-radius: 10px;
+        background: #f8fbff;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+
+    .product-selectors-refined .selector-reset:hover {
+        border-color: #c4c6cc;
+        background: #f1f5f9;
+        color: #141c24;
     }
 </style>
 
 <div class="product-selectors product-selectors-refined grid grid-cols-1 gap-4 md:grid-cols-5 md:items-end" id="category-toolbar">
     <div class="selector-field">
         <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
-        <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm..." autocomplete="off" />
+        <div class="selector-search-wrap">
+            <span class="material-symbols-outlined selector-search-icon">search</span>
+            <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm, đơn vị, mã..." autocomplete="off" />
+        </div>
     </div>
 
     <div class="selector-field">
@@ -133,38 +178,48 @@
         }
         else
         {
-            <select id="products-category-select" aria-label="Danh mục">
-                <option value="">Tất cả danh mục</option>
-                @foreach (var cat in categorySelectItems)
-                {
-                    var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
-                    var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
-                    <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
-                }
-            </select>
+            <div class="selector-select-wrap">
+                <span class="material-symbols-outlined selector-select-icon">category</span>
+                <select id="products-category-select" aria-label="Danh mục">
+                    <option value="">Tất cả danh mục</option>
+                    @foreach (var cat in categorySelectItems)
+                    {
+                        var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
+                        var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
+                        <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
+                    }
+                </select>
+            </div>
         }
     </div>
 
     <div class="selector-field">
         <label class="selector-label" for="products-manufacturer-select">Đơn vị cung cấp</label>
-        <select id="products-manufacturer-select" aria-label="Đơn vị cung cấp">
-            <option value="">Tất cả đơn vị</option>
-            @foreach (var manufacturer in manufacturerSelectItems)
-            {
-                var manufacturerId = int.Parse(manufacturer.Value, CultureInfo.InvariantCulture);
-                var manufacturerUrl = manufacturerSeoUrls.GetValueOrDefault(manufacturerId, "#");
-                <option value="@manufacturer.Value" data-url="@manufacturerUrl">@manufacturer.Text</option>
-            }
-        </select>
+        <div class="selector-select-wrap">
+            <span class="material-symbols-outlined selector-select-icon">store</span>
+            <select id="products-manufacturer-select" aria-label="Đơn vị cung cấp">
+                <option value="">Tất cả đơn vị</option>
+                @foreach (var manufacturer in manufacturerSelectItems)
+                {
+                    var manufacturerId = int.Parse(manufacturer.Value, CultureInfo.InvariantCulture);
+                    var manufacturerUrl = manufacturerSeoUrls.GetValueOrDefault(manufacturerId, "#");
+                    <option value="@manufacturer.Value" data-url="@manufacturerUrl">@manufacturer.Text</option>
+                }
+            </select>
+        </div>
     </div>
 
     <div class="selector-field">
         <label class="selector-label" for="products-status-filter">Trạng thái</label>
-        <select id="products-status-filter" aria-label="Trạng thái">
-            <option value="">Tất cả</option>
-            <option value="available">Có sẵn</option>
-            <option value="supplying">Đang cung ứng</option>
-        </select>
+        <div class="selector-select-wrap">
+            <span class="material-symbols-outlined selector-select-icon">flag</span>
+            <select id="products-status-filter" aria-label="Trạng thái">
+                <option value="">Tất cả</option>
+                <option value="available">Có sẵn</option>
+                <option value="supplying">Đang cung ứng</option>
+                <option value="preorder">Đặt trước</option>
+            </select>
+        </div>
     </div>
     @if (Model.AllowProductSorting)
     {
@@ -186,6 +241,16 @@
             });
         </script>
     }
+    else
+    {
+        <div class="selector-field">
+            <label class="selector-label" for="products-reset-filters">Bộ lọc</label>
+            <button type="button" class="selector-reset" id="products-reset-filters" aria-label="Làm mới bộ lọc">
+                <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                <span>Làm mới bộ lọc</span>
+            </button>
+        </div>
+    }
 </div>
 
 <script asp-location="Footer">
@@ -193,13 +258,21 @@
         var $quickSearch = $('#products-quick-search');
         var $categorySelect = $('#products-category-select');
         var $manufacturerSelect = $('#products-manufacturer-select');
+        var $statusFilter = $('#products-status-filter');
+        var $resetFiltersButton = $('#products-reset-filters');
 
-        function applyQuickSearch() {
+        function applyLocalFilters() {
             var searchTerm = ($quickSearch.val() || '').toString().toLowerCase().trim();
+            var statusTerm = ($statusFilter.val() || '').toString().trim();
+
             $('.products-wrapper .item-box').each(function() {
                 var $card = $(this).find('[data-product-search]').first();
                 var haystack = ($card.data('product-search') || '').toString().toLowerCase();
-                $(this).toggle(searchTerm.length === 0 || haystack.indexOf(searchTerm) > -1);
+                var cardStatus = ($card.data('product-status') || '').toString();
+                var matchSearch = searchTerm.length === 0 || haystack.indexOf(searchTerm) > -1;
+                var matchStatus = statusTerm.length === 0 || cardStatus === statusTerm;
+
+                $(this).toggle(matchSearch && matchStatus);
             });
         }
 
@@ -213,8 +286,8 @@
                 }
             });
             </text>
-        }
-
+            }
+        
         $manufacturerSelect.on('change', function() {
             var url = $(this).find(':selected').data('url');
             if (url && url !== '#') {
@@ -222,21 +295,16 @@
             }
         });
 
-        var $statusFilter = $('#products-status-filter');
-        function applyStatusFilter() {
-            var status = ($statusFilter.val() || '').toString();
-            $('.products-wrapper .item-box').each(function() {
-                if (!status) { $(this).show(); return; }
-                var badge = $(this).find('.availability-badge').first();
-                var text = (badge.text() || '').trim().toLowerCase();
-                var match = (status === 'available' && text === 'có sẵn') || (status === 'supplying' && text === 'đang cung ứng');
-                $(this).toggle(match);
+        $quickSearch.on('input', applyLocalFilters);
+        $statusFilter.on('change', applyLocalFilters);
+        if ($resetFiltersButton.length) {
+            $resetFiltersButton.on('click', function() {
+                $quickSearch.val('');
+                $statusFilter.val('');
+                applyLocalFilters();
             });
         }
-        $statusFilter.on('change', applyStatusFilter);
-        $(CatalogProducts).on('loaded', applyStatusFilter);
 
-        $quickSearch.on('input', applyQuickSearch);
-        $(CatalogProducts).on('loaded', applyQuickSearch);
+        $(CatalogProducts).on('loaded', applyLocalFilters);
     });
 </script>

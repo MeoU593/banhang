@@ -52,6 +52,10 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             defaults: new { controller = "Customer", action = "Logout" });
 
         //customer account links
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT,
+            pattern: $"{lang}/customer/profile",
+            defaults: new { controller = "Customer", action = "Profile" });
+
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CUSTOMER_INFO,
             pattern: $"{lang}/customer/info",
             defaults: new { controller = "Customer", action = "Info" });
@@ -136,6 +140,22 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.BLOG,
             pattern: $"{lang}/blog",
             defaults: new { controller = "Blog", action = "List" });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.BLOG_NEWS,
+            pattern: $"{lang}/blog/news",
+            defaults: new { controller = "Blog", action = "ListByType", postTypeId = 0 });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.BLOG_DOCUMENTS,
+            pattern: $"{lang}/blog/documents",
+            defaults: new { controller = "Blog", action = "ListByType", postTypeId = 1 });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.BLOG_NEWS_POST,
+            pattern: $"{lang}/blog/news/{{{NopRoutingDefaults.RouteValue.SeName}}}",
+            defaults: new { controller = "Blog", action = "PostByType", postTypeId = 0 });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.BLOG_DOCUMENT_POST,
+            pattern: $"{lang}/blog/documents/{{{NopRoutingDefaults.RouteValue.SeName}}}",
+            defaults: new { controller = "Blog", action = "PostByType", postTypeId = 1 });
 
         //forum
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.BOARDS,

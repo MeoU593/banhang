@@ -85,6 +85,17 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     [NopResourceDisplayName("Admin.Customers.Customers.Fields.Company")]
     public string Company { get; set; }
 
+    public string MilitaryCode { get; set; }
+
+    public string Rank { get; set; }
+
+    public string UnitName { get; set; }
+
+    public string PositionTitle { get; set; }
+
+    [UIHint("DateNullable")]
+    public DateTime? EnlistmentDate { get; set; }
+
     public bool StreetAddressEnabled { get; set; }
 
     [NopResourceDisplayName("Admin.Customers.Customers.Fields.StreetAddress")]

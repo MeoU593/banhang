@@ -24,6 +24,11 @@ public partial class CustomerValidator : BaseNopValidator<CustomerModel>
             //only for registered users
             .WhenAwait(async x => await IsRegisteredCustomerRoleCheckedAsync(x, customerService));
 
+        RuleFor(x => x.MilitaryCode)
+            .NotEmpty()
+            .WithMessage("Military code is required")
+            .WhenAwait(async x => await IsRegisteredCustomerRoleCheckedAsync(x, customerService));
+
         //form fields
         if (customerSettings.CountryEnabled && customerSettings.CountryRequired)
         {

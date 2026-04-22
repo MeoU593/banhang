@@ -55,6 +55,7 @@ public class SchemaMigration : ForwardOnlyMigration
         this.CreateTableIfNotExists<CustomerAttribute>();
         this.CreateTableIfNotExists<CustomerAttributeValue>();
         this.CreateTableIfNotExists<Customer>();
+        this.CreateTableIfNotExists<CustomerMilitaryProfile>();
         this.CreateTableIfNotExists<CustomerPassword>();
         this.CreateTableIfNotExists<CustomerAddressMapping>();
         this.CreateTableIfNotExists<CustomerRole>();

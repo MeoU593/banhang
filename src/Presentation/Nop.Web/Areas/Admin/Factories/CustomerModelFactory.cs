@@ -54,6 +54,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IBaseAdminModelFactory _baseAdminModelFactory;
     protected readonly ICountryService _countryService;
     protected readonly ICustomerActivityService _customerActivityService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerService _customerService;
     protected readonly ICustomWishlistService _customWishlistService;
     protected readonly IDateTimeHelper _dateTimeHelper;
@@ -95,6 +96,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IBaseAdminModelFactory baseAdminModelFactory,
         ICountryService countryService,
         ICustomerActivityService customerActivityService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
         ICustomWishlistService customWishlistService,
         IDateTimeHelper dateTimeHelper,
@@ -132,6 +134,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _baseAdminModelFactory = baseAdminModelFactory;
         _countryService = countryService;
         _customerActivityService = customerActivityService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
         _customWishlistService = customWishlistService;
         _dateTimeHelper = dateTimeHelper;
@@ -611,6 +614,17 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                 model.StateProvinceId = customer.StateProvinceId;
                 model.Phone = customer.Phone;
                 model.Fax = customer.Fax;
+
+                var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(customer.Id);
+                if (militaryProfile != null)
+                {
+                    model.MilitaryCode = militaryProfile.MilitaryCode;
+                    model.Rank = militaryProfile.Rank;
+                    model.UnitName = militaryProfile.UnitName;
+                    model.PositionTitle = militaryProfile.PositionTitle;
+                    model.EnlistmentDate = militaryProfile.EnlistmentDate;
+                }
+
                 model.TimeZoneId = customer.TimeZoneId;
                 model.VatNumber = customer.VatNumber;
                 model.VatNumberStatusNote = await _localizationService.GetLocalizedEnumAsync(customer.VatNumberStatus);

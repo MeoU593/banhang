@@ -297,6 +297,14 @@ public partial class SlugRouteTransformer : DynamicRouteValueTransformer
         if (await _urlRecordService.GetBySlugAsync(slug.ToString()) is not UrlRecord urlRecord)
             return values;
 
+        // Public news URLs are deprecated in favor of blog URLs.
+        if (urlRecord.EntityName.Equals("NewsItem", StringComparison.InvariantCultureIgnoreCase))
+        {
+            values[NopRoutingDefaults.RouteValue.Controller] = "Common";
+            values[NopRoutingDefaults.RouteValue.Action] = "PageNotFound";
+            return values;
+        }
+
         //allow third-party handlers to select an action by the found URL record
         var routingEvent = new GenericRoutingEvent(httpContext, values, urlRecord);
         await _eventPublisher.PublishAsync(routingEvent);

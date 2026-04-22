@@ -36,6 +36,11 @@ public static partial class NopRouteNames
         public const string CUSTOMER_INFO = "CustomerInfo";
 
         /// <summary>
+        /// Gets the customer account profile route name
+        /// </summary>
+        public const string CUSTOMER_PROFILE_ACCOUNT = "CustomerAccountProfile";
+
+        /// <summary>
         /// Gets the customer orders route name
         /// </summary>
         public const string CUSTOMER_ORDERS = "CustomerOrders";
@@ -287,6 +292,26 @@ public static partial class NopRouteNames
         /// Gets the blog RSS route name
         /// </summary>
         public const string BLOG_RSS = "BlogRSS";
+
+        /// <summary>
+        /// Gets the blog news list route name
+        /// </summary>
+        public const string BLOG_NEWS = "BlogNews";
+
+        /// <summary>
+        /// Gets the blog document list route name
+        /// </summary>
+        public const string BLOG_DOCUMENTS = "BlogDocuments";
+
+        /// <summary>
+        /// Gets the blog news detail route name
+        /// </summary>
+        public const string BLOG_NEWS_POST = "BlogNewsPost";
+
+        /// <summary>
+        /// Gets the blog document detail route name
+        /// </summary>
+        public const string BLOG_DOCUMENT_POST = "BlogDocumentPost";
 
         /// <summary>
         /// Gets the customer return request route name

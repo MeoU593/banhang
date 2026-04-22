@@ -1,8 +1,9 @@
-﻿@model ProductDetailsModel
+@model ProductDetailsModel
 
 @using Nop.Core
 @using Nop.Core.Domain.Catalog
 @using Nop.Core.Domain.Seo
+@using Nop.Core.Domain.Vendors
 @using Nop.Services.Html
 
 @inject IHtmlFormatter htmlFormatter
@@ -12,22 +13,17 @@
 @{
     Layout = "_ColumnsOne";
 
-    //title
     NopHtml.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
-    //meta
     NopHtml.AddMetaDescriptionParts(Model.MetaDescription);
     NopHtml.AddMetaKeywordParts(Model.MetaKeywords);
-    //page class
     NopHtml.AppendPageCssClassParts("html-product-details-page");
 
-    //canonical URL
     if (seoSettings.CanonicalUrlsEnabled)
     {
         var productUrl = (await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = Model.SeName }, webHelper.GetCurrentRequestProtocol())).ToLowerInvariant();
         NopHtml.AddCanonicalUrlParts(productUrl, seoSettings.QueryStringInCanonicalUrlsEnabled);
     }
 
-    //open graph META tags
     if (seoSettings.OpenGraphMetaTags)
     {
         NopHtml.AddHeadCustomParts("<meta property=\"og:type\" content=\"product\" />");
@@ -39,7 +35,6 @@
         NopHtml.AddHeadCustomParts("<meta property=\"og:site_name\" content=\"" + Html.Encode(Model.CurrentStoreName) + "\" />");
     }
 
-    //Twitter META tags
     if (seoSettings.TwitterMetaTags)
     {
         NopHtml.AddHeadCustomParts("<meta property=\"twitter:card\" content=\"summary\" />");
@@ -51,129 +46,454 @@
     }
 
     NopHtml.AddJsonLdParts(Model.JsonLd);
+
+    var parentState = Model.AddToCart.AvailableForPreOrder
+        ? "preorder"
+        : Model.AddToCart.DisableBuyButton
+            ? "supplying"
+            : "available";
+    var parentStateText = parentState == "preorder"
+        ? "Đặt trước"
+        : parentState == "supplying"
+            ? "Đang cung ứng"
+            : "Có sẵn";
+    var parentStateClass = parentState == "preorder"
+        ? "is-preorder"
+        : parentState == "supplying"
+            ? "is-supplying"
+            : "is-available";
+    var vendorUrl = Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.SeName)
+        ? await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = Model.VendorModel.SeName })
+        : string.Empty;
 }
-<!--product breadcrumb-->
+
 @section Breadcrumb
-    {
+{
     @await Html.PartialAsync("_ProductBreadcrumb", Model.Breadcrumb)
 }
+
+<style>
+    .logistics-grouped-page {
+        padding: 0;
+    }
+
+    .logistics-grouped-page .page-body {
+        padding: 24px;
+        display: grid;
+        gap: 22px;
+    }
+
+    .logistics-grouped-page .grouped-shell {
+        display: grid;
+        gap: 22px;
+    }
+
+    .logistics-grouped-page .hero-grid {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        align-items: start;
+    }
+
+    .logistics-grouped-page .surface-card,
+    .logistics-grouped-page .grouped-section {
+        border: 1px solid rgba(196, 198, 204, 0.35);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 20px 38px -34px rgba(15, 23, 42, 0.6);
+    }
+
+    .logistics-grouped-page .media-card {
+        padding: 10px;
+    }
+
+    .logistics-grouped-page .overview-card {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .logistics-grouped-page .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .logistics-grouped-page .status-pill.is-available {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .logistics-grouped-page .status-pill.is-supplying {
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fdba74;
+    }
+
+    .logistics-grouped-page .status-pill.is-preorder {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fcd34d;
+    }
+
+    .logistics-grouped-page .product-name h1 {
+        margin: 0;
+        color: #141c24;
+        font-size: 30px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    .logistics-grouped-page .short-description {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.7;
+        padding: 12px 0;
+        border-top: 1px solid #edf2f7;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .logistics-grouped-page .overview-meta .product-reviews-overview,
+    .logistics-grouped-page .overview-meta .manufacturers {
+        border-radius: 10px;
+        border: 1px solid #edf2f7;
+        background: #f8fafc;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+    }
+
+    .logistics-grouped-page .overview-meta .manufacturers .label {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .logistics-grouped-page .overview-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #edf2f7;
+    }
+
+    .logistics-grouped-page .overview-buttons .button-2 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid #dbe3ef;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0 12px;
+        transition: all 0.2s ease;
+    }
+
+    .logistics-grouped-page .overview-buttons .button-2:hover {
+        border-color: #2e0001;
+        background: #2e0001;
+        color: #fff;
+    }
+
+    .logistics-grouped-page .contact-card {
+        border-radius: 12px;
+        border: 1px solid #dbe3ef;
+        background: #f8fafc;
+        padding: 12px;
+    }
+
+    .logistics-grouped-page .contact-card-label {
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+    }
+
+    .logistics-grouped-page .contact-card-link {
+        margin-top: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #141c24;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .logistics-grouped-page .grouped-section {
+        padding: 22px;
+    }
+
+    .logistics-grouped-page .section-title {
+        margin: 0 0 14px;
+        color: #141c24;
+        font-size: 19px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+    }
+
+    .logistics-grouped-page .grouped-variant-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .logistics-grouped-page .grouped-variant-card {
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
+        background: #f8fafc;
+        padding: 14px;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 180px minmax(0, 1fr);
+    }
+
+    .logistics-grouped-page .variant-picture img {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #dbe3ef;
+        background: #fff;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+    }
+
+    .logistics-grouped-page .variant-name {
+        margin: 0;
+        color: #1e293b;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+
+    .logistics-grouped-page .variant-description {
+        margin-top: 8px;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .logistics-grouped-page .variant-overview .availability,
+    .logistics-grouped-page .variant-overview .additional-details,
+    .logistics-grouped-page .variant-overview .delivery,
+    .logistics-grouped-page .variant-overview .prices {
+        margin-top: 10px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        padding: 10px;
+    }
+
+    .logistics-grouped-page .variant-overview .label {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .logistics-grouped-page .variant-overview .button-1,
+    .logistics-grouped-page .variant-overview .button-2 {
+        border-radius: 10px;
+    }
+
+    .logistics-grouped-page .no-associated-products {
+        border: 2px dashed #c4c6cc;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .logistics-grouped-page .product-specs-box,
+    .logistics-grouped-page .product-tags-box {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        padding: 14px;
+        margin-top: 14px;
+    }
+
+    .logistics-grouped-page .product-specs-box .title,
+    .logistics-grouped-page .product-tags-box .title {
+        margin: 0 0 10px;
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    @@media (max-width: 1200px) {
+        .logistics-grouped-page .hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .logistics-grouped-page .grouped-variant-card {
+            grid-template-columns: 1fr;
+        }
+
+        .logistics-grouped-page .variant-picture {
+            max-width: 220px;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .logistics-grouped-page .page-body {
+            padding: 14px;
+        }
+
+        .logistics-grouped-page .overview-card,
+        .logistics-grouped-page .grouped-section {
+            padding: 16px;
+        }
+
+        .logistics-grouped-page .product-name h1 {
+            font-size: 24px;
+        }
+    }
+</style>
+
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsAfterBreadcrumb, additionalData = Model })
-<div class="page product-details-page">
+<div class="page product-details-page logistics-grouped-page">
     <div class="page-body">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsTop, additionalData = Model })
         <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form">
-            <article data-productid="@Model.Id">
-                <div class="product-essential">
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
-                    <div class="gallery">
-                        <!--product pictures-->
+            <article class="grouped-shell" data-productid="@Model.Id">
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
+
+                <section class="hero-grid">
+                    <div class="surface-card media-card">
                         @await Html.PartialAsync("_ProductDetailsPictures", Model)
-                        <!--product videos-->
                         @await Html.PartialAsync("_ProductDetailsVideos", Model)
                     </div>
-                    <div class="overview">
+
+                    <aside class="surface-card overview-card">
                         @await Html.PartialAsync("_Discontinued", Model)
+
+                        <span class="status-pill @parentStateClass">
+                            <span class="material-symbols-outlined text-[15px]">verified</span>
+                            <span>@parentStateText</span>
+                        </span>
+
                         <div class="product-name">
-                            <h1>
-                                @Model.Name
-                            </h1>
+                            <h1>@Model.Name</h1>
                         </div>
+
                         @if (!string.IsNullOrEmpty(Model.ShortDescription))
                         {
-                            <div class="short-description">
-                                @Html.Raw(Model.ShortDescription)
-                            </div>
+                            <div class="short-description">@Html.Raw(Model.ShortDescription)</div>
                         }
+
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewTop, additionalData = Model })
-                        <!--product reviews-->
-                        @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
-                        <!--product manufacturers-->
-                        @await Html.PartialAsync("_ProductManufacturers", Model.ProductManufacturers)
-                        <!--compare, email a friend-->
+
+                        <div class="overview-meta">
+                            @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
+                            @await Html.PartialAsync("_ProductManufacturers", Model.ProductManufacturers)
+                        </div>
+
                         <div class="overview-buttons">
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsBefore, additionalData = Model })
                             @await Html.PartialAsync("_CompareProductsButton", Model)
                             @await Html.PartialAsync("_ProductEmailAFriendButton", Model)
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsAfter, additionalData = Model })
                         </div>
+
+                        @if (Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.Name) && !string.IsNullOrWhiteSpace(vendorUrl))
+                        {
+                            <div class="contact-card">
+                                <div class="contact-card-label">Đơn vị phụ trách</div>
+                                <a class="contact-card-link" href="@vendorUrl">
+                                    <span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+                                    <span>@Model.VendorModel.Name</span>
+                                </a>
+                            </div>
+                        }
+
                         @await Html.PartialAsync("_ShareButton", Model)
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewBottom, additionalData = Model })
-                    </div>
-                    @if (!string.IsNullOrEmpty(Model.FullDescription))
-                    {
-                        <div class="full-description">
-                            @Html.Raw(Model.FullDescription)
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
-                </div>
+                    </aside>
+                </section>
+
+                @if (!string.IsNullOrEmpty(Model.FullDescription))
+                {
+                    <section class="grouped-section">
+                        <h2 class="section-title">Mô tả chi tiết</h2>
+                        <div class="full-description">@Html.Raw(Model.FullDescription)</div>
+                    </section>
+                }
+
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBeforeCollateral, additionalData = Model })
-                <section class="product-collateral">
-                    <!--associated products-->
-                    <div class="product-variant-list">
+
+                <section class="grouped-section product-collateral">
+                    <h2 class="section-title">Danh sách biến thể cung ứng</h2>
+                    <div class="grouped-variant-list">
                         @foreach (var variant in Model.AssociatedProducts)
                         {
-                            <article class="product-variant-line" data-productid="@variant.Id">
+                            <article class="grouped-variant-card" data-productid="@variant.Id">
                                 @if (!string.IsNullOrWhiteSpace(variant.DefaultPictureModel.ImageUrl))
                                 {
                                     <div class="variant-picture">
-                                        <img alt="@variant.DefaultPictureModel.AlternateText" src="@variant.DefaultPictureModel.ImageUrl"
-                                             title="@variant.DefaultPictureModel.Title" id="main-product-img-@variant.Id" />
+                                        <img alt="@variant.DefaultPictureModel.AlternateText" src="@variant.DefaultPictureModel.ImageUrl" title="@variant.DefaultPictureModel.Title" id="main-product-img-@variant.Id" />
                                     </div>
                                 }
                                 <div class="variant-overview">
                                     @if (!string.IsNullOrWhiteSpace(variant.Name))
                                     {
-                                        <h2 class="variant-name">
-                                            @variant.Name
-                                        </h2>
+                                        <h3 class="variant-name">@variant.Name</h3>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(variant.ShortDescription))
                                     {
-                                        <div class="variant-description">
-                                            @Html.Raw(variant.ShortDescription)
-                                        </div>
+                                        <div class="variant-description">@Html.Raw(variant.ShortDescription)</div>
                                     }
-                                    <!--availability-->
+
                                     @await Html.PartialAsync("_Availability", variant)
-                                    <!--SKU, MAN, GTIN, vendor-->
                                     @await Html.PartialAsync("_SKU_Man_GTIN_Ven", variant)
-                                    <!--delivery-->
                                     @await Html.PartialAsync("_DeliveryInfo", variant)
-                                    <!--sample download-->
                                     @await Html.PartialAsync("_DownloadSample", variant)
-                                    <!--attributes-->
+
                                     @{
                                         var dataDictAttributes = new ViewDataDictionary(ViewData);
                                         dataDictAttributes.TemplateInfo.HtmlFieldPrefix = $"attributes_{variant.Id}";
                                         @await Html.PartialAsync("_ProductAttributes", variant, dataDictAttributes)
                                     }
-                                    <!--gift card-->
+
                                     @{
                                         var dataDictGiftCard = new ViewDataDictionary(ViewData);
                                         dataDictGiftCard.TemplateInfo.HtmlFieldPrefix = $"giftcard_{variant.Id}";
                                         @await Html.PartialAsync("_GiftCardInfo", variant.GiftCard, dataDictGiftCard)
                                     }
-                                    <!--rental info-->
+
                                     @{
                                         var dataDictRental = new ViewDataDictionary(ViewData);
                                         dataDictRental.TemplateInfo.HtmlFieldPrefix = $"rental_{variant.Id}";
                                         @await Html.PartialAsync("_RentalInfo", variant, dataDictRental)
                                     }
-                                    <!--price & add to cart-->
+
                                     @{
                                         var dataDictPrice = new ViewDataDictionary(ViewData);
                                         dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{variant.Id}";
                                         @await Html.PartialAsync("_ProductPrice", variant.ProductPrice, dataDictPrice)
                                     }
-                                    <!--price breaks-->
+
                                     @await Html.PartialAsync("_ProductTierPrices", variant.TierPrices)
+
                                     @{
                                         var dataDictAddToCart = new ViewDataDictionary(ViewData);
                                         dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{variant.Id}";
                                         @await Html.PartialAsync("_AddToCart", variant.AddToCart, dataDictAddToCart)
                                     }
-                                    <!--wishlist-->
+
                                     @{
                                         var dataDictAddToWishlist = new ViewDataDictionary(ViewData);
                                         dataDictAddToWishlist.TemplateInfo.HtmlFieldPrefix = $"addtocart_{variant.Id}";
@@ -182,27 +502,27 @@
                                 </div>
                             </article>
                         }
+
                         @if (!Model.AssociatedProducts.Any())
                         {
-                            <div class="no-associated-products">
-                                @T("Products.NoAssociatedProducts")
-                            </div>
+                            <div class="no-associated-products">@T("Products.NoAssociatedProducts")</div>
                         }
                     </div>
+
                     @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecificationModel)
                     @await Html.PartialAsync("_ProductTags", Model.ProductTags)
                 </section>
-                @*we do not display "also purchased" for grouped products
-                    @await Component.InvokeAsync(typeof(ProductsAlsoPurchasedViewComponent), new { productId = Model.Id })*@
+
                 @await Component.InvokeAsync(typeof(RelatedProductsViewComponent), new { productId = Model.Id })
                 @await Component.InvokeAsync(typeof(CompatibleWithFilterLevelValuesViewComponent), new { productId = Model.Id })
             </article>
         </form>
-        <!--product reviews-->
+
         @if (Model.ProductReviewOverview.AllowCustomerReviews)
         {
             @await Html.PartialAsync("_ProductReviews", Model.ProductReviews)
         }
+
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBottom, additionalData = Model })
     </div>
 </div>

@@ -1,6 +1,7 @@
 ﻿using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using LinqToDB.Data;
 using Nop.Core;
 using Nop.Core.Domain;
 using Nop.Core.Domain.Catalog;
@@ -15,6 +16,7 @@ using Nop.Core.Domain.Tax;
 using Nop.Core.Events;
 using Nop.Core.Http;
 using Nop.Core.Http.Extensions;
+using Nop.Data;
 using Nop.Services.Attributes;
 using Nop.Services.Authentication;
 using Nop.Services.Authentication.External;
@@ -55,6 +57,7 @@ public partial class CustomerController : BasePublicController
     protected readonly ForumSettings _forumSettings;
     protected readonly GdprSettings _gdprSettings;
     protected readonly HtmlEncoder _htmlEncoder;
+    protected readonly INopDataProvider _dataProvider;
     protected readonly IAddressModelFactory _addressModelFactory;
     protected readonly IAddressService _addressService;
     protected readonly IAttributeParser<AddressAttribute, AddressAttributeValue> _addressAttributeParser;
@@ -64,6 +67,7 @@ public partial class CustomerController : BasePublicController
     protected readonly ICountryService _countryService;
     protected readonly ICurrencyService _currencyService;
     protected readonly ICustomerActivityService _customerActivityService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerModelFactory _customerModelFactory;
     protected readonly ICustomerRegistrationService _customerRegistrationService;
     protected readonly ICustomerService _customerService;
@@ -107,6 +111,7 @@ public partial class CustomerController : BasePublicController
         ForumSettings forumSettings,
         GdprSettings gdprSettings,
         HtmlEncoder htmlEncoder,
+        INopDataProvider dataProvider,
         IAddressModelFactory addressModelFactory,
         IAddressService addressService,
         IAttributeParser<AddressAttribute, AddressAttributeValue> addressAttributeParser,
@@ -116,6 +121,7 @@ public partial class CustomerController : BasePublicController
         ICountryService countryService,
         ICurrencyService currencyService,
         ICustomerActivityService customerActivityService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerModelFactory customerModelFactory,
         ICustomerRegistrationService customerRegistrationService,
         ICustomerService customerService,
@@ -154,6 +160,7 @@ public partial class CustomerController : BasePublicController
         _forumSettings = forumSettings;
         _gdprSettings = gdprSettings;
         _htmlEncoder = htmlEncoder;
+        _dataProvider = dataProvider;
         _addressModelFactory = addressModelFactory;
         _addressService = addressService;
         _addressAttributeParser = addressAttributeParser;
@@ -163,6 +170,7 @@ public partial class CustomerController : BasePublicController
         _countryService = countryService;
         _currencyService = currencyService;
         _customerActivityService = customerActivityService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerModelFactory = customerModelFactory;
         _customerRegistrationService = customerRegistrationService;
         _customerService = customerService;
@@ -404,6 +412,99 @@ public partial class CustomerController : BasePublicController
         {
             await _logger.ErrorAsync(exception.Message, exception, customer);
         }
+    }
+
+    protected virtual async Task SaveCustomerMilitaryProfileAsync(Customer customer, CustomerInfoModel model)
+    {
+        var now = DateTime.UtcNow;
+        var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(customer.Id);
+        if (militaryProfile == null)
+        {
+            militaryProfile = new CustomerMilitaryProfile
+            {
+                CustomerId = customer.Id,
+                CreatedOnUtc = now
+            };
+
+            PopulateMilitaryProfile(militaryProfile, model, now);
+            await _customerMilitaryProfileService.InsertAsync(militaryProfile);
+            return;
+        }
+
+        PopulateMilitaryProfile(militaryProfile, model, now);
+        await _customerMilitaryProfileService.UpdateAsync(militaryProfile);
+    }
+
+    protected virtual void PopulateMilitaryProfile(CustomerMilitaryProfile militaryProfile, CustomerInfoModel model, DateTime updatedOnUtc)
+    {
+        militaryProfile.MilitaryCode = model.MilitaryCode?.Trim();
+        militaryProfile.Rank = model.Rank?.Trim();
+        militaryProfile.UnitName = model.UnitName?.Trim();
+        militaryProfile.PositionTitle = model.PositionTitle?.Trim();
+        militaryProfile.EnlistmentDate = model.EnlistmentDate;
+        militaryProfile.UpdatedOnUtc = updatedOnUtc;
+    }
+
+    protected virtual async Task PrepareRecentActivitiesAsync(CustomerInfoModel model, int customerId)
+    {
+        var activityTypes = await _customerActivityService.GetAllActivityTypesAsync();
+        var activityTypeMap = activityTypes.ToDictionary(activityType => activityType.Id, activityType => activityType.Name);
+
+        var activities = await _customerActivityService.GetAllActivitiesAsync(customerId: customerId, pageIndex: 0, pageSize: 10);
+        foreach (var activity in activities)
+        {
+            model.RecentActivities.Add(new CustomerInfoModel.RecentActivityModel
+            {
+                ActivityTypeName = activityTypeMap.TryGetValue(activity.ActivityLogTypeId, out var activityTypeName)
+                    ? activityTypeName
+                    : string.IsNullOrWhiteSpace(activity.EntityName) ? "Hoạt động hệ thống" : activity.EntityName,
+                Comment = activity.Comment,
+                EntityName = activity.EntityName,
+                IpAddress = activity.IpAddress,
+                CreatedOnUtc = activity.CreatedOnUtc
+            });
+        }
+    }
+
+    protected virtual async Task PreparePostedDocumentsAsync(CustomerInfoModel model, int customerId)
+    {
+        try
+        {
+            const string sql = "SELECT Id, Title, Code, Slug, Published, CreatedOnUtc FROM Document WHERE UploadedByCustomerId = @customerId AND Deleted = 0 ORDER BY UpdatedOnUtc DESC, CreatedOnUtc DESC";
+            var documents = await _dataProvider.QueryAsync<DocumentRow>(sql, new DataParameter("customerId", customerId));
+
+            foreach (var document in documents.Take(10))
+            {
+                model.PostedDocuments.Add(new CustomerInfoModel.PostedDocumentModel
+                {
+                    Id = document.Id,
+                    Title = document.Title,
+                    Code = document.Code,
+                    Slug = document.Slug,
+                    Published = document.Published,
+                    CreatedOnUtc = document.CreatedOnUtc
+                });
+            }
+        }
+        catch
+        {
+            //document portal plugin may be disabled or not installed
+        }
+    }
+
+    protected partial record DocumentRow
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; }
+
+        public string Code { get; set; }
+
+        public string Slug { get; set; }
+
+        public bool Published { get; set; }
+
+        public DateTime CreatedOnUtc { get; set; }
     }
 
     #endregion
@@ -885,7 +986,6 @@ public partial class CustomerController : BasePublicController
                 //save customer attributes
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
-                await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.DutyRoleTitleAttribute, model.DutyRoleTitle?.Trim());
 
                 //newsletter subscriptions
                 if (_customerSettings.NewsletterEnabled)
@@ -1150,6 +1250,20 @@ public partial class CustomerController : BasePublicController
 
     #region My account / Info
 
+    public virtual async Task<IActionResult> Profile()
+    {
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        if (!await _customerService.IsRegisteredAsync(customer))
+            return Challenge();
+
+        var model = new CustomerInfoModel();
+        model = await _customerModelFactory.PrepareCustomerInfoModelAsync(model, customer, false);
+        await PrepareRecentActivitiesAsync(model, customer.Id);
+        await PreparePostedDocumentsAsync(model, customer.Id);
+
+        return View(model);
+    }
+
     public virtual async Task<IActionResult> Info()
     {
         var customer = await _workContext.GetCurrentCustomerAsync();
@@ -1284,7 +1398,7 @@ public partial class CustomerController : BasePublicController
 
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
-                await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.DutyRoleTitleAttribute, model.DutyRoleTitle?.Trim());
+                await SaveCustomerMilitaryProfileAsync(customer, model);
 
                 //newsletter subscriptions
                 if (_customerSettings.NewsletterEnabled)
