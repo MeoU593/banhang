@@ -23,6 +23,10 @@ x64/
 [Aa]pp[Bb]uild/
 [Oo]ut/
 
+# .NET build artifacts (CI outputs)
+src/artifacts/
+published/
+
 # Visual Studio Code files
 .vscode/
 
