@@ -1,44 +1,50 @@
 ﻿@model ForumBreadcrumbModel
-@using Nop.Core.Domain.Common
-@inject CommonSettings commonSettings
-@{
-    var breadcrumbDelimiter = commonSettings.BreadcrumbDelimiter;
-}
-<div class="breadcrumb forum-breadcrumb">
-    <ul>
-        <li>
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" title="@T("Forum.Breadcrumb.HomeTitle")">@T("Forum.Home")</a>
-        </li>
-        <li>
-            <span class="delimiter">@breadcrumbDelimiter</span>
-            @Html.RouteLink(T("Forum.Forums").Text, NopRouteNames.General.BOARDS, null, new { title = T("Forum.Breadcrumb.ForumHomeTitle") })
-        </li>
-        @if (Model.ForumGroupId > 0)
-        {
+
+<div class="forum-breadcrumb mb-5">
+    <nav aria-label="@T("Forum.Forums")" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <ol class="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm">
             <li>
-                <span class="delimiter">@breadcrumbDelimiter</span>
-                @Html.RouteLink(Model.ForumGroupName, NopRouteNames.Standard.FORUM_GROUP_SLUG,
-                new { id = Model.ForumGroupId, slug = Model.ForumGroupSeName },
-                new { title = $"{T("Forum.Breadcrumb.ForumGroupTitle")}: {Model.ForumGroupName} " })
-            </li>        
-        }
-        @if (Model.ForumId > 0)
-        {
-            <li>
-                <span class="delimiter">@breadcrumbDelimiter</span>
-                @Html.RouteLink(Model.ForumName, NopRouteNames.Standard.FORUM_SLUG,
-                new { id = Model.ForumId, slug = Model.ForumSeName },
-                new { title = $"{T("Forum.Breadcrumb.ForumTitle")}: {Model.ForumName} " })
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" title="@T("Forum.Breadcrumb.HomeTitle")" class="inline-flex items-center rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-military-green">@T("Forum.Home")</a>
             </li>
-        }
-        @if (Model.ForumTopicId > 0)
-        {
-            <li>
-                <span class="delimiter">@breadcrumbDelimiter</span>
-                @Html.RouteLink(Model.ForumTopicSubject, NopRouteNames.Standard.TOPIC_SLUG,
-                new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName },
-                new { title = $"{T("Forum.Breadcrumb.TopicTitle")}: {Model.ForumTopicSubject} " })
+            <li aria-hidden="true" class="inline-flex items-center text-slate-300">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
             </li>
-        }
-    </ul>
+            <li>
+                @Html.RouteLink(T("Forum.Forums").Text, NopRouteNames.General.BOARDS, null, new { title = T("Forum.Breadcrumb.ForumHomeTitle"), @class = "inline-flex items-center rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-military-green" })
+            </li>
+            @if (Model.ForumGroupId > 0)
+            {
+                <li aria-hidden="true" class="inline-flex items-center text-slate-300">
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                </li>
+                <li>
+                    @Html.RouteLink(Model.ForumGroupName, NopRouteNames.Standard.FORUM_GROUP_SLUG,
+                        new { id = Model.ForumGroupId, slug = Model.ForumGroupSeName },
+                        new { title = $"{T("Forum.Breadcrumb.ForumGroupTitle")}: {Model.ForumGroupName}", @class = "inline-flex items-center rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-military-green" })
+                </li>
+            }
+            @if (Model.ForumId > 0)
+            {
+                <li aria-hidden="true" class="inline-flex items-center text-slate-300">
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                </li>
+                <li>
+                    @Html.RouteLink(Model.ForumName, NopRouteNames.Standard.FORUM_SLUG,
+                        new { id = Model.ForumId, slug = Model.ForumSeName },
+                        new { title = $"{T("Forum.Breadcrumb.ForumTitle")}: {Model.ForumName}", @class = "inline-flex items-center rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-military-green" })
+                </li>
+            }
+            @if (Model.ForumTopicId > 0)
+            {
+                <li aria-hidden="true" class="inline-flex items-center text-slate-300">
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                </li>
+                <li class="min-w-0">
+                    @Html.RouteLink(Model.ForumTopicSubject, NopRouteNames.Standard.TOPIC_SLUG,
+                        new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName },
+                        new { title = $"{T("Forum.Breadcrumb.TopicTitle")}: {Model.ForumTopicSubject}", @class = "line-clamp-1 inline-flex items-center rounded-lg px-2 py-1 font-semibold text-slate-900" })
+                </li>
+            }
+        </ol>
+    </nav>
 </div>

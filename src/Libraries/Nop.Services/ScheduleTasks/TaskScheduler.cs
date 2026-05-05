@@ -242,6 +242,7 @@ public partial class TaskScheduler : ITaskScheduler
             IsStarted = false;
             _disposed = true;
             _cancellationToken.Cancel();
+            _cancellationToken.Dispose();
         }
 
         #endregion
@@ -271,6 +272,8 @@ public partial class TaskScheduler : ITaskScheduler
                 if (IsDisposed)
                     break;
 
+                var stopAfterRun = false;
+
                 try
                 {
                     await RunAsync();
@@ -281,9 +284,15 @@ public partial class TaskScheduler : ITaskScheduler
                 }
                 finally
                 {
-                    if (!IsDisposed && RunOnlyOnce) 
+                    if (!IsDisposed && RunOnlyOnce)
+                    {
                         Dispose();
+                        stopAfterRun = true;
+                    }
                 }
+
+                if (stopAfterRun)
+                    break;
 
                 if (timer.Period != interval)
                     timer.Period = interval;

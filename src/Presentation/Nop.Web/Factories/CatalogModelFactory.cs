@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Caching;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
@@ -11,10 +12,12 @@ using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Events;
 using Nop.Services.Catalog;
+using Nop.Services.Blogs;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.FilterLevels;
+using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Seo;
@@ -22,6 +25,7 @@ using Nop.Services.Vendors;
 using Nop.Web.Framework.Events;
 using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Infrastructure.Cache;
+using Nop.Web.Models.Blogs;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Media;
 
@@ -34,10 +38,12 @@ public partial class CatalogModelFactory : ICatalogModelFactory
     protected readonly CatalogSettings _catalogSettings;
     protected readonly CustomerSettings _customerSettings;
     protected readonly ForumSettings _forumSettings;
+    protected readonly IBlogService _blogService;
     protected readonly ICategoryService _categoryService;
     protected readonly ICategoryTemplateService _categoryTemplateService;
     protected readonly ICurrencyService _currencyService;
     protected readonly ICustomerService _customerService;
+    protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IEventPublisher _eventPublisher;
     protected readonly IFilterLevelValueService _filterLevelValueService;
     protected readonly IGenericAttributeService _genericAttributeService;
@@ -49,6 +55,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
     protected readonly INopUrlHelper _nopUrlHelper;
     protected readonly IPictureService _pictureService;
     protected readonly IProductModelFactory _productModelFactory;
+    protected readonly IProductFavoriteService _productFavoriteService;
     protected readonly IProductReviewService _productReviewService;
     protected readonly IProductService _productService;
     protected readonly IProductTagService _productTagService;
@@ -72,10 +79,12 @@ public partial class CatalogModelFactory : ICatalogModelFactory
     public CatalogModelFactory(CatalogSettings catalogSettings,
         CustomerSettings customerSettings,
         ForumSettings forumSettings,
+        IBlogService blogService,
         ICategoryService categoryService,
         ICategoryTemplateService categoryTemplateService,
         ICurrencyService currencyService,
         ICustomerService customerService,
+        IDateTimeHelper dateTimeHelper,
         IEventPublisher eventPublisher,
         IFilterLevelValueService filterLevelValueService,
         IGenericAttributeService genericAttributeService,
@@ -87,6 +96,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         INopUrlHelper nopUrlHelper,
         IPictureService pictureService,
         IProductModelFactory productModelFactory,
+        IProductFavoriteService productFavoriteService,
         IProductReviewService productReviewService,
         IProductService productService,
         IProductTagService productTagService,
@@ -105,10 +115,12 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         _catalogSettings = catalogSettings;
         _customerSettings = customerSettings;
         _forumSettings = forumSettings;
+        _blogService = blogService;
         _categoryService = categoryService;
         _categoryTemplateService = categoryTemplateService;
         _currencyService = currencyService;
         _customerService = customerService;
+        _dateTimeHelper = dateTimeHelper;
         _eventPublisher = eventPublisher;
         _filterLevelValueService = filterLevelValueService;
         _genericAttributeService = genericAttributeService;
@@ -120,6 +132,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         _nopUrlHelper = nopUrlHelper;
         _pictureService = pictureService;
         _productModelFactory = productModelFactory;
+        _productFavoriteService = productFavoriteService;
         _productReviewService = productReviewService;
         _productService = productService;
         _productTagService = productTagService;
@@ -179,6 +192,45 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Prepare favorite filter state for current customer
+    /// </summary>
+    /// <param name="model">Catalog products model</param>
+    /// <param name="command">Catalog command</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    protected virtual async Task PrepareFavoriteFilterStateAsync(CatalogProductsModel model, CatalogProductsCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(command);
+
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        model.CanFilterByFavorites = customer != null && !await _customerService.IsGuestAsync(customer);
+        model.FavoritesOnly = model.CanFilterByFavorites && command.FavoritesOnly;
+        command.FavoritesOnly = model.FavoritesOnly;
+    }
+
+    /// <summary>
+    /// Gets favorite product identifiers for current customer
+    /// </summary>
+    /// <param name="command">Catalog command</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains product identifiers or null when filter is disabled
+    /// </returns>
+    protected virtual async Task<IList<int>> GetFavoriteProductIdsAsync(CatalogProductsCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+
+        if (!command.FavoritesOnly)
+            return null;
+
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        if (customer == null || await _customerService.IsGuestAsync(customer))
+            return new List<int>();
+
+        return await _productFavoriteService.GetFavoriteProductIdsAsync(customer.Id);
     }
 
     /// <summary>
@@ -434,8 +486,8 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             var picture = await _pictureService.GetPictureByIdAsync(vendor.PictureId);
             string fullSizeImageUrl, imageUrl;
 
-            (fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture);
-            (imageUrl, _) = await _pictureService.GetPictureUrlAsync(picture, pictureSize);
+            (fullSizeImageUrl, picture) = await _pictureService.GetPictureUrlAsync(picture, showDefaultPicture: false);
+            (imageUrl, _) = await _pictureService.GetPictureUrlAsync(picture, pictureSize, showDefaultPicture: false);
 
             var localizedName = await _localizationService.GetLocalizedAsync(vendor, x => x.Name);
 
@@ -722,6 +774,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
 
+        await PrepareFavoriteFilterStateAsync(model, command);
+        var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+
         var currentStore = await _storeContext.GetCurrentStoreAsync();
 
         //sorting
@@ -752,6 +807,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                     var products = await _productService.SearchProductsAsync(0, 1,
                         categoryIds: categoryIds,
                         storeId: currentStore.Id,
+                        productIds: favoriteProductIds,
                         visibleIndividuallyOnly: true,
                         excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
                         orderBy: orderBy);
@@ -799,6 +855,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             command.PageSize,
             categoryIds: categoryIds,
             storeId: currentStore.Id,
+            productIds: favoriteProductIds,
             visibleIndividuallyOnly: true,
             excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
             priceMin: selectedPriceRange?.From,
@@ -807,7 +864,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             filteredSpecOptions: filteredSpecs,
             orderBy: (ProductSortingEnum)command.OrderBy);
 
-        var isFiltering = filterableOptions.Any() || selectedPriceRange?.From is not null;
+        var isFiltering = filterableOptions.Any() || selectedPriceRange?.From is not null || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
         return model;
@@ -878,6 +935,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
 
+        await PrepareFavoriteFilterStateAsync(model, command);
+        var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+
         var manufacturerIds = new List<int> { manufacturer.Id };
         var currentStore = await _storeContext.GetCurrentStoreAsync();
 
@@ -903,6 +963,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                     var products = await _productService.SearchProductsAsync(0, 1,
                         manufacturerIds: manufacturerIds,
                         storeId: currentStore.Id,
+                        productIds: favoriteProductIds,
                         visibleIndividuallyOnly: true,
                         excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
                         orderBy: orderBy);
@@ -943,6 +1004,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             command.PageSize,
             manufacturerIds: manufacturerIds,
             storeId: currentStore.Id,
+            productIds: favoriteProductIds,
             visibleIndividuallyOnly: true,
             excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
             priceMin: selectedPriceRange?.From,
@@ -950,7 +1012,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             filteredSpecOptions: filteredSpecs,
             orderBy: (ProductSortingEnum)command.OrderBy);
 
-        var isFiltering = filterableOptions.Any() || selectedPriceRange?.From is not null;
+        var isFiltering = filterableOptions.Any() || selectedPriceRange?.From is not null || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
         return model;
@@ -1084,11 +1146,112 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             CatalogProductsModel = await PrepareVendorProductsModelAsync(vendor, command),
             PictureModel = await PrepareVendorPictureModelAsync(vendor),
             ProductReviews = await PrepareVendorProductReviewsModelAsync(vendor, new VendorReviewsPagingFilteringModel()),
-            NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id)
+            NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id),
+            Code = vendor.Code,
+            ParentId = vendor.ParentId,
+            ParentName = vendor.ParentId.HasValue ? (await _vendorService.GetVendorByIdAsync(vendor.ParentId.Value))?.Name : null,
+            Level = vendor.Level,
+            Path = vendor.Path,
+            AddressId = vendor.AddressId,
+            Email = vendor.Email,
+            Active = vendor.Active,
+            DisplayOrder = vendor.DisplayOrder,
+            ContactCustomerId = vendor.ContactCustomerId
         };
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        model.CanManageContactCustomer = vendor.PmCustomerId.HasValue && currentCustomer.Id == vendor.PmCustomerId.Value;
+
+        if (vendor.ContactCustomerId.HasValue)
+        {
+            var contactCustomer = await _customerService.GetCustomerByIdAsync(vendor.ContactCustomerId.Value);
+            if (contactCustomer != null && !await _customerService.IsGuestAsync(contactCustomer))
+                model.ContactCustomerName = await _customerService.FormatUsernameAsync(contactCustomer);
+        }
+
+        if (model.CanManageContactCustomer)
+        {
+            var contactCandidates = await _customerService.GetAllCustomersAsync(isActive: true, pageSize: 500);
+            foreach (var candidate in contactCandidates)
+            {
+                if (await _customerService.IsGuestAsync(candidate))
+                    continue;
+
+                model.ContactCandidates.Add(new VendorModel.UnitContactCandidateModel
+                {
+                    Id = candidate.Id,
+                    DisplayName = await _customerService.FormatUsernameAsync(candidate)
+                });
+            }
+
+            if (vendor.ContactCustomerId.HasValue && model.ContactCandidates.All(candidate => candidate.Id != vendor.ContactCustomerId.Value))
+            {
+                var selectedContact = await _customerService.GetCustomerByIdAsync(vendor.ContactCustomerId.Value);
+                if (selectedContact != null && !await _customerService.IsGuestAsync(selectedContact))
+                {
+                    model.ContactCandidates.Add(new VendorModel.UnitContactCandidateModel
+                    {
+                        Id = selectedContact.Id,
+                        DisplayName = await _customerService.FormatUsernameAsync(selectedContact)
+                    });
+                }
+            }
+        }
+
+        var store = await _storeContext.GetCurrentStoreAsync();
+        var language = await _workContext.GetWorkingLanguageAsync();
+        var activityPosts = await _blogService.GetAllBlogPostsAsync(
+            store.Id,
+            language.Id,
+            pageIndex: 0,
+            pageSize: 4,
+            postTypeId: 0,
+            vendorIds: new List<int> { vendor.Id });
+
+        foreach (var blogPost in activityPosts)
+        {
+            var activityPostModel = new BlogPostModel
+            {
+                Id = blogPost.Id,
+                Title = blogPost.Title,
+                Body = blogPost.Body,
+                BodyOverview = blogPost.BodyOverview,
+                PostTypeId = blogPost.PostTypeId,
+                ThumbnailPictureId = blogPost.ThumbnailPictureId,
+                AuthorName = blogPost.AuthorName,
+                CreatedOn = await _dateTimeHelper.ConvertToUserTimeAsync(blogPost.StartDateUtc ?? blogPost.CreatedOnUtc, DateTimeKind.Utc),
+                SeName = await _urlRecordService.GetSeNameAsync(blogPost, blogPost.LanguageId, ensureTwoPublishedLanguages: false)
+            };
+
+            if (blogPost.ThumbnailPictureId > 0)
+                activityPostModel.ThumbnailImageUrl = await _pictureService.GetPictureUrlAsync(blogPost.ThumbnailPictureId, showDefaultPicture: false);
+
+            model.ActivityPosts.Add(activityPostModel);
+        }
+
+        var childVendors = (await _vendorService.GetAllVendorsAsync())
+            .Where(x => x.ParentId == vendor.Id)
+            .OrderBy(x => x.DisplayOrder)
+            .ThenBy(x => x.Name)
+            .ToList();
+
+        foreach (var childVendor in childVendors)
+        {
+            model.ChildUnits.Add(new VendorModel.UnitSummaryModel
+            {
+                Id = childVendor.Id,
+                Name = await _localizationService.GetLocalizedAsync(childVendor, x => x.Name),
+                Code = childVendor.Code,
+                SeName = await _urlRecordService.GetSeNameAsync(childVendor),
+                NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(childVendor.Id),
+                PictureModel = await PrepareVendorPictureModelAsync(childVendor)
+            });
+        }
 
         if (_forumSettings.AllowPrivateMessages)
             model.PmCustomerId = vendor.PmCustomerId;
+        else
+            model.ContactCustomerId = null;
 
         return model;
     }
@@ -1113,6 +1276,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
 
+        await PrepareFavoriteFilterStateAsync(model, command);
+        var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+
         //sorting
         await PrepareSortingOptionsAsync(model, command);
         //view mode
@@ -1136,6 +1302,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                     var products = await _productService.SearchProductsAsync(0, 1,
                         vendorId: vendor.Id,
                         storeId: store.Id,
+                        productIds: favoriteProductIds,
                         visibleIndividuallyOnly: true,
                         orderBy: orderBy);
 
@@ -1165,13 +1332,14 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             command.PageNumber - 1,
             command.PageSize,
             vendorId: vendor.Id,
+            productIds: favoriteProductIds,
             priceMin: selectedPriceRange?.From,
             priceMax: selectedPriceRange?.To,
             storeId: store.Id,
             visibleIndividuallyOnly: true,
             orderBy: (ProductSortingEnum)command.OrderBy);
 
-        var isFiltering = selectedPriceRange?.From is not null;
+        var isFiltering = selectedPriceRange?.From is not null || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
         return model;
@@ -1190,6 +1358,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         var vendors = await _vendorService.GetAllVendorsAsync();
         foreach (var vendor in vendors)
         {
+            if (vendor.Level <= 0)
+                continue;
+
             var vendorModel = new VendorModel
             {
                 Id = vendor.Id,
@@ -1201,7 +1372,15 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                 SeName = await _urlRecordService.GetSeNameAsync(vendor),
                 AllowCustomersToContactVendors = _vendorSettings.AllowCustomersToContactVendors,
                 PictureModel = await PrepareVendorPictureModelAsync(vendor),
-                NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id)
+                NumberOfProducts = await _productService.GetNumberOfProductsByVendorIdAsync(vendor.Id),
+                Code = vendor.Code,
+                ParentId = vendor.ParentId,
+                Level = vendor.Level,
+                Path = vendor.Path,
+                AddressId = vendor.AddressId,
+                Email = vendor.Email,
+                Active = vendor.Active,
+                DisplayOrder = vendor.DisplayOrder
             };
 
             model.Add(vendorModel);
@@ -1421,6 +1600,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
 
+        await PrepareFavoriteFilterStateAsync(model, command);
+        var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+
         //sorting
         await PrepareSortingOptionsAsync(model, command);
         //view mode
@@ -1443,6 +1625,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                 {
                     var products = await _productService.SearchProductsAsync(0, 1,
                         storeId: store.Id,
+                        productIds: favoriteProductIds,
                         productTagId: productTag.Id,
                         visibleIndividuallyOnly: true,
                         orderBy: orderBy);
@@ -1472,6 +1655,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         var products = await _productService.SearchProductsAsync(
             command.PageNumber - 1,
             command.PageSize,
+            productIds: favoriteProductIds,
             priceMin: selectedPriceRange?.From,
             priceMax: selectedPriceRange?.To,
             storeId: store.Id,
@@ -1479,7 +1663,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             visibleIndividuallyOnly: true,
             orderBy: (ProductSortingEnum)command.OrderBy);
 
-        var isFiltering = selectedPriceRange?.From is not null;
+        var isFiltering = selectedPriceRange?.From is not null || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
         return model;
@@ -1649,6 +1833,9 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
 
+        await PrepareFavoriteFilterStateAsync(model, command);
+        var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+
         //sorting
         await PrepareSortingOptionsAsync(model, command);
         //view mode
@@ -1730,6 +1917,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                         var products = await _productService.SearchProductsAsync(0, 1,
                             categoryIds: categoryIds,
                             storeId: currentStore.Id,
+                            productIds: favoriteProductIds,
                             visibleIndividuallyOnly: true,
                             keywords: searchTerms,
                             searchDescriptions: searchInDescriptions,
@@ -1769,6 +1957,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
                         command.PageSize,
                         categoryIds: categoryIds,
                         storeId: currentStore.Id,
+                        productIds: favoriteProductIds,
                         visibleIndividuallyOnly: true,
                         keywords: searchTerms,
                     priceMin: selectedPriceRange?.From,
@@ -1814,7 +2003,7 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             }
         }
 
-        var isFiltering = !string.IsNullOrEmpty(searchTerms);
+        var isFiltering = !string.IsNullOrEmpty(searchTerms) || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
         return model;
@@ -1837,6 +2026,8 @@ public partial class CatalogModelFactory : ICatalogModelFactory
         {
             UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
         };
+
+        await PrepareFavoriteFilterStateAsync(model, command);
 
         //sorting
         await PrepareSortingOptionsAsync(model, command);
@@ -1876,6 +2067,14 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             pageSize: command.PageSize,
             storeId: store.Id,
             orderBy: (ProductSortingEnum)command.OrderBy);
+
+            if (command.FavoritesOnly)
+            {
+                var favoriteProductIds = await GetFavoriteProductIdsAsync(command);
+                var favoriteSet = favoriteProductIds?.ToHashSet() ?? new HashSet<int>();
+                var favoriteProducts = products.Where(product => favoriteSet.Contains(product.Id)).ToList();
+                products = new PagedList<Product>(favoriteProducts, 0, favoriteProducts.Count == 0 ? 1 : favoriteProducts.Count);
+            }
 
             await PrepareCatalogProductsAsync(model, products, true);
         }

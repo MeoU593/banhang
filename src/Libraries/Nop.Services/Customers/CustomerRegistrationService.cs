@@ -492,9 +492,9 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
             customer.EmailToRevalidate = newEmail;
             await _customerService.UpdateCustomerAsync(customer);
 
-            //email re-validation message
-            await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.EmailRevalidationTokenAttribute, Guid.NewGuid().ToString());
-            await _workflowMessageService.SendCustomerEmailRevalidationMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
+            ////email re-validation message
+            //await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.EmailRevalidationTokenAttribute, Guid.NewGuid().ToString());
+            //await _workflowMessageService.SendCustomerEmailRevalidationMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
         }
         else
         {

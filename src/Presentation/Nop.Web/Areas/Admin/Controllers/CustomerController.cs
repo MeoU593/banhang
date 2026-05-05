@@ -8,7 +8,6 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Forums;
 using Nop.Core.Domain.Gdpr;
-using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Events;
 using Nop.Services.Attributes;
@@ -39,7 +38,6 @@ public partial class CustomerController : BaseAdminController
 
     protected readonly CustomerSettings _customerSettings;
     protected readonly DateTimeSettings _dateTimeSettings;
-    protected readonly EmailAccountSettings _emailAccountSettings;
     protected readonly ForumSettings _forumSettings;
     protected readonly GdprSettings _gdprSettings;
     protected readonly IAddressService _addressService;
@@ -52,7 +50,6 @@ public partial class CustomerController : BaseAdminController
     protected readonly ICustomerRegistrationService _customerRegistrationService;
     protected readonly ICustomerService _customerService;
     protected readonly IDateTimeHelper _dateTimeHelper;
-    protected readonly IEmailAccountService _emailAccountService;
     protected readonly IEventPublisher _eventPublisher;
     protected readonly IExportManager _exportManager;
     protected readonly IForumService _forumService;
@@ -60,14 +57,11 @@ public partial class CustomerController : BaseAdminController
     protected readonly IGenericAttributeService _genericAttributeService;
     protected readonly IImportManager _importManager;
     protected readonly ILocalizationService _localizationService;
-    protected readonly INewsLetterSubscriptionService _newsLetterSubscriptionService;
     protected readonly INotificationService _notificationService;
     protected readonly IPermissionService _permissionService;
-    protected readonly IQueuedEmailService _queuedEmailService;
     protected readonly IStoreContext _storeContext;
     protected readonly ITaxService _taxService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly TaxSettings _taxSettings;
     private static readonly char[] _separator = [','];
 
@@ -77,7 +71,6 @@ public partial class CustomerController : BaseAdminController
 
     public CustomerController(CustomerSettings customerSettings,
         DateTimeSettings dateTimeSettings,
-        EmailAccountSettings emailAccountSettings,
         ForumSettings forumSettings,
         GdprSettings gdprSettings,
         IAddressService addressService,
@@ -90,7 +83,6 @@ public partial class CustomerController : BaseAdminController
         ICustomerRegistrationService customerRegistrationService,
         ICustomerService customerService,
         IDateTimeHelper dateTimeHelper,
-        IEmailAccountService emailAccountService,
         IEventPublisher eventPublisher,
         IExportManager exportManager,
         IForumService forumService,
@@ -98,19 +90,15 @@ public partial class CustomerController : BaseAdminController
         IGenericAttributeService genericAttributeService,
         IImportManager importManager,
         ILocalizationService localizationService,
-        INewsLetterSubscriptionService newsLetterSubscriptionService,
         INotificationService notificationService,
         IPermissionService permissionService,
-        IQueuedEmailService queuedEmailService,
         IStoreContext storeContext,
         ITaxService taxService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         TaxSettings taxSettings)
     {
         _customerSettings = customerSettings;
         _dateTimeSettings = dateTimeSettings;
-        _emailAccountSettings = emailAccountSettings;
         _forumSettings = forumSettings;
         _gdprSettings = gdprSettings;
         _addressService = addressService;
@@ -123,7 +111,6 @@ public partial class CustomerController : BaseAdminController
         _customerRegistrationService = customerRegistrationService;
         _customerService = customerService;
         _dateTimeHelper = dateTimeHelper;
-        _emailAccountService = emailAccountService;
         _eventPublisher = eventPublisher;
         _exportManager = exportManager;
         _forumService = forumService;
@@ -131,14 +118,11 @@ public partial class CustomerController : BaseAdminController
         _genericAttributeService = genericAttributeService;
         _importManager = importManager;
         _localizationService = localizationService;
-        _newsLetterSubscriptionService = newsLetterSubscriptionService;
         _notificationService = notificationService;
         _permissionService = permissionService;
-        _queuedEmailService = queuedEmailService;
         _storeContext = storeContext;
         _taxService = taxService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _taxSettings = taxSettings;
     }
 
@@ -842,16 +826,8 @@ public partial class CustomerController : BaseAdminController
                 return RedirectToAction("Edit", new { id = customer.Id });
             }
 
-            //get customer email before deleting customer entity to avoid problems with the changed email after deleting see CustomerSettings.SuffixDeletedCustomers settings
-            var customerEmail = customer.Email;
-
             //delete
             await _customerService.DeleteCustomerAsync(customer);
-
-            //remove newsletter subscriptions (if exist)
-            var subscriptions = await _newsLetterSubscriptionService.GetNewsLetterSubscriptionsByEmailAsync(customerEmail);
-            foreach (var subscription in subscriptions)
-                await _newsLetterSubscriptionService.DeleteNewsLetterSubscriptionAsync(subscription);
 
             //activity log
             await _customerActivityService.InsertActivityAsync("DeleteCustomer",
@@ -906,90 +882,6 @@ public partial class CustomerController : BaseAdminController
         await _genericAttributeService.SaveAttributeAsync<int?>(currentCustomer, NopCustomerDefaults.ImpersonatedCustomerIdAttribute, customer.Id);
 
         return RedirectToAction("Index", "Home", new { area = string.Empty });
-    }
-
-    [HttpPost, ActionName("Edit")]
-    [FormValueRequired("send-welcome-message")]
-    [CheckPermission(StandardPermission.Customers.CUSTOMERS_CREATE_EDIT_DELETE)]
-    public virtual async Task<IActionResult> SendWelcomeMessage(CustomerModel model)
-    {
-        //try to get a customer with the specified id
-        var customer = await _customerService.GetCustomerByIdAsync(model.Id);
-        if (customer == null)
-            return RedirectToAction("List");
-
-        await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
-
-        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Customers.Customers.SendWelcomeMessage.Success"));
-
-        return RedirectToAction("Edit", new { id = customer.Id });
-    }
-
-    [HttpPost, ActionName("Edit")]
-    [FormValueRequired("resend-activation-message")]
-    [CheckPermission(StandardPermission.Customers.CUSTOMERS_CREATE_EDIT_DELETE)]
-    public virtual async Task<IActionResult> ReSendActivationMessage(CustomerModel model)
-    {
-        //try to get a customer with the specified id
-        var customer = await _customerService.GetCustomerByIdAsync(model.Id);
-        if (customer == null)
-            return RedirectToAction("List");
-
-        //email validation message
-        await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AccountActivationTokenAttribute, Guid.NewGuid().ToString());
-        await _workflowMessageService.SendCustomerEmailValidationMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
-
-        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Customers.Customers.ReSendActivationMessage.Success"));
-
-        return RedirectToAction("Edit", new { id = customer.Id });
-    }
-
-    [CheckPermission(StandardPermission.Customers.CUSTOMERS_CREATE_EDIT_DELETE)]
-    public virtual async Task<IActionResult> SendEmail(CustomerModel model)
-    {
-        //try to get a customer with the specified id
-        var customer = await _customerService.GetCustomerByIdAsync(model.Id);
-        if (customer == null)
-            return RedirectToAction("List");
-
-        try
-        {
-            if (string.IsNullOrWhiteSpace(customer.Email))
-                throw new NopException("Customer email is empty");
-            if (!CommonHelper.IsValidEmail(customer.Email))
-                throw new NopException("Customer email is not valid");
-            if (string.IsNullOrWhiteSpace(model.SendEmail.Subject))
-                throw new NopException("Email subject is empty");
-            if (string.IsNullOrWhiteSpace(model.SendEmail.Body))
-                throw new NopException("Email body is empty");
-
-            var emailAccount = (await _emailAccountService.GetEmailAccountByIdAsync(_emailAccountSettings.DefaultEmailAccountId)
-                ?? (await _emailAccountService.GetAllEmailAccountsAsync()).FirstOrDefault())
-                ?? throw new NopException("Email account can't be loaded");
-            var email = new QueuedEmail
-            {
-                Priority = QueuedEmailPriority.High,
-                EmailAccountId = emailAccount.Id,
-                FromName = emailAccount.DisplayName,
-                From = emailAccount.Email,
-                ToName = await _customerService.GetCustomerFullNameAsync(customer),
-                To = customer.Email,
-                Subject = model.SendEmail.Subject,
-                Body = model.SendEmail.Body,
-                CreatedOnUtc = DateTime.UtcNow,
-                DontSendBeforeDateUtc = model.SendEmail.SendImmediately || !model.SendEmail.DontSendBeforeDate.HasValue ?
-                    null : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.SendEmail.DontSendBeforeDate.Value)
-            };
-            await _queuedEmailService.InsertQueuedEmailAsync(email);
-
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Customers.Customers.SendEmail.Queued"));
-        }
-        catch (Exception exc)
-        {
-            _notificationService.ErrorNotification(exc.Message);
-        }
-
-        return RedirectToAction("Edit", new { id = customer.Id });
     }
 
     [CheckPermission(StandardPermission.Customers.CUSTOMERS_CREATE_EDIT_DELETE)]

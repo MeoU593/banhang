@@ -53,6 +53,21 @@ public partial record BlogPostModel : BaseNopEntityModel, IStoreMappingSupported
     [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.BodyOverview")]
     public string BodyOverview { get; set; }
 
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.ThumbnailPicture")]
+    [UIHint("Picture")]
+    public int ThumbnailPictureId { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.AuthorName")]
+    public string AuthorName { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.PdfDownload")]
+    [UIHint("Download")]
+    public int PdfDownloadId { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.DocDownload")]
+    [UIHint("Download")]
+    public int DocDownloadId { get; set; }
+
     [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.Fields.AllowComments")]
     public bool AllowComments { get; set; }
 

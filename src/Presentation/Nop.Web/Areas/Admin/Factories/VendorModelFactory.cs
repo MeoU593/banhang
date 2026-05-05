@@ -24,6 +24,8 @@ namespace Nop.Web.Areas.Admin.Factories;
 /// </summary>
 public partial class VendorModelFactory : IVendorModelFactory
 {
+    private const string VietnamCountryIsoCode = "VN";
+
     #region Fields
 
     protected readonly CurrencySettings _currencySettings;
@@ -33,6 +35,7 @@ public partial class VendorModelFactory : IVendorModelFactory
     protected readonly IAttributeParser<VendorAttribute, VendorAttributeValue> _vendorAttributeParser;
     protected readonly IAttributeService<VendorAttribute, VendorAttributeValue> _vendorAttributeService;
     protected readonly ICustomerService _customerService;
+    protected readonly ICountryService _countryService;
     protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IGenericAttributeService _genericAttributeService;
     protected readonly ILocalizationService _localizationService;
@@ -52,6 +55,7 @@ public partial class VendorModelFactory : IVendorModelFactory
         IAttributeParser<VendorAttribute, VendorAttributeValue> vendorAttributeParser,
         IAttributeService<VendorAttribute, VendorAttributeValue> vendorAttributeService,
         ICustomerService customerService,
+        ICountryService countryService,
         IDateTimeHelper dateTimeHelper,
         IGenericAttributeService genericAttributeService,
         ILocalizationService localizationService,
@@ -67,6 +71,7 @@ public partial class VendorModelFactory : IVendorModelFactory
         _vendorAttributeParser = vendorAttributeParser;
         _vendorAttributeService = vendorAttributeService;
         _customerService = customerService;
+        _countryService = countryService;
         _dateTimeHelper = dateTimeHelper;
         _genericAttributeService = genericAttributeService;
         _localizationService = localizationService;
@@ -394,6 +399,20 @@ public partial class VendorModelFactory : IVendorModelFactory
 
         model.PrimaryStoreCurrencyCode = (await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId)).CurrencyCode;
 
+        //prepare available parents for hierarchy
+        var allVendors = await _vendorService.GetAllVendorsAsync(showHidden: true, pageSize: int.MaxValue);
+        model.AvailableParents = allVendors
+            .Where(v => v.Id != (vendor?.Id ?? 0))
+            .OrderBy(v => v.Path ?? v.Name)
+            .Select(v => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = string.IsNullOrWhiteSpace(v.Path) ? v.Name : $"{v.Path} — {v.Name}",
+                Selected = v.Id == (vendor?.ParentId ?? 0)
+            })
+            .ToList();
+        model.AvailableParents.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = "0", Text = "— Không có (gốc) —" });
+
         //prepare localized models
         if (!excludeProperties)
             model.Locales = await _localizedModelFactory.PrepareLocalizedModelsAsync(localizedModelConfiguration);
@@ -403,9 +422,24 @@ public partial class VendorModelFactory : IVendorModelFactory
 
         //prepare address model
         var address = await _addressService.GetAddressByIdAsync(vendor?.AddressId ?? 0);
+        var vietnamCountryId = (await _countryService.GetCountryByTwoLetterIsoCodeAsync(VietnamCountryIsoCode))?.Id;
+
         if (!excludeProperties && address != null)
             model.Address = address.ToModel(model.Address);
+
+        if (vietnamCountryId.HasValue)
+            model.Address.CountryId = vietnamCountryId.Value;
+
         await _addressModelFactory.PrepareAddressModelAsync(model.Address, address);
+
+        if (vietnamCountryId.HasValue)
+        {
+            var vietnamCountryIdValue = vietnamCountryId.Value.ToString();
+            model.Address.CountryId = vietnamCountryId.Value;
+            model.Address.AvailableCountries = model.Address.AvailableCountries
+                .Where(x => x.Value == vietnamCountryIdValue)
+                .ToList();
+        }
 
         return model;
     }

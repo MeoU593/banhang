@@ -179,17 +179,10 @@ public partial class InstallationService : IInstallationService
         _defaultCustomerId = null;
 
         await InstallStoresAsync();
-        await InstallMeasuresAsync();
-        await InstallTaxCategoriesAsync();
         await InstallLanguagesAsync();
         await InstallCurrenciesAsync();
         await InstallCountriesAndStatesAsync();
-        await InstallShippingMethodsAsync();
-        await InstallDeliveryDatesAsync();
         await InstallProductAvailabilityRangesAsync();
-        await InstallEmailAccountsAsync();
-        await InstallMessageTemplatesAsync();
-        await InstallNewsLetterSubscriptionTypeAsync();
         await InstallTopicTemplatesAsync();
         await InstallSettingsAsync();
         await InstallCustomersAndUsersAsync();
@@ -225,9 +218,7 @@ public partial class InstallationService : IInstallationService
         await InstallCategoriesAsync(sampleData.Categories);
         await InstallManufacturersAsync(sampleData.Manufacturers);
         await InstallProductsAsync(sampleData.Products);
-        await InstallForumsAsync(sampleData.ForumGroups);
         await InstallBlogPostsAsync(sampleData.BlogPosts);
-        await InstallWarehousesAsync(sampleData.Warehouses);
         await InstallVendorsAsync(sampleData.Vendors);
         await InstallAffiliatesAsync(sampleData.Affiliates);
         await InstallOrdersAsync(sampleData.Orders);

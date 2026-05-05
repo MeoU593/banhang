@@ -3,8 +3,9 @@
 @using Nop.Core.Domain.Blogs
 
 @{
-    var posts = Model.BlogPosts.Take(4).ToList();
+    var posts = Model.BlogPosts.ToList();
     var postTypeId = ViewData["HomepagePostTypeId"] as int?;
+    var displayVariant = (ViewData["HomepagePostDisplayVariant"] as string ?? string.Empty).Trim().ToLowerInvariant();
     var blogArchiveUrl = postTypeId switch
     {
         0 => Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS),
@@ -15,57 +16,203 @@
 
 @if (posts.Any())
 {
-    <div class="grid gap-4 md:grid-cols-2">
-        @foreach (var item in posts)
-        {
-            var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
-            var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
-            var previewContent = !string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body;
-            var typeLabel = item.PostTypeId == 1 ? "Văn bản" : "Tin tức";
+    @if (displayVariant == "main-news")
+    {
+        var featured = posts.First();
+        var relatedPosts = posts.Skip(1).ToList();
+        var featuredRouteName = featured.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+        var featuredUrl = Url.RouteUrl(featuredRouteName, new { SeName = featured.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = featured.SeName });
+        var featuredPreviewContent = !string.IsNullOrWhiteSpace(featured.BodyOverview) ? featured.BodyOverview : featured.Body;
 
-            <article class="group flex h-full flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_48px_-28px_rgba(45,58,34,0.22)]">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">@typeLabel</p>
-                        <h3 class="mt-2 line-clamp-2 text-base font-bold tracking-tight text-slate-900">
-                            <a href="@postUrl" class="transition hover:text-military-green">@item.Title</a>
-                        </h3>
-                    </div>
-                    <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                        @item.CreatedOn.ToString("dd/MM/yyyy")
-                    </time>
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <div>
+                <a href="@featuredUrl" class="mb-4 block aspect-[16/9] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                    @if (!string.IsNullOrWhiteSpace(featured.ThumbnailImageUrl))
+                    {
+                        <img src="@featured.ThumbnailImageUrl" alt="@featured.Title" class="h-full w-full object-cover transition duration-500 hover:scale-105" />
+                    }
+                    else
+                    {
+                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-500">Ảnh minh họa</div>
+                    }
+                </a>
+                <h3 class="public-section-title font-bold text-slate-900">
+                    <a href="@featuredUrl" class="transition hover:text-military-green">@featured.Title</a>
+                </h3>
+                <div class="mt-3 line-clamp-4 text-[15px] leading-7 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                    @Html.Raw(featuredPreviewContent)
                 </div>
+            </div>
 
-                <div class="mt-3 flex-1 text-sm leading-6 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
-                    <div class="line-clamp-4">
-                        @Html.Raw(previewContent)
-                    </div>
-                </div>
+            <div class="border-l border-slate-200 pl-5">
+                @foreach (var item in relatedPosts)
+                {
+                    var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                    var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
 
-                <div class="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
-                        @(item.AllowComments ? $"{item.NumberOfComments} phản hồi" : "Đã xuất bản")
-                    </span>
-                    <a href="@postUrl" class="inline-flex h-10 min-w-[132px] items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green active:scale-[0.98]">
-                        Xem bài viết
+                    <a href="@postUrl" class="block border-b border-dotted border-slate-300 py-4 text-[17px] leading-8 text-slate-700 transition hover:text-military-green">
+                        <span class="line-clamp-3">@item.Title</span>
                     </a>
-                </div>
-            </article>
-        }
-    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (displayVariant == "headline-list")
+    {
+        <div class="divide-y divide-slate-100 bg-white">
+            @foreach (var item in posts.Take(3))
+            {
+                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+
+                <a href="@postUrl" class="flex items-start gap-2 px-5 py-4 text-[15px] font-semibold leading-7 text-slate-700 transition hover:bg-slate-50 hover:text-military-green">
+                    <span class="mt-1 text-military-green">▪</span>
+                    <span class="line-clamp-3">@item.Title</span>
+                </a>
+            }
+        </div>
+    }
+    else if (displayVariant == "document-list")
+    {
+        <div class="divide-y divide-slate-100">
+            @foreach (var item in posts)
+            {
+                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+
+                <a href="@postUrl" class="block px-5 py-4 transition hover:bg-slate-50">
+                    <div class="line-clamp-2 text-[15px] font-semibold leading-6 text-slate-800">@item.Title</div>
+                    <div class="mt-2 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</div>
+                </a>
+            }
+        </div>
+    }
+    else if (displayVariant == "home-news-grid")
+    {
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            @foreach (var item in posts.Take(4))
+            {
+                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                var previewContent = !string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body;
+
+                <article class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+                    <a href="@postUrl" class="block aspect-video overflow-hidden bg-slate-100">
+                        @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
+                        {
+                            <img src="@item.ThumbnailImageUrl" alt="@item.Title" class="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        }
+                        else
+                        {
+                            <div class="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Tin tức</div>
+                        }
+                    </a>
+                    <div class="space-y-3 p-4">
+                        <h4 class="line-clamp-2 font-bold text-slate-800">@item.Title</h4>
+                        <div class="line-clamp-3 text-xs leading-5 text-slate-500 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                            @Html.Raw(previewContent)
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-medium uppercase text-slate-400">@item.CreatedOn.ToString("dd/MM/yyyy")</span>
+                            <a href="@postUrl" class="inline-flex items-center gap-1 text-xs font-bold text-primary">
+                                Chi tiết
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else if (displayVariant == "home-doc-table")
+    {
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                        <th class="px-4 py-3">Số hiệu / Trích yếu</th>
+                        <th class="px-4 py-3">Ngày ban hành</th>
+                        <th class="px-4 py-3 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var item in posts.Take(6))
+                    {
+                        var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                        var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                        var author = string.IsNullOrWhiteSpace(item.AuthorName) ? "Ban hành nội bộ" : item.AuthorName;
+
+                        <tr class="transition-colors hover:bg-slate-50">
+                            <td class="px-4 py-3">
+                                <a href="@postUrl" class="line-clamp-1 font-bold text-slate-800 transition hover:text-primary">@item.Title</a>
+                                <p class="line-clamp-1 text-xs text-slate-500">@author</p>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="@postUrl" class="inline-flex rounded-lg p-2 text-primary transition hover:bg-primary/10">
+                                    <span class="material-symbols-outlined">open_in_new</span>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach (var item in posts)
+            {
+                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                var previewContent = !string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body;
+                var typeLabel = item.PostTypeId == 1 ? "Văn bản" : "Tin tức";
+
+                <article class="group flex h-full flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_48px_-28px_rgba(45,58,34,0.22)]">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">@typeLabel</p>
+                            <h3 class="public-list-title mt-2 line-clamp-2 font-bold tracking-tight text-slate-900">
+                                <a href="@postUrl" class="transition hover:text-military-green">@item.Title</a>
+                            </h3>
+                        </div>
+                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                            @item.CreatedOn.ToString("dd/MM/yyyy")
+                        </time>
+                    </div>
+
+                    <div class="mt-3 flex-1 text-sm leading-6 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                        <div class="line-clamp-4">
+                            @Html.Raw(previewContent)
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
+                        <span class="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
+                            @(item.AllowComments ? $"{item.NumberOfComments} phản hồi" : "Đã xuất bản")
+                        </span>
+                        <a href="@postUrl" class="inline-flex h-10 min-w-[132px] items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green active:scale-[0.98]">
+                            Xem bài viết
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
 }
 else
 {
-    <div class="rounded-[22px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-slate-500">
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div class="space-y-2">
                 <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Nguồn blog lõi</p>
-                <h3 class="text-lg font-bold tracking-tight text-slate-900">Chưa có bài viết blog nào để hiển thị trên trang chủ</h3>
-                <p class="max-w-2xl text-sm leading-6 text-slate-600">Khối tin trang chủ hiện chỉ lấy dữ liệu thật từ blog core. Khi có bài viết được xuất bản, teaser sẽ tự xuất hiện tại đây.</p>
+                <h3 class="public-card-title font-bold tracking-tight text-slate-900">Chưa có bài viết nào để hiển thị</h3>
+                <p class="max-w-2xl text-sm leading-6 text-slate-600">Khi bài viết được xuất bản, hệ thống sẽ tự động cập nhật vào các khối trang chủ.</p>
             </div>
             @if (!string.IsNullOrWhiteSpace(blogArchiveUrl))
             {
-                <a href="@blogArchiveUrl" class="inline-flex h-11 min-w-[186px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green active:scale-[0.98]">
+                <a href="@blogArchiveUrl" class="inline-flex h-11 min-w-[186px] items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
                     Đi tới lưu trữ blog
                 </a>
             }

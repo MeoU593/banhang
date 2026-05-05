@@ -1,8 +1,6 @@
-﻿@model VendorSearchModel
+@model VendorSearchModel
 @{
-    //page title
-    ViewBag.PageTitle = T("Admin.Vendors").Text;
-    //active menu item (system name)
+    ViewBag.PageTitle = "Quản lý đơn vị";
     NopHtml.SetActiveMenuItemSystemName("Vendors");
 }
 
@@ -12,112 +10,126 @@
 }
 
 <div class="content-header clearfix">
-    <h1 class="float-left">
-        @T("Admin.Vendors")
-    </h1>
+    <h1 class="float-left">Quản lý đơn vị</h1>
     <div class="float-right">
         <a asp-action="Create" class="btn btn-primary">
             <i class="fas fa-square-plus"></i>
-            @T("Admin.Common.AddNew")
+            Thêm đơn vị mới
         </a>
-        @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.VendorListButtons, additionalData = Model })
     </div>
 </div>
 
 <section class="content">
     <div class="container-fluid">
-    <div class="form-horizontal">
-        <div class="cards-group">
-            <div class="card card-default card-search">
-                <div class="card-body">
-                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
-                        <div class="search-text">@T("Admin.Common.Search")</div>
-                        <div class="icon-search"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></div>
-                        <div class="icon-collapse"><i class="far fa-angle-@(!hideSearchBlock ? "up" : "down")" aria-hidden="true"></i></div>
-                    </div>
+        <div class="form-horizontal">
+            <div class="cards-group">
+                <div class="card card-default card-search">
+                    <div class="card-body">
+                        <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                            <div class="search-text">@T("Admin.Common.Search")</div>
+                            <div class="icon-search"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></div>
+                            <div class="icon-collapse"><i class="far fa-angle-@(!hideSearchBlock ? "up" : "down")" aria-hidden="true"></i></div>
+                        </div>
 
-                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchName" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchName" />
+                        <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <label class="col-form-label">Tên đơn vị</label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchName" />
+                                        </div>
                                     </div>
                                 </div>
-                                </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchEmail" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchEmail" />
+                                <div class="col-md-6">
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <label class="col-form-label">Email liên hệ</label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchEmail" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="text-center col-12">
-                                <button type="button" id="search-vendors" class="btn btn-primary btn-search">
-                                    <i class="fas fa-magnifying-glass"></i>
-                                    @T("Admin.Common.Search")
-                                </button>
+                            <div class="row">
+                                <div class="text-center col-12">
+                                    <button type="button" id="search-vendors" class="btn btn-primary btn-search">
+                                        <i class="fas fa-magnifying-glass"></i>
+                                        Tìm kiếm
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card card-default">
-                <div class="card-body">
-                    <nop-doc-reference asp-string-resource="@T("Admin.Documentation.Reference.VendorManagement", Docs.VendorManagement + Utm.OnAdmin)" />
-
-                    @await Html.PartialAsync("Table", new DataTablesModel
-                    {
-                        Name = "vendors-grid",
-                        UrlRead = new DataUrl("List", "Vendor", null),
-                        SearchButtonId = "search-vendors",
-                        Length = Model.PageSize,
-                        LengthMenu = Model.AvailablePageSizes,
-                        Filters = new List<FilterParameter>
+                <div class="card card-default">
+                    <div class="card-body">
+                        @await Html.PartialAsync("Table", new DataTablesModel
                         {
-                            new FilterParameter(nameof(Model.SearchName)),
-                            new FilterParameter(nameof(Model.SearchEmail))
-                        },
-                        ColumnCollection = new List<ColumnProperty>
-                        {
-                            new ColumnProperty(nameof(VendorModel.Name))
+                            Name = "vendors-grid",
+                            UrlRead = new DataUrl("List", "Vendor", null),
+                            SearchButtonId = "search-vendors",
+                            Length = Model.PageSize,
+                            LengthMenu = Model.AvailablePageSizes,
+                            Filters = new List<FilterParameter>
                             {
-                                Title = T("Admin.Vendors.Fields.Name").Text,
-                                Width = "300"
+                                new FilterParameter(nameof(Model.SearchName)),
+                                new FilterParameter(nameof(Model.SearchEmail))
                             },
-                            new ColumnProperty(nameof(VendorModel.Email))
+                            ColumnCollection = new List<ColumnProperty>
                             {
-                                Title = T("Admin.Vendors.Fields.Email").Text,
-                                Width = "300"
-                            },
-                            new ColumnProperty(nameof(VendorModel.Active))
-                            {
-                                Title = T("Admin.Vendors.Fields.Active").Text,
-                                Width = "50",
-                                ClassName =  NopColumnClassDefaults.CenterAll,
-                                Render = new RenderBoolean()
-                            },
-                            new ColumnProperty(nameof(VendorModel.Id))
-                            {
-                                Title = T("Admin.Common.Edit").Text,
-                                Width = "50",
-                                ClassName =  NopColumnClassDefaults.Button,
-                                Render = new RenderButtonEdit(new DataUrl("~/Admin/Vendor/Edit"))
+                                new ColumnProperty(nameof(VendorModel.Level))
+                                {
+                                    Title = "Cấp",
+                                    Width = "70",
+                                    ClassName = NopColumnClassDefaults.CenterAll,
+                                    Render = new RenderCustom("renderLevel")
+                                },
+                                new ColumnProperty(nameof(VendorModel.Code))
+                                {
+                                    Title = "Mã",
+                                    Width = "80"
+                                },
+                                new ColumnProperty(nameof(VendorModel.Name))
+                                {
+                                    Title = "Tên đơn vị"
+                                },
+                                new ColumnProperty(nameof(VendorModel.Path))
+                                {
+                                    Title = "Đường dẫn phân cấp"
+                                },
+                                new ColumnProperty(nameof(VendorModel.Active))
+                                {
+                                    Title = "Hoạt động",
+                                    Width = "80",
+                                    ClassName = NopColumnClassDefaults.CenterAll,
+                                    Render = new RenderBoolean()
+                                },
+                                new ColumnProperty(nameof(VendorModel.Id))
+                                {
+                                    Title = "Sửa",
+                                    Width = "50",
+                                    ClassName = NopColumnClassDefaults.Button,
+                                    Render = new RenderButtonEdit(new DataUrl("~/Admin/Vendor/Edit"))
+                                }
                             }
-                        }
-                    })
+                        })
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </section>
+
+<script>
+    function renderLevel(data, type, row, meta) {
+        if (data === 0) return '<span class="badge badge-primary">Cấp 0</span>';
+        if (data === 1) return '<span class="badge badge-info">Cấp 1</span>';
+        if (data === 2) return '<span class="badge badge-success">Cấp 2</span>';
+        return '<span class="badge badge-secondary">Cấp ' + data + '</span>';
+    }
+</script>

@@ -24,17 +24,13 @@ public partial record ProductModel : BaseNopEntityModel,
         CopyProductModel = new CopyProductModel();
         AddPictureModel = new ProductPictureModel();
         AddVideoModel = new ProductVideoModel();
-        ProductWarehouseInventoryModels = new List<ProductWarehouseInventoryModel>();
         ProductEditorSettingsModel = new ProductEditorSettingsModel();
         StockQuantityHistory = new StockQuantityHistoryModel();
 
         AvailableBasepriceUnits = new List<SelectListItem>();
         AvailableBasepriceBaseUnits = new List<SelectListItem>();
         AvailableProductTemplates = new List<SelectListItem>();
-        AvailableTaxCategories = new List<SelectListItem>();
-        AvailableDeliveryDates = new List<SelectListItem>();
         AvailableProductAvailabilityRanges = new List<SelectListItem>();
-        AvailableWarehouses = new List<SelectListItem>();
         ProductsTypesSupportedByProductTemplates = new Dictionary<int, IList<SelectListItem>>();
 
         AvailableVendors = new List<SelectListItem>();
@@ -217,42 +213,12 @@ public partial record ProductModel : BaseNopEntityModel,
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.RentalPricePeriod")]
     public int RentalPricePeriodId { get; set; }
 
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.IsShipEnabled")]
-    public bool IsShipEnabled { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.IsFreeShipping")]
-    public bool IsFreeShipping { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.ShipSeparately")]
-    public bool ShipSeparately { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.AdditionalShippingCharge")]
-    public decimal AdditionalShippingCharge { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.DeliveryDate")]
-    public int DeliveryDateId { get; set; }
-    public IList<SelectListItem> AvailableDeliveryDates { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.IsTaxExempt")]
-    public bool IsTaxExempt { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.TaxCategory")]
-    public int TaxCategoryId { get; set; }
-    public IList<SelectListItem> AvailableTaxCategories { get; set; }
-
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.ManageInventoryMethod")]
     public int ManageInventoryMethodId { get; set; }
 
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.ProductAvailabilityRange")]
     public int ProductAvailabilityRangeId { get; set; }
     public IList<SelectListItem> AvailableProductAvailabilityRanges { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.UseMultipleWarehouses")]
-    public bool UseMultipleWarehouses { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Warehouse")]
-    public int WarehouseId { get; set; }
-    public IList<SelectListItem> AvailableWarehouses { get; set; }
 
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.StockQuantity")]
     public int StockQuantity { get; set; }
@@ -372,18 +338,6 @@ public partial record ProductModel : BaseNopEntityModel,
     [UIHint("DateTimeNullable")]
     public DateTime? MarkAsNewEndDateTimeUtc { get; set; }
 
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Weight")]
-    public decimal Weight { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Length")]
-    public decimal Length { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Width")]
-    public decimal Width { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.Height")]
-    public decimal Height { get; set; }
-
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.AvailableStartDateTime")]
     [UIHint("DateTimeNullable")]
     public DateTime? AvailableStartDateTimeUtc { get; set; }
@@ -399,10 +353,6 @@ public partial record ProductModel : BaseNopEntityModel,
     public bool Published { get; set; }
 
     public string PrimaryStoreCurrencyCode { get; set; }
-
-    public string BaseDimensionIn { get; set; }
-
-    public string BaseWeightIn { get; set; }
 
     public IList<ProductLocalizedModel> Locales { get; set; }
 
@@ -448,10 +398,6 @@ public partial record ProductModel : BaseNopEntityModel,
     //product attributes
     public bool ProductAttributesExist { get; set; }
     public bool CanCreateCombinations { get; set; }
-
-    //multiple warehouses
-    [NopResourceDisplayName("Admin.Catalog.Products.ProductWarehouseInventory")]
-    public IList<ProductWarehouseInventoryModel> ProductWarehouseInventoryModels { get; set; }
 
     //specification attributes
     public bool HasAvailableSpecificationAttributes { get; set; }

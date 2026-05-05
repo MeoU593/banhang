@@ -14,7 +14,6 @@ using Nop.Services.Customers;
 using Nop.Services.Html;
 using Nop.Services.Localization;
 using Nop.Services.Media;
-using Nop.Services.Messages;
 using Nop.Services.Seo;
 using Nop.Services.Vendors;
 using Nop.Web.Factories;
@@ -42,7 +41,6 @@ public partial class VendorController : BasePublicController
     protected readonly IVendorModelFactory _vendorModelFactory;
     protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly LocalizationSettings _localizationSettings;
     protected readonly VendorSettings _vendorSettings;
     private static readonly char[] _separator = [','];
@@ -64,7 +62,6 @@ public partial class VendorController : BasePublicController
         IVendorModelFactory vendorModelFactory,
         IVendorService vendorService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings,
         VendorSettings vendorSettings)
     {
@@ -81,7 +78,6 @@ public partial class VendorController : BasePublicController
         _vendorModelFactory = vendorModelFactory;
         _vendorService = vendorService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _localizationSettings = localizationSettings;
         _vendorSettings = vendorSettings;
     }
@@ -278,10 +274,6 @@ public partial class VendorController : BasePublicController
             //save vendor attributes
             await _genericAttributeService.SaveAttributeAsync(vendor, NopVendorDefaults.VendorAttributes, vendorAttributesXml);
 
-            //notify store owner here (email)
-            await _workflowMessageService.SendNewVendorAccountApplyStoreOwnerNotificationAsync(customer,
-                vendor, _localizationSettings.DefaultAdminLanguageId);
-
             model.DisableFormInput = true;
             model.Result = await _localizationService.GetResourceAsync("Vendors.ApplyAccount.Submitted");
             return View(model);
@@ -370,10 +362,6 @@ public partial class VendorController : BasePublicController
             //save vendor attributes
             await _genericAttributeService.SaveAttributeAsync(vendor, NopVendorDefaults.VendorAttributes, vendorAttributesXml);
 
-            //notifications
-            if (_vendorSettings.NotifyStoreOwnerAboutVendorInformationChange)
-                await _workflowMessageService.SendVendorInformationChangeStoreOwnerNotificationAsync(vendor, _localizationSettings.DefaultAdminLanguageId);
-
             return RedirectToAction("Info");
         }
 
@@ -400,10 +388,6 @@ public partial class VendorController : BasePublicController
 
         vendor.PictureId = 0;
         await _vendorService.UpdateVendorAsync(vendor);
-
-        //notifications
-        if (_vendorSettings.NotifyStoreOwnerAboutVendorInformationChange)
-            await _workflowMessageService.SendVendorInformationChangeStoreOwnerNotificationAsync(vendor, _localizationSettings.DefaultAdminLanguageId);
 
         return RedirectToAction("Info");
     }

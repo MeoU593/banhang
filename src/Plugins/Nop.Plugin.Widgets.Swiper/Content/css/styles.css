@@ -8,5 +8,7 @@
 }
 
 .nop-slider .slider-img {
-  max-width: 100%;
+  max-width: 70%;
+  max-height: 70%;
+  object-fit: contain;
 }

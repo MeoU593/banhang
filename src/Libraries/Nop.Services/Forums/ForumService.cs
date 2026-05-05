@@ -542,10 +542,10 @@ public partial class ForumService : IForumService
             if (subscription.CustomerId == forumTopic.CustomerId)
                 continue;
 
-            var customer = await _customerService.GetCustomerByIdAsync(subscription.CustomerId);
-
-            if (!string.IsNullOrEmpty(customer?.Email))
-                await _workflowMessageService.SendNewForumTopicMessageAsync(customer, forumTopic, forum, languageId);
+            //var customer = await _customerService.GetCustomerByIdAsync(subscription.CustomerId);
+            //
+            //if (!string.IsNullOrEmpty(customer?.Email))
+            //    await _workflowMessageService.SendNewForumTopicMessageAsync(customer, forumTopic, forum, languageId);
         }
     }
 
@@ -739,10 +739,10 @@ public partial class ForumService : IForumService
             if (subscription.CustomerId == forumPost.CustomerId)
                 continue;
 
-            var customer = await _customerService.GetCustomerByIdAsync(subscription.CustomerId);
-
-            if (!string.IsNullOrEmpty(customer?.Email))
-                await _workflowMessageService.SendNewForumPostMessageAsync(customer, forumPost, forumTopic, forum, friendlyTopicPageIndex, languageId);
+            //var customer = await _customerService.GetCustomerByIdAsync(subscription.CustomerId);
+            //
+            //if (!string.IsNullOrEmpty(customer?.Email))
+            //    await _workflowMessageService.SendNewForumPostMessageAsync(customer, forumPost, forumTopic, forum, friendlyTopicPageIndex, languageId);
         }
     }
 
@@ -828,6 +828,52 @@ public partial class ForumService : IForumService
     }
 
     /// <summary>
+    /// Gets public unit contact private messages between a customer and unit contact person
+    /// </summary>
+    /// <param name="vendorId">Vendor identifier</param>
+    /// <param name="customerId">Customer identifier</param>
+    /// <param name="contactCustomerId">Contact customer identifier</param>
+    /// <param name="storeId">Store identifier; pass 0 to load all stores</param>
+    /// <param name="take">Maximum number of messages to return</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task<IList<PrivateMessage>> GetUnitContactPrivateMessagesAsync(int vendorId, int customerId, int contactCustomerId, int storeId = 0, int take = 50)
+    {
+        if (vendorId <= 0 || customerId <= 0 || contactCustomerId <= 0)
+            return new List<PrivateMessage>();
+
+        var query = _forumPrivateMessageRepository.Table
+            .Where(pm => pm.UnitContactVendorId == vendorId)
+            .Where(pm =>
+                (pm.FromCustomerId == customerId && pm.ToCustomerId == contactCustomerId && !pm.IsDeletedByAuthor) ||
+                (pm.FromCustomerId == contactCustomerId && pm.ToCustomerId == customerId && !pm.IsDeletedByRecipient));
+
+        if (storeId > 0)
+            query = query.Where(pm => pm.StoreId == storeId);
+
+        var messages = await query
+            .OrderByDescending(pm => pm.CreatedOnUtc)
+            .Take(take)
+            .ToListAsync();
+
+        return messages.OrderBy(pm => pm.CreatedOnUtc).ToList();
+    }
+
+    /// <summary>
+    /// Deletes public unit contact private messages older than the specified date
+    /// </summary>
+    /// <param name="createdBeforeUtc">Created before UTC</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task DeleteUnitContactPrivateMessagesOlderThanAsync(DateTime createdBeforeUtc)
+    {
+        var messages = await _forumPrivateMessageRepository.Table
+            .Where(pm => pm.UnitContactVendorId.HasValue && pm.CreatedOnUtc < createdBeforeUtc)
+            .ToListAsync();
+
+        if (messages.Any())
+            await _forumPrivateMessageRepository.DeleteAsync(messages);
+    }
+
+    /// <summary>
     /// Inserts a private message
     /// </summary>
     /// <param name="privateMessage">Private message</param>
@@ -842,9 +888,9 @@ public partial class ForumService : IForumService
         //UI notification
         await _genericAttributeService.SaveAttributeAsync(customerTo, NopCustomerDefaults.NotifiedAboutNewPrivateMessagesAttribute, false, privateMessage.StoreId);
 
-        //Email notification
-        if (_forumSettings.NotifyAboutPrivateMessages)
-            await _workflowMessageService.SendPrivateMessageNotificationAsync(privateMessage, (await _workContext.GetWorkingLanguageAsync()).Id);
+        ////Email notification
+        //if (_forumSettings.NotifyAboutPrivateMessages)
+        //    await _workflowMessageService.SendPrivateMessageNotificationAsync(privateMessage, (await _workContext.GetWorkingLanguageAsync()).Id);
     }
 
     /// <summary>

@@ -10,9 +10,6 @@ using Nop.Services.Localization;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Plugins.Marketplace;
-using Nop.Services.Shipping;
-using Nop.Services.Shipping.Pickup;
-using Nop.Services.Tax;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Plugins;
 using Nop.Web.Areas.Admin.Models.Plugins.Marketplace;
@@ -34,13 +31,10 @@ public partial class PluginModelFactory : IPluginModelFactory
     protected readonly ILocalizedModelFactory _localizedModelFactory;
     protected readonly IMultiFactorAuthenticationPluginManager _multiFactorAuthenticationPluginManager;
     protected readonly IPaymentPluginManager _paymentPluginManager;
-    protected readonly IPickupPluginManager _pickupPluginManager;
     protected readonly IPluginService _pluginService;
     protected readonly ISearchPluginManager _searchPluginManager;
-    protected readonly IShippingPluginManager _shippingPluginManager;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
-    protected readonly ITaxPluginManager _taxPluginManager;
     protected readonly IWidgetPluginManager _widgetPluginManager;
     protected readonly IWorkContext _workContext;
     protected readonly OfficialFeedManager _officialFeedManager;
@@ -55,13 +49,10 @@ public partial class PluginModelFactory : IPluginModelFactory
         IMultiFactorAuthenticationPluginManager multiFactorAuthenticationPluginManager,
         ILocalizedModelFactory localizedModelFactory,
         IPaymentPluginManager paymentPluginManager,
-        IPickupPluginManager pickupPluginManager,
         IPluginService pluginService,
         ISearchPluginManager searchPluginManager,
-        IShippingPluginManager shippingPluginManager,
         IStaticCacheManager staticCacheManager,
         IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
-        ITaxPluginManager taxPluginManager,
         IWidgetPluginManager widgetPluginManager,
         IWorkContext workContext,
         OfficialFeedManager officialFeedManager)
@@ -72,13 +63,10 @@ public partial class PluginModelFactory : IPluginModelFactory
         _localizedModelFactory = localizedModelFactory;
         _multiFactorAuthenticationPluginManager = multiFactorAuthenticationPluginManager;
         _paymentPluginManager = paymentPluginManager;
-        _pickupPluginManager = pickupPluginManager;
         _pluginService = pluginService;
         _searchPluginManager = searchPluginManager;
-        _shippingPluginManager = shippingPluginManager;
         _staticCacheManager = staticCacheManager;
         _storeMappingSupportedModelFactory = storeMappingSupportedModelFactory;
-        _taxPluginManager = taxPluginManager;
         _widgetPluginManager = widgetPluginManager;
         _workContext = workContext;
         _officialFeedManager = officialFeedManager;
@@ -112,18 +100,6 @@ public partial class PluginModelFactory : IPluginModelFactory
 
             case IPaymentMethod paymentMethod:
                 model.IsEnabled = _paymentPluginManager.IsPluginActive(paymentMethod);
-                break;
-
-            case IShippingRateComputationMethod shippingRateComputationMethod:
-                model.IsEnabled = _shippingPluginManager.IsPluginActive(shippingRateComputationMethod);
-                break;
-
-            case IPickupPointProvider pickupPointProvider:
-                model.IsEnabled = _pickupPluginManager.IsPluginActive(pickupPointProvider);
-                break;
-
-            case ITaxProvider taxProvider:
-                model.IsEnabled = _taxPluginManager.IsPluginActive(taxProvider);
                 break;
 
             case IExternalAuthenticationMethod externalAuthenticationMethod:

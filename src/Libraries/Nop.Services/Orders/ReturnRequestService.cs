@@ -37,6 +37,15 @@ public partial class ReturnRequestService : IReturnRequestService
 
     #endregion
 
+    #region Utilities
+
+    protected virtual bool CommerceSchemaAvailable()
+    {
+        return false;
+    }
+
+    #endregion
+
     #region Methods
 
     /// <summary>
@@ -83,6 +92,9 @@ public partial class ReturnRequestService : IReturnRequestService
         int orderItemId = 0, string customNumber = "", ReturnRequestStatus? rs = null, DateTime? createdFromUtc = null,
         DateTime? createdToUtc = null, int pageIndex = 0, int pageSize = int.MaxValue, bool getOnlyTotalCount = false)
     {
+        if (!CommerceSchemaAvailable())
+            return await Task.FromResult(new PagedList<ReturnRequest>(new List<ReturnRequest>(), pageIndex, pageSize, 0));
+
         var query = _returnRequestRepository.Table;
         if (storeId > 0)
             query = query.Where(rr => storeId == rr.StoreId);
@@ -119,6 +131,9 @@ public partial class ReturnRequestService : IReturnRequestService
     /// <returns>The <see cref="Task"/> containing the <see cref="ReturnRequestAvailability"/></returns>
     public virtual async Task<ReturnRequestAvailability> GetReturnRequestAvailabilityAsync(int orderId)
     {
+        if (!CommerceSchemaAvailable())
+            return await Task.FromResult(new ReturnRequestAvailability());
+
         var result = new ReturnRequestAvailability();
 
         if (orderId > 0)

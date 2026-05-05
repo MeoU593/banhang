@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
@@ -11,6 +12,7 @@ using Nop.Services.Html;
 using Nop.Services.Localization;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Blogs;
 using Nop.Web.Framework.Extensions;
@@ -37,6 +39,8 @@ public partial class BlogModelFactory : IBlogModelFactory
     protected readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
     protected readonly IStoreService _storeService;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
+    protected readonly IWorkContext _workContext;
 
     #endregion
 
@@ -52,7 +56,9 @@ public partial class BlogModelFactory : IBlogModelFactory
         ILocalizationService localizationService,
         IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
         IStoreService storeService,
-        IUrlRecordService urlRecordService)
+        IUrlRecordService urlRecordService,
+        IVendorService vendorService,
+        IWorkContext workContext)
     {
         _catalogSettings = catalogSettings;
         _baseAdminModelFactory = baseAdminModelFactory;
@@ -65,11 +71,25 @@ public partial class BlogModelFactory : IBlogModelFactory
         _storeMappingSupportedModelFactory = storeMappingSupportedModelFactory;
         _storeService = storeService;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
+        _workContext = workContext;
     }
 
     #endregion
 
     #region Methods
+
+    protected virtual async Task<IList<int>> GetCurrentVendorScopeIdsAsync()
+    {
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor == null)
+            return null;
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        return currentVendor.PmCustomerId == currentCustomer.Id
+            ? await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)
+            : [currentVendor.Id];
+    }
 
     /// <summary>
     /// Prepare blog content model
@@ -86,7 +106,12 @@ public partial class BlogModelFactory : IBlogModelFactory
 
         //prepare nested search models
         await PrepareBlogPostSearchModelAsync(blogContentModel.BlogPosts);
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
         var blogPost = await _blogService.GetBlogPostByIdAsync(filterByBlogPostId ?? 0);
+
+        if (blogPost != null && vendorScopeIds != null && !vendorScopeIds.Contains(blogPost.VendorId))
+            blogPost = null;
+
         await PrepareBlogCommentSearchModelAsync(blogContentModel.BlogComments, blogPost);
 
         return blogContentModel;
@@ -105,8 +130,9 @@ public partial class BlogModelFactory : IBlogModelFactory
         ArgumentNullException.ThrowIfNull(searchModel);
 
         //get blog posts
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
         var blogPosts = await _blogService.GetAllBlogPostsAsync(storeId: searchModel.SearchStoreId, showHidden: true,
-            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize, title: searchModel.SearchTitle);
+            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize, title: searchModel.SearchTitle, vendorIds: vendorScopeIds);
 
         //prepare list model
         var model = await new BlogPostListModel().PrepareToGridAsync(searchModel, blogPosts, () =>
@@ -254,11 +280,13 @@ public partial class BlogModelFactory : IBlogModelFactory
         var isApprovedOnly = searchModel.SearchApprovedId == 0 ? null : searchModel.SearchApprovedId == 1 ? true : (bool?)false;
 
         //get comments
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
         var comments = (await _blogService.GetAllCommentsAsync(blogPostId: blogPostId,
             approved: isApprovedOnly,
             fromUtc: createdOnFromValue,
             toUtc: createdOnToValue,
-            commentText: searchModel.SearchText)).ToPagedList(searchModel);
+            commentText: searchModel.SearchText,
+            vendorIds: vendorScopeIds)).ToPagedList(searchModel);
 
         //prepare store names (to avoid loading for each comment)
         var storeNames = (await _storeService.GetAllStoresAsync())

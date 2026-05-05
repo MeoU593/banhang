@@ -9,7 +9,6 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
-using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -23,8 +22,8 @@ using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Orders;
 using Nop.Services.Seo;
-using Nop.Services.Shipping;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Areas.Admin.Models.Common;
@@ -69,7 +68,6 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly IProductTemplateService _productTemplateService;
     protected readonly ISettingModelFactory _settingModelFactory;
     protected readonly ISettingService _settingService;
-    protected readonly IShipmentService _shipmentService;
     protected readonly IShoppingCartService _shoppingCartService;
     protected readonly ISpecificationAttributeService _specificationAttributeService;
     protected readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
@@ -77,11 +75,10 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly IStoreService _storeService;
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IVideoService _videoService;
-    protected readonly IWarehouseService _warehouseService;
     protected readonly IWorkContext _workContext;
+    protected readonly IVendorService _vendorService;
     protected readonly MeasureSettings _measureSettings;
     protected readonly NopHttpClient _nopHttpClient;
-    protected readonly TaxSettings _taxSettings;
     protected readonly VendorSettings _vendorSettings;
 
     #endregion
@@ -115,7 +112,6 @@ public partial class ProductModelFactory : IProductModelFactory
         IProductTemplateService productTemplateService,
         ISettingModelFactory settingModelFactory,
         ISettingService settingService,
-        IShipmentService shipmentService,
         IShoppingCartService shoppingCartService,
         ISpecificationAttributeService specificationAttributeService,
         IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
@@ -123,11 +119,10 @@ public partial class ProductModelFactory : IProductModelFactory
         IStoreService storeService,
         IUrlRecordService urlRecordService,
         IVideoService videoService,
-        IWarehouseService warehouseService,
         IWorkContext workContext,
+        IVendorService vendorService,
         MeasureSettings measureSettings,
         NopHttpClient nopHttpClient,
-        TaxSettings taxSettings,
         VendorSettings vendorSettings)
     {
         _catalogSettings = catalogSettings;
@@ -157,7 +152,6 @@ public partial class ProductModelFactory : IProductModelFactory
         _productTemplateService = productTemplateService;
         _settingModelFactory = settingModelFactory;
         _settingService = settingService;
-        _shipmentService = shipmentService;
         _shoppingCartService = shoppingCartService;
         _specificationAttributeService = specificationAttributeService;
         _storeMappingSupportedModelFactory = storeMappingSupportedModelFactory;
@@ -165,11 +159,10 @@ public partial class ProductModelFactory : IProductModelFactory
         _storeService = storeService;
         _urlRecordService = urlRecordService;
         _videoService = videoService;
-        _warehouseService = warehouseService;
         _workContext = workContext;
+        _vendorService = vendorService;
         _measureSettings = measureSettings;
         _nopHttpClient = nopHttpClient;
-        _taxSettings = taxSettings;
         _vendorSettings = vendorSettings;
     }
 
@@ -192,6 +185,30 @@ public partial class ProductModelFactory : IProductModelFactory
         return name;
     }
 
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains allowed vendor identifiers for current vendor account;
+    /// null means no vendor restriction for current customer
+    /// </returns>
+    protected virtual async Task<IList<int>> GetCurrentVendorScopeIdsAsync(int selectedVendorId = 0)
+    {
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor == null)
+            return null;
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var allowedVendorIds = currentVendor.PmCustomerId == currentCustomer.Id
+            ? await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)
+            : [currentVendor.Id];
+
+        if (selectedVendorId <= 0)
+            return allowedVendorIds;
+
+        return allowedVendorIds.Contains(selectedVendorId)
+            ? [selectedVendorId]
+            : [currentVendor.Id];
+    }
+
     /// <summary>
     /// Prepare copy product model
     /// </summary>
@@ -211,40 +228,6 @@ public partial class ProductModelFactory : IProductModelFactory
         model.CopyMultimedia = true;
 
         return model;
-    }
-
-    /// <summary>
-    /// Prepare product warehouse inventory models
-    /// </summary>
-    /// <param name="models">List of product warehouse inventory models</param>
-    /// <param name="product">Product</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    protected virtual async Task PrepareProductWarehouseInventoryModelsAsync(IList<ProductWarehouseInventoryModel> models, Product product)
-    {
-        ArgumentNullException.ThrowIfNull(models);
-
-        foreach (var warehouse in await _warehouseService.GetAllWarehousesAsync())
-        {
-            var model = new ProductWarehouseInventoryModel
-            {
-                WarehouseId = warehouse.Id,
-                WarehouseName = warehouse.Name
-            };
-
-            if (product != null)
-            {
-                var productWarehouseInventory = (await _productService.GetAllProductWarehouseInventoryRecordsAsync(product.Id))?.FirstOrDefault(inventory => inventory.WarehouseId == warehouse.Id);
-                if (productWarehouseInventory != null)
-                {
-                    model.WarehouseUsed = true;
-                    model.StockQuantity = productWarehouseInventory.StockQuantity;
-                    model.ReservedQuantity = productWarehouseInventory.ReservedQuantity;
-                    model.PlannedQuantity = await _shipmentService.GetQuantityInShipmentsAsync(product, productWarehouseInventory.WarehouseId, true, true);
-                }
-            }
-
-            models.Add(model);
-        }
     }
 
     /// <summary>
@@ -544,20 +527,17 @@ public partial class ProductModelFactory : IProductModelFactory
     /// A task that represents the asynchronous operation
     /// The task result contains the stock quantity history search model
     /// </returns>
-    protected virtual async Task<StockQuantityHistorySearchModel> PrepareStockQuantityHistorySearchModelAsync(StockQuantityHistorySearchModel searchModel, Product product)
+    protected virtual Task<StockQuantityHistorySearchModel> PrepareStockQuantityHistorySearchModelAsync(StockQuantityHistorySearchModel searchModel, Product product)
     {
         ArgumentNullException.ThrowIfNull(searchModel);
         ArgumentNullException.ThrowIfNull(product);
 
         searchModel.ProductId = product.Id;
 
-        //prepare available warehouses
-        await _baseAdminModelFactory.PrepareWarehousesAsync(searchModel.AvailableWarehouses);
-
         //prepare page parameters
         searchModel.SetGridPageSize();
 
-        return searchModel;
+        return Task.FromResult(searchModel);
     }
 
     /// <summary>
@@ -708,9 +688,6 @@ public partial class ProductModelFactory : IProductModelFactory
         //prepare available product types
         await _baseAdminModelFactory.PrepareProductTypesAsync(searchModel.AvailableProductTypes);
 
-        //prepare available warehouses
-        await _baseAdminModelFactory.PrepareWarehousesAsync(searchModel.AvailableWarehouses);
-
         searchModel.HideStoresList = _catalogSettings.IgnoreStoreLimitations || searchModel.AvailableStores.SelectionIsNotPossible();
 
         //prepare "published" filter (0 - all; 1 - published only; 2 - unpublished only)
@@ -750,9 +727,8 @@ public partial class ProductModelFactory : IProductModelFactory
 
         //get parameters to filter comments
         var overridePublished = searchModel.SearchPublishedId == 0 ? null : (bool?)(searchModel.SearchPublishedId == 1);
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
+
         var categoryIds = new List<int> { searchModel.SearchCategoryId };
         if (searchModel.SearchIncludeSubCategories && searchModel.SearchCategoryId > 0)
         {
@@ -765,8 +741,8 @@ public partial class ProductModelFactory : IProductModelFactory
             categoryIds: categoryIds,
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
-            warehouseId: searchModel.SearchWarehouseId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize,
@@ -900,17 +876,13 @@ public partial class ProductModelFactory : IProductModelFactory
             model.NotifyAdminForQuantityBelow = 1;
             model.OrderMinimumQuantity = 1;
             model.OrderMaximumQuantity = 10000;
-            model.TaxCategoryId = _taxSettings.DefaultTaxCategoryId;
             model.UnlimitedDownloads = true;
-            model.IsShipEnabled = true;
             model.AllowCustomerReviews = true;
             model.Published = true;
             model.VisibleIndividually = true;
         }
 
         model.PrimaryStoreCurrencyCode = (await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId)).CurrencyCode;
-        model.BaseWeightIn = (await _measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId)).Name;
-        model.BaseDimensionIn = (await _measureService.GetMeasureDimensionByIdAsync(_measureSettings.BaseDimensionId)).Name;
         model.HasAvailableSpecificationAttributes =
             (await _specificationAttributeService.GetSpecificationAttributesWithOptionsAsync()).Any();
 
@@ -946,10 +918,6 @@ public partial class ProductModelFactory : IProductModelFactory
             }
         }
 
-        //prepare available delivery dates
-        await _baseAdminModelFactory.PrepareDeliveryDatesAsync(model.AvailableDeliveryDates,
-            defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Products.Fields.DeliveryDate.None"));
-
         //prepare available product availability ranges
         await _baseAdminModelFactory.PrepareProductAvailabilityRangesAsync(model.AvailableProductAvailabilityRanges,
             defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Products.Fields.ProductAvailabilityRange.None"));
@@ -957,14 +925,6 @@ public partial class ProductModelFactory : IProductModelFactory
         //prepare available vendors
         await _baseAdminModelFactory.PrepareVendorsAsync(model.AvailableVendors,
             defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Products.Fields.Vendor.None"));
-
-        //prepare available tax categories
-        await _baseAdminModelFactory.PrepareTaxCategoriesAsync(model.AvailableTaxCategories);
-
-        //prepare available warehouses
-        await _baseAdminModelFactory.PrepareWarehousesAsync(model.AvailableWarehouses,
-            defaultItemText: await _localizationService.GetResourceAsync("Admin.Catalog.Products.Fields.Warehouse.None"));
-        await PrepareProductWarehouseInventoryModelsAsync(model.ProductWarehouseInventoryModels, product);
 
         //prepare available base price units
         var availableMeasureWeights = (await _measureService.GetAllMeasureWeightsAsync())
@@ -1051,17 +1011,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
 
         //get products
         var products = await _productService.SearchProductsAsync(showHidden: true,
             categoryIds: new List<int> { searchModel.SearchCategoryId },
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
@@ -1164,17 +1122,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
 
         //get products
         var products = await _productService.SearchProductsAsync(showHidden: true,
             categoryIds: new List<int> { searchModel.SearchCategoryId },
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
@@ -1326,17 +1282,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
 
         //get products
         var products = await _productService.SearchProductsAsync(showHidden: true,
             categoryIds: new List<int> { searchModel.SearchCategoryId },
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
@@ -1371,16 +1325,22 @@ public partial class ProductModelFactory : IProductModelFactory
         ArgumentNullException.ThrowIfNull(searchModel);
         ArgumentNullException.ThrowIfNull(product);
 
-        var vendor = await _workContext.GetCurrentVendorAsync();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+
         //get associated products
-        var associatedProducts = (await _productService.GetAssociatedProductsAsync(showHidden: true,
+        var associatedProducts = await _productService.GetAssociatedProductsAsync(showHidden: true,
             parentGroupedProductId: product.Id,
-            vendorId: vendor?.Id ?? 0)).ToPagedList(searchModel);
+            vendorId: 0);
+
+        if (vendorScopeIds != null)
+            associatedProducts = associatedProducts.Where(p => vendorScopeIds.Contains(p.VendorId)).ToList();
+
+        var pagedAssociatedProducts = associatedProducts.ToPagedList(searchModel);
 
         //prepare grid model
-        var model = new AssociatedProductListModel().PrepareToGrid(searchModel, associatedProducts, () =>
+        var model = new AssociatedProductListModel().PrepareToGrid(searchModel, pagedAssociatedProducts, () =>
         {
-            return associatedProducts.Select(associatedProduct =>
+            return pagedAssociatedProducts.Select(associatedProduct =>
             {
                 var associatedProductModel = associatedProduct.ToModel<AssociatedProductModel>();
                 associatedProductModel.ProductName = associatedProduct.Name;
@@ -1439,17 +1399,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
 
         //get products
         var products = await _productService.SearchProductsAsync(showHidden: true,
             categoryIds: new List<int> { searchModel.SearchCategoryId },
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
@@ -1652,10 +1610,13 @@ public partial class ProductModelFactory : IProductModelFactory
         var attribute = await _specificationAttributeService.GetProductSpecificationAttributeByIdAsync(specificationId.Value) 
                         ?? throw new ArgumentException("No specification attribute found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && (await _productService.GetProductByIdAsync(attribute.ProductId)).VendorId != currentVendor.Id)
-            throw new UnauthorizedAccessException("This is not your product");
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        if (vendorScopeIds != null)
+        {
+            var specificationProduct = await _productService.GetProductByIdAsync(attribute.ProductId);
+            if (specificationProduct == null || !vendorScopeIds.Contains(specificationProduct.VendorId))
+                throw new UnauthorizedAccessException("This is not your product");
+        }
 
         var specAttributeOption = await _specificationAttributeService.GetSpecificationAttributeOptionByIdAsync(attribute.SpecificationAttributeOptionId);
         var specAttribute = await _specificationAttributeService.GetSpecificationAttributeByIdAsync(specAttributeOption.SpecificationAttributeId);
@@ -1903,7 +1864,6 @@ public partial class ProductModelFactory : IProductModelFactory
 
         //get stock quantity history
         var stockQuantityHistory = await _productService.GetStockQuantityHistoryAsync(product: product,
-            warehouseId: searchModel.WarehouseId,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
@@ -1928,10 +1888,6 @@ public partial class ProductModelFactory : IProductModelFactory
                     stockQuantityHistoryModel.AttributeCombination = await _productAttributeFormatter
                         .FormatAttributesAsync(product, combination.AttributesXml, currentCustomer, currentStore, renderGiftCardAttributes: false);
                 }
-
-                stockQuantityHistoryModel.WarehouseName = historyEntry.WarehouseId.HasValue
-                    ? (await _warehouseService.GetWarehouseByIdAsync(historyEntry.WarehouseId.Value))?.Name ?? "Deleted"
-                    : await _localizationService.GetResourceAsync("Admin.Catalog.Products.Fields.Warehouse.None");
 
                 return stockQuantityHistoryModel;
             });
@@ -2258,17 +2214,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            searchModel.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync(searchModel.SearchVendorId);
 
         //get products
         var products = await _productService.SearchProductsAsync(showHidden: true,
             categoryIds: new List<int> { searchModel.SearchCategoryId },
             manufacturerIds: new List<int> { searchModel.SearchManufacturerId },
             storeId: searchModel.SearchStoreId,
-            vendorId: searchModel.SearchVendorId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: searchModel.SearchProductTypeId > 0 ? (ProductType?)searchModel.SearchProductTypeId : null,
             keywords: searchModel.SearchProductName,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);

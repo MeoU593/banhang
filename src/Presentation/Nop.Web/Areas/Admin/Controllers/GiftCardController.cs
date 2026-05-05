@@ -35,7 +35,6 @@ public partial class GiftCardController : BaseAdminController
     protected readonly IOrderService _orderService;
     protected readonly IPermissionService _permissionService;
     protected readonly IPriceFormatter _priceFormatter;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly LocalizationSettings _localizationSettings;
 
     #endregion
@@ -54,7 +53,6 @@ public partial class GiftCardController : BaseAdminController
         IOrderService orderService,
         IPermissionService permissionService,
         IPriceFormatter priceFormatter,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings)
     {
         _currencySettings = currencySettings;
@@ -69,7 +67,6 @@ public partial class GiftCardController : BaseAdminController
         _orderService = orderService;
         _permissionService = permissionService;
         _priceFormatter = priceFormatter;
-        _workflowMessageService = workflowMessageService;
         _localizationSettings = localizationSettings;
     }
 
@@ -232,15 +229,15 @@ public partial class GiftCardController : BaseAdminController
                 languageId = _localizationSettings.DefaultAdminLanguageId;
             }
 
-            var queuedEmailIds = await _workflowMessageService.SendGiftCardNotificationAsync(giftCard, languageId);
-            if (queuedEmailIds.Any())
-            {
-                giftCard.IsRecipientNotified = true;
-                await _giftCardService.UpdateGiftCardAsync(giftCard);
-                model.IsRecipientNotified = true;
-            }
+            //var queuedEmailIds = await _workflowMessageService.SendGiftCardNotificationAsync(giftCard, languageId);
+            //if (queuedEmailIds.Any())
+            //{
+            //    giftCard.IsRecipientNotified = true;
+            //    await _giftCardService.UpdateGiftCardAsync(giftCard);
+            //    model.IsRecipientNotified = true;
+            //}
 
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.GiftCards.RecipientNotified"));
+            //_notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.GiftCards.RecipientNotified"));
 
             return RedirectToAction("Edit", new { id = giftCard.Id });
         }

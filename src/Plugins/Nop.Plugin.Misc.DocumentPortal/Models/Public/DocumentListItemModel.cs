@@ -14,5 +14,8 @@ public class DocumentListItemModel
     public int DownloadCount { get; set; }
     public bool AllowDownload { get; set; }
     public int? UploadedByCustomerId { get; set; }
+    public int? OwnerVendorId { get; set; }
+    public string? OwnerVendorName { get; set; }
+    public string? AccessScopeName { get; set; }
     public bool CanDelete { get; set; }
 }

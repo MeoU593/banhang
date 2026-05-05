@@ -35,8 +35,10 @@ public class DocumentPortalPlugin : BasePlugin
         {
             ["Plugins.Misc.DocumentPortal.Menu.Root"] = "Kho Tài liệu",
             ["Plugins.Misc.DocumentPortal.Menu.Documents"] = "Danh sách tài liệu",
+            ["Plugins.Misc.DocumentPortal.Menu.Categories"] = "Danh mục tài liệu",
+            ["Plugins.Misc.DocumentPortal.Menu.Types"] = "Loại tài liệu",
+            ["Plugins.Misc.DocumentPortal.Menu.Issuers"] = "Cơ quan ban hành",
             ["Plugins.Misc.DocumentPortal.Menu.Settings"] = "Cài đặt",
-            ["Plugins.Misc.DocumentPortal.Menu.VendorDocuments"] = "Tài liệu đơn vị",
 
             ["Plugins.Misc.DocumentPortal.Document.Fields.Title"] = "Tiêu đề",
             ["Plugins.Misc.DocumentPortal.Document.Fields.Title.Required"] = "Tiêu đề là bắt buộc.",
@@ -56,6 +58,8 @@ public class DocumentPortalPlugin : BasePlugin
             ["Plugins.Misc.DocumentPortal.Document.Fields.AllowDownload"] = "Cho phép tải",
             ["Plugins.Misc.DocumentPortal.Document.Fields.ShowOnHomepage"] = "Hiện trên trang chủ",
             ["Plugins.Misc.DocumentPortal.Document.Fields.DisplayOrder"] = "Thứ tự hiển thị",
+            ["Plugins.Misc.DocumentPortal.Document.Fields.OwnerVendor"] = "Đơn vị sở hữu",
+            ["Plugins.Misc.DocumentPortal.Document.Fields.AccessScope"] = "Phạm vi tài liệu",
 
             ["Plugins.Misc.DocumentPortal.Document.List.SearchTitle"] = "Tiêu đề",
             ["Plugins.Misc.DocumentPortal.Document.List.SearchCode"] = "Mã tài liệu",
@@ -63,6 +67,8 @@ public class DocumentPortalPlugin : BasePlugin
             ["Plugins.Misc.DocumentPortal.Document.List.SearchType"] = "Loại",
             ["Plugins.Misc.DocumentPortal.Document.List.SearchIssuer"] = "Cơ quan ban hành",
             ["Plugins.Misc.DocumentPortal.Document.List.SearchPublished"] = "Trạng thái",
+            ["Plugins.Misc.DocumentPortal.Document.List.SearchOwnerVendor"] = "Đơn vị sở hữu",
+            ["Plugins.Misc.DocumentPortal.Document.List.SearchAccessScope"] = "Phạm vi",
 
             ["Plugins.Misc.DocumentPortal.Settings.Fields.DefaultPageSize"] = "Số tài liệu mỗi trang",
             ["Plugins.Misc.DocumentPortal.Settings.Fields.SearchInContent"] = "Tìm kiếm trong nội dung",

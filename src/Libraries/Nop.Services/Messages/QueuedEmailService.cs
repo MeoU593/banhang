@@ -1,220 +1,63 @@
-﻿using Nop.Core;
+using Nop.Core;
 using Nop.Core.Domain.Messages;
-using Nop.Data;
 
 namespace Nop.Services.Messages;
 
 /// <summary>
-/// Queued email service
+/// Disabled queued email service. Email remains a profile/contact field only.
 /// </summary>
 public partial class QueuedEmailService : IQueuedEmailService
 {
-    #region Fields
-
-    protected readonly IRepository<QueuedEmail> _queuedEmailRepository;
-
-    #endregion
-
-    #region Ctor
-
-    public QueuedEmailService(IRepository<QueuedEmail> queuedEmailRepository)
+    public virtual Task InsertQueuedEmailAsync(QueuedEmail queuedEmail)
     {
-        _queuedEmailRepository = queuedEmailRepository;
+        return Task.CompletedTask;
     }
 
-    #endregion
-
-    #region Methods
-
-    /// <summary>
-    /// Inserts a queued email
-    /// </summary>
-    /// <param name="queuedEmail">Queued email</param>        
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task InsertQueuedEmailAsync(QueuedEmail queuedEmail)
+    public virtual Task UpdateQueuedEmailAsync(QueuedEmail queuedEmail)
     {
-        await _queuedEmailRepository.InsertAsync(queuedEmail);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Updates a queued email
-    /// </summary>
-    /// <param name="queuedEmail">Queued email</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task UpdateQueuedEmailAsync(QueuedEmail queuedEmail)
+    public virtual Task DeleteQueuedEmailAsync(QueuedEmail queuedEmail)
     {
-        await _queuedEmailRepository.UpdateAsync(queuedEmail);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Deleted a queued email
-    /// </summary>
-    /// <param name="queuedEmail">Queued email</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task DeleteQueuedEmailAsync(QueuedEmail queuedEmail)
+    public virtual Task DeleteQueuedEmailsAsync(IList<QueuedEmail> queuedEmails)
     {
-        await _queuedEmailRepository.DeleteAsync(queuedEmail);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Deleted a queued emails
-    /// </summary>
-    /// <param name="queuedEmails">Queued emails</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task DeleteQueuedEmailsAsync(IList<QueuedEmail> queuedEmails)
+    public virtual Task<QueuedEmail> GetQueuedEmailByIdAsync(int queuedEmailId)
     {
-        await _queuedEmailRepository.DeleteAsync(queuedEmails);
+        return Task.FromResult<QueuedEmail>(null);
     }
 
-    /// <summary>
-    /// Gets a queued email by identifier
-    /// </summary>
-    /// <param name="queuedEmailId">Queued email identifier</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the queued email
-    /// </returns>
-    public virtual async Task<QueuedEmail> GetQueuedEmailByIdAsync(int queuedEmailId)
+    public virtual Task<IList<QueuedEmail>> GetQueuedEmailsByIdsAsync(int[] queuedEmailIds)
     {
-        return await _queuedEmailRepository.GetByIdAsync(queuedEmailId, cache => default, useShortTermCache: true);
+        return Task.FromResult<IList<QueuedEmail>>(new List<QueuedEmail>());
     }
 
-    /// <summary>
-    /// Get queued emails by identifiers
-    /// </summary>
-    /// <param name="queuedEmailIds">queued email identifiers</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the queued emails
-    /// </returns>
-    public virtual async Task<IList<QueuedEmail>> GetQueuedEmailsByIdsAsync(int[] queuedEmailIds)
+    public virtual Task RequeueQueuedEmailsAsync(IList<QueuedEmail> queuedEmails)
     {
-        return await _queuedEmailRepository.GetByIdsAsync(queuedEmailIds);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Requeue a queued emails
-    /// </summary>
-    /// <param name="queuedEmails">Queued emails</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task RequeueQueuedEmailsAsync(IList<QueuedEmail> queuedEmails)
-    {
-        ArgumentNullException.ThrowIfNull(queuedEmails);
-
-        var newEmails = queuedEmails.Select(queuedEmail => new QueuedEmail
-        {
-            PriorityId = queuedEmail.PriorityId,
-            From = queuedEmail.From,
-            FromName = queuedEmail.FromName,
-            To = queuedEmail.To,
-            ToName = queuedEmail.ToName,
-            ReplyTo = queuedEmail.ReplyTo,
-            ReplyToName = queuedEmail.ReplyToName,
-            CC = queuedEmail.CC,
-            Bcc = queuedEmail.Bcc,
-            Subject = queuedEmail.Subject,
-            Body = queuedEmail.Body,
-            AttachmentFilePath = queuedEmail.AttachmentFilePath,
-            AttachmentFileName = queuedEmail.AttachmentFileName,
-            AttachedDownloadId = queuedEmail.AttachedDownloadId,
-            CreatedOnUtc = DateTime.UtcNow,
-            EmailAccountId = queuedEmail.EmailAccountId,
-            DontSendBeforeDateUtc = queuedEmail.DontSendBeforeDateUtc
-        }).ToList();
-
-        await _queuedEmailRepository.InsertAsync(newEmails);
-    }
-
-    /// <summary>
-    /// Gets all queued emails
-    /// </summary>
-    /// <param name="fromEmail">From Email</param>
-    /// <param name="toEmail">To Email</param>
-    /// <param name="createdFromUtc">Created date from (UTC); null to load all records</param>
-    /// <param name="createdToUtc">Created date to (UTC); null to load all records</param>
-    /// <param name="loadNotSentItemsOnly">A value indicating whether to load only not sent emails</param>
-    /// <param name="loadOnlyItemsToBeSent">A value indicating whether to load only emails for ready to be sent</param>
-    /// <param name="maxSendTries">Maximum send tries</param>
-    /// <param name="loadNewest">A value indicating whether we should sort queued email descending; otherwise, ascending.</param>
-    /// <param name="pageIndex">Page index</param>
-    /// <param name="pageSize">Page size</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the email item list
-    /// </returns>
-    public virtual async Task<IPagedList<QueuedEmail>> SearchEmailsAsync(string fromEmail,
+    public virtual Task<IPagedList<QueuedEmail>> SearchEmailsAsync(string fromEmail,
         string toEmail, DateTime? createdFromUtc, DateTime? createdToUtc,
         bool loadNotSentItemsOnly, bool loadOnlyItemsToBeSent, int maxSendTries,
         bool loadNewest, int pageIndex = 0, int pageSize = int.MaxValue)
     {
-        fromEmail = (fromEmail ?? string.Empty).Trim();
-        toEmail = (toEmail ?? string.Empty).Trim();
-
-        var query = _queuedEmailRepository.Table;
-        if (!string.IsNullOrEmpty(fromEmail))
-            query = query.Where(qe => qe.From.Contains(fromEmail));
-        if (!string.IsNullOrEmpty(toEmail))
-            query = query.Where(qe => qe.To.Contains(toEmail));
-        if (createdFromUtc.HasValue)
-            query = query.Where(qe => qe.CreatedOnUtc >= createdFromUtc);
-        if (createdToUtc.HasValue)
-            query = query.Where(qe => qe.CreatedOnUtc <= createdToUtc);
-        if (loadNotSentItemsOnly)
-            query = query.Where(qe => !qe.SentOnUtc.HasValue);
-        if (loadOnlyItemsToBeSent)
-        {
-            var nowUtc = DateTime.UtcNow;
-            query = query.Where(qe => !qe.DontSendBeforeDateUtc.HasValue || qe.DontSendBeforeDateUtc.Value <= nowUtc);
-        }
-
-        query = query.Where(qe => qe.SentTries < maxSendTries);
-        query = loadNewest ?
-            //load the newest records
-            query.OrderByDescending(qe => qe.CreatedOnUtc) :
-            //load by priority
-            query.OrderByDescending(qe => qe.PriorityId).ThenBy(qe => qe.CreatedOnUtc);
-
-        var queuedEmails = await query.ToPagedListAsync(pageIndex, pageSize);
-
-        return queuedEmails;
+        return Task.FromResult<IPagedList<QueuedEmail>>(new PagedList<QueuedEmail>(new List<QueuedEmail>(), pageIndex, pageSize));
     }
 
-    /// <summary>
-    /// Deletes already sent emails
-    /// </summary>
-    /// <param name="createdFromUtc">Created date from (UTC); null to load all records</param>
-    /// <param name="createdToUtc">Created date to (UTC); null to load all records</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the number of deleted emails
-    /// </returns>
-    public virtual async Task<int> DeleteAlreadySentEmailsAsync(DateTime? createdFromUtc, DateTime? createdToUtc)
+    public virtual Task<int> DeleteAlreadySentEmailsAsync(DateTime? createdFromUtc, DateTime? createdToUtc)
     {
-        var query = _queuedEmailRepository.Table;
-
-        // only sent emails
-        query = query.Where(qe => qe.SentOnUtc.HasValue);
-
-        if (createdFromUtc.HasValue)
-            query = query.Where(qe => qe.CreatedOnUtc >= createdFromUtc);
-        if (createdToUtc.HasValue)
-            query = query.Where(qe => qe.CreatedOnUtc <= createdToUtc);
-
-        var emails = await query.ToArrayAsync();
-
-        await DeleteQueuedEmailsAsync(emails);
-
-        return emails.Length;
+        return Task.FromResult(0);
     }
 
-    /// <summary>
-    /// Delete all queued emails
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task DeleteAllEmailsAsync()
+    public virtual Task DeleteAllEmailsAsync()
     {
-        await _queuedEmailRepository.TruncateAsync();
+        return Task.CompletedTask;
     }
-
-    #endregion
 }

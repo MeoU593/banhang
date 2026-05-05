@@ -8,6 +8,7 @@ public partial record ForumTopicPageModel : BaseNopModel
     public ForumTopicPageModel()
     {
         ForumPostModels = new List<ForumPostModel>();
+        RelatedTopics = new List<ForumTopicCardModel>();
     }
 
     public int Id { get; set; }
@@ -20,6 +21,7 @@ public partial record ForumTopicPageModel : BaseNopModel
     public bool IsCustomerAllowedToDeleteTopic { get; set; }
     public bool IsCustomerAllowedToMoveTopic { get; set; }
     public bool IsCustomerAllowedToSubscribe { get; set; }
+    public bool IsCustomerAllowedToCreatePost { get; set; }
 
     public IList<ForumPostModel> ForumPostModels { get; set; }
     public EditorType ForumEditor { get; set; }
@@ -31,4 +33,14 @@ public partial record ForumTopicPageModel : BaseNopModel
     public string MetaTitle { get; set; }
 
     public string JsonLd { get; set; }
+
+    public int MainPostId { get; set; }
+
+    public int ForumId { get; set; }
+
+    public string ForumName { get; set; }
+
+    public string ForumSeName { get; set; }
+
+    public IList<ForumTopicCardModel> RelatedTopics { get; set; }
 }

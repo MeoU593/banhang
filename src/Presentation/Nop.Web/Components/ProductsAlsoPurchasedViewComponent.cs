@@ -42,28 +42,8 @@ public partial class ProductsAlsoPurchasedViewComponent : NopViewComponent
         _storeMappingService = storeMappingService;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync(int productId, int? productThumbPictureSize)
+    public Task<IViewComponentResult> InvokeAsync(int productId, int? productThumbPictureSize)
     {
-        if (!_catalogSettings.ProductsAlsoPurchasedEnabled)
-            return Content("");
-
-        //load and cache report
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var productIds = await _staticCacheManager.GetAsync(_staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.ProductsAlsoPurchasedIdsKey, productId, store),
-            async () => await _orderReportService.GetAlsoPurchasedProductsIdsAsync(store.Id, productId, _catalogSettings.ProductsAlsoPurchasedNumber)
-        );
-
-        //load products
-        var products = await (await _productService.GetProductsByIdsAsync(productIds))
-            //ACL and store mapping
-            .WhereAwait(async p => await _aclService.AuthorizeAsync(p) && await _storeMappingService.AuthorizeAsync(p))
-            //availability dates
-            .Where(p => _productService.ProductIsAvailable(p)).ToListAsync();
-
-        if (!products.Any())
-            return Content("");
-
-        var model = (await _productModelFactory.PrepareProductOverviewModelsAsync(products, true, true, productThumbPictureSize)).ToList();
-        return View(model);
+        return Task.FromResult<IViewComponentResult>(Content(""));
     }
 }

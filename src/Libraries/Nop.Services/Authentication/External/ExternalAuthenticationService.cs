@@ -184,9 +184,9 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
         //raise customer registered event
         await _eventPublisher.PublishAsync(new CustomerRegisteredEvent(customer));
 
-        //store owner notifications
-        if (_customerSettings.NotifyNewCustomerRegistration)
-            await _workflowMessageService.SendCustomerRegisteredStoreOwnerNotificationMessageAsync(customer, _localizationSettings.DefaultAdminLanguageId);
+        ////store owner notifications
+        //if (_customerSettings.NotifyNewCustomerRegistration)
+        //    await _workflowMessageService.SendCustomerRegisteredStoreOwnerNotificationMessageAsync(customer, _localizationSettings.DefaultAdminLanguageId);
 
         //associate external account with registered user
         await AssociateExternalAccountWithUserAsync(customer, parameters);
@@ -195,9 +195,9 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
         var currentLanguage = await _workContext.GetWorkingLanguageAsync();
         if (registrationIsApproved)
         {
-            await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, currentLanguage.Id);
+            //await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, currentLanguage.Id);
 
-            //raise event       
+            //raise event
             await _eventPublisher.PublishAsync(new CustomerActivatedEvent(customer));
 
             return await _customerRegistrationService.SignInCustomerAsync(customer, returnUrl, true);
@@ -206,9 +206,9 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
         //registration is succeeded but isn't activated
         if (_customerSettings.UserRegistrationType == UserRegistrationType.EmailValidation)
         {
-            //email validation message
-            await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AccountActivationTokenAttribute, Guid.NewGuid().ToString());
-            await _workflowMessageService.SendCustomerEmailValidationMessageAsync(customer, currentLanguage.Id);
+            ////email validation message
+            //await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AccountActivationTokenAttribute, Guid.NewGuid().ToString());
+            //await _workflowMessageService.SendCustomerEmailValidationMessageAsync(customer, currentLanguage.Id);
 
             return new RedirectToRouteResult(NopRouteNames.Standard.REGISTER_RESULT, new { resultId = (int)UserRegistrationType.EmailValidation, returnUrl });
         }

@@ -23,7 +23,6 @@ using Nop.Services.Gdpr;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
-using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Seo;
@@ -63,8 +62,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IGenericAttributeService _genericAttributeService;
     protected readonly ILocalizationService _localizationService;
     protected readonly IMultiFactorAuthenticationPluginManager _multiFactorAuthenticationPluginManager;
-    protected readonly INewsLetterSubscriptionService _newsLetterSubscriptionService;
-    protected readonly INewsLetterSubscriptionTypeService _newsLetterSubscriptionTypeService;
     protected readonly IOrderService _orderService;
     protected readonly IPermissionService _permissionService;
     protected readonly IPictureService _pictureService;
@@ -108,8 +105,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IGenericAttributeService genericAttributeService,
         ILocalizationService localizationService,
         IMultiFactorAuthenticationPluginManager multiFactorAuthenticationPluginManager,
-        INewsLetterSubscriptionService newsLetterSubscriptionService,
-        INewsLetterSubscriptionTypeService newsLetterSubscriptionTypeService,
         IOrderService orderService,
         IPermissionService permissionService,
         IPictureService pictureService,
@@ -149,8 +144,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _genericAttributeService = genericAttributeService;
         _localizationService = localizationService;
         _multiFactorAuthenticationPluginManager = multiFactorAuthenticationPluginManager;
-        _newsLetterSubscriptionService = newsLetterSubscriptionService;
-        _newsLetterSubscriptionTypeService = newsLetterSubscriptionTypeService;
         _orderService = orderService;
         _permissionService = permissionService;
         _pictureService = pictureService;
@@ -251,23 +244,24 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                 model.EnlistmentDate = militaryProfile.EnlistmentDate;
             }
 
-            //newsletter subscriptions
-            var currentSubscriptions = await _newsLetterSubscriptionService.GetNewsLetterSubscriptionsByEmailAsync(customer.Email, storeId: store.Id);
-            var newsLetterSubscriptionTypes = await _newsLetterSubscriptionTypeService.GetAllNewsLetterSubscriptionTypesAsync(store.Id);
-            foreach (var newsLetterSubscriptionType in newsLetterSubscriptionTypes)
-            {
-                var nsModel = new NewsLetterSubscriptionModel
-                {
-                    TypeId = newsLetterSubscriptionType.Id,
-                    Name = await _localizationService.GetLocalizedAsync(newsLetterSubscriptionType, x => x.Name),
-                    IsActive = currentSubscriptions.Any(subscription => subscription.TypeId == newsLetterSubscriptionType.Id && subscription.Active)
-                };
-                model.NewsLetterSubscriptions.Add(nsModel);
-            }
-
             model.Signature = await _genericAttributeService.GetAttributeAsync<string>(customer, NopCustomerDefaults.SignatureAttribute);
             model.Email = customer.Email;
             model.Username = customer.Username;
+
+            var avatarPictureId = await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute);
+            if (avatarPictureId > 0)
+            {
+                var avatarPicture = await _pictureService.GetPictureByIdAsync(avatarPictureId);
+                var avatarBinary = avatarPicture == null ? null : await _pictureService.LoadPictureBinaryAsync(avatarPicture);
+                model.AvatarUrl = (avatarBinary?.Length ?? 0) > 0
+                    ? (await _pictureService.GetPictureUrlAsync(avatarPicture,
+                        _mediaSettings.AvatarPictureSize,
+                        false,
+                        defaultPictureType: PictureType.Avatar)).Url
+                    : string.Empty;
+            }
+            else
+                model.AvatarUrl = string.Empty;
         }
         else
         {
@@ -352,7 +346,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.PhoneRequired = _customerSettings.PhoneRequired;
         model.FaxEnabled = _customerSettings.FaxEnabled;
         model.FaxRequired = _customerSettings.FaxRequired;
-        model.NewsletterEnabled = _customerSettings.NewsletterEnabled;
         model.UsernamesEnabled = _customerSettings.UsernamesEnabled;
         model.AllowUsersToChangeUsernames = _customerSettings.AllowUsersToChangeUsernames;
         model.CheckUsernameAvailabilityEnabled = _customerSettings.CheckUsernameAvailabilityEnabled;
@@ -456,7 +449,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.PhoneRequired = _customerSettings.PhoneRequired;
         model.FaxEnabled = _customerSettings.FaxEnabled;
         model.FaxRequired = _customerSettings.FaxRequired;
-        model.NewsletterEnabled = _customerSettings.NewsletterEnabled;
         model.AcceptPrivacyPolicyEnabled = _customerSettings.AcceptPrivacyPolicyEnabled;
         model.AcceptPrivacyPolicyPopup = _commonSettings.PopupForTermsOfServiceLinks;
         model.UsernamesEnabled = _customerSettings.UsernamesEnabled;
@@ -464,23 +456,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.HoneypotEnabled = _securitySettings.HoneypotEnabled;
         model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnRegistrationPage;
         model.EnteringEmailTwice = _customerSettings.EnteringEmailTwice;
-        if (setDefaultValues)
-        {
-            //newsletter subscriptions
-            var store = await _storeContext.GetCurrentStoreAsync();
-            var newsLetterSubscriptionTypes = await _newsLetterSubscriptionTypeService.GetAllNewsLetterSubscriptionTypesAsync(store.Id);
-            foreach (var newsLetterSubscriptionType in newsLetterSubscriptionTypes)
-            {
-                var nsModel = new NewsLetterSubscriptionModel
-                {
-                    TypeId = newsLetterSubscriptionType.Id,
-                    Name = await _localizationService.GetLocalizedAsync(newsLetterSubscriptionType, x => x.Name),
-                    IsActive = newsLetterSubscriptionType.TickedByDefault
-                };
-                model.NewsLetterSubscriptions.Add(nsModel);
-            }
-        }
-
         //countries and states
         if (_customerSettings.CountryEnabled)
         {
@@ -627,48 +602,15 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
         model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
         {
-            RouteName = NopRouteNames.General.CUSTOMER_INFO,
+            RouteName = "CustomerEditAccount",
             Title = "Chỉnh sửa hồ sơ",
             Tab = (int)CustomerNavigationEnum.Info,
             ItemClass = "customer-info"
         });
 
-        model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-        {
-            RouteName = NopRouteNames.General.CUSTOMER_ADDRESSES,
-            Title = await _localizationService.GetResourceAsync("Account.CustomerAddresses"),
-            Tab = (int)CustomerNavigationEnum.Addresses,
-            ItemClass = "customer-addresses"
-        });
 
 
-
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var customer = await _workContext.GetCurrentCustomerAsync();
-
-        if (_orderSettings.ReturnRequestsEnabled &&
-            (await _returnRequestService.SearchReturnRequestsAsync(store.Id,
-                customer.Id, pageIndex: 0, pageSize: 1)).Any())
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.Standard.CUSTOMER_RETURN_REQUESTS,
-                Title = await _localizationService.GetResourceAsync("Account.CustomerReturnRequests"),
-                Tab = (int)CustomerNavigationEnum.ReturnRequests,
-                ItemClass = "return-requests"
-            });
-        }
-
-        if (!_customerSettings.HideDownloadableProductsTab)
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.Standard.CUSTOMER_DOWNLOADABLE_PRODUCTS,
-                Title = await _localizationService.GetResourceAsync("Account.DownloadableProducts"),
-                Tab = (int)CustomerNavigationEnum.DownloadableProducts,
-                ItemClass = "downloadable-products"
-            });
-        }
+        // Commerce tables are removed in this application, so hide account tabs that query orders/returns.
 
         if (!_customerSettings.HideBackInStockSubscriptionsTab)
         {
@@ -689,17 +631,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             Tab = (int)CustomerNavigationEnum.ChangePassword,
             ItemClass = "change-password"
         });
-
-        if (_customerSettings.AllowCustomersToUploadAvatars)
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.Standard.CUSTOMER_AVATAR,
-                Title = await _localizationService.GetResourceAsync("Account.Avatar"),
-                Tab = (int)CustomerNavigationEnum.Avatar,
-                ItemClass = "customer-avatar"
-            });
-        }
 
         if (_forumSettings.ForumsEnabled && _forumSettings.AllowCustomersToManageSubscriptions)
         {
@@ -739,17 +670,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                 Title = await _localizationService.GetResourceAsync("Account.Gdpr"),
                 Tab = (int)CustomerNavigationEnum.GdprTools,
                 ItemClass = "customer-gdpr"
-            });
-        }
-
-        if (_customerSettings.AllowCustomersToCheckGiftCardBalance)
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.General.CHECK_GIFT_CARD_BALANCE,
-                Title = await _localizationService.GetResourceAsync("CheckGiftCardBalance"),
-                Tab = (int)CustomerNavigationEnum.CheckGiftCardBalance,
-                ItemClass = "customer-check-gift-card-balance"
             });
         }
 
@@ -898,7 +818,8 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.AvatarUrl = await _pictureService.GetPictureUrlAsync(
             await _genericAttributeService.GetAttributeAsync<int>(await _workContext.GetCurrentCustomerAsync(), NopCustomerDefaults.AvatarPictureIdAttribute),
             _mediaSettings.AvatarPictureSize,
-            false);
+            false,
+            defaultPictureType: PictureType.Avatar);
 
         return model;
     }

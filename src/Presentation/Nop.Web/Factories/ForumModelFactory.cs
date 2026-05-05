@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using System.Net;
+using System.Text.RegularExpressions;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Forums;
@@ -35,6 +37,7 @@ public partial class ForumModelFactory : IForumModelFactory
     protected readonly IBBCodeHelper _bbCodeHelper;
     protected readonly ICountryService _countryService;
     protected readonly ICustomerService _customerService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IForumService _forumService;
     protected readonly IGenericAttributeService _genericAttributeService;
@@ -44,6 +47,7 @@ public partial class ForumModelFactory : IForumModelFactory
     protected readonly IWorkContext _workContext;
     protected readonly MediaSettings _mediaSettings;
     protected readonly SeoSettings _seoSettings;
+    private static readonly Regex ReplyToTokenRegex = new(@"^\[replyto:(\d+)\]\s*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     #endregion
 
@@ -55,6 +59,7 @@ public partial class ForumModelFactory : IForumModelFactory
         IBBCodeHelper bbCodeHelper,
         ICountryService countryService,
         ICustomerService customerService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         IDateTimeHelper dateTimeHelper,
         IForumService forumService,
         IGenericAttributeService genericAttributeService,
@@ -71,6 +76,7 @@ public partial class ForumModelFactory : IForumModelFactory
         _bbCodeHelper = bbCodeHelper;
         _countryService = countryService;
         _customerService = customerService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _dateTimeHelper = dateTimeHelper;
         _forumService = forumService;
         _genericAttributeService = genericAttributeService;
@@ -142,6 +148,73 @@ public partial class ForumModelFactory : IForumModelFactory
         return forumsList;
     }
 
+    protected virtual string BuildTopicExcerpt(string source, int maxLength = 220)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            return string.Empty;
+
+        var text = Regex.Replace(source, "<.*?>", " ");
+        text = Regex.Replace(text, @"\[(\/)?[a-zA-Z]+[^\]]*\]", " ");
+        text = WebUtility.HtmlDecode(text);
+        text = Regex.Replace(text, @"\s+", " ").Trim();
+
+        return CommonHelper.EnsureMaximumLength(text, maxLength, "...");
+    }
+
+    protected virtual async Task<string> PrepareRelativeDateAsync(DateTime createdOnUtc)
+    {
+        if (_forumSettings.RelativeDateTimeFormattingEnabled)
+        {
+            var languageCode = (await _workContext.GetWorkingLanguageAsync()).LanguageCulture;
+            var createdAgo = createdOnUtc.RelativeFormat(languageCode);
+            return string.Format(await _localizationService.GetResourceAsync("Common.RelativeDateTime.Past"), createdAgo);
+        }
+
+        return (await _dateTimeHelper.ConvertToUserTimeAsync(createdOnUtc, DateTimeKind.Utc)).ToString("g");
+    }
+
+    protected virtual async Task<ForumTopicCardModel> PrepareForumTopicCardModelAsync(ForumTopic topic, Forum forum = null)
+    {
+        ArgumentNullException.ThrowIfNull(topic);
+
+        forum ??= await _forumService.GetForumByIdAsync(topic.ForumId);
+
+        var customer = await _customerService.GetCustomerByIdAsync(topic.CustomerId);
+        var customerIsGuest = customer == null || await _customerService.IsGuestAsync(customer);
+        var firstPost = await _forumService.GetFirstPostAsync(topic);
+        var profile = customerIsGuest ? null : await _customerMilitaryProfileService.GetByCustomerIdAsync(topic.CustomerId);
+
+        string avatarUrl = null;
+        if (_customerSettings.AllowCustomersToUploadAvatars && customer != null)
+        {
+            avatarUrl = await _pictureService.GetPictureUrlAsync(
+                await _genericAttributeService.GetAttributeAsync<Customer, int>(topic.CustomerId, NopCustomerDefaults.AvatarPictureIdAttribute),
+                _mediaSettings.AvatarPictureSize,
+                _customerSettings.DefaultAvatarEnabled,
+                defaultPictureType: PictureType.Avatar);
+        }
+
+        return new ForumTopicCardModel
+        {
+            Id = topic.Id,
+            Subject = topic.Subject,
+            SeName = await _forumService.GetTopicSeNameAsync(topic),
+            ForumId = topic.ForumId,
+            ForumName = forum?.Name,
+            ForumSeName = forum == null ? string.Empty : await _forumService.GetForumSeNameAsync(forum),
+            CustomerId = topic.CustomerId,
+            AllowViewingProfiles = _customerSettings.AllowViewingProfiles && !customerIsGuest,
+            CustomerName = customer == null ? string.Empty : await _customerService.FormatUsernameAsync(customer),
+            CustomerAvatarUrl = avatarUrl,
+            Rank = profile?.Rank,
+            UnitName = profile?.UnitName,
+            CreatedOnStr = await PrepareRelativeDateAsync(topic.CreatedOnUtc),
+            Views = topic.Views,
+            NumReplies = topic.NumPosts > 0 ? topic.NumPosts - 1 : 0,
+            Excerpt = BuildTopicExcerpt(firstPost?.Text)
+        };
+    }
+
     #endregion
 
     #region Methods
@@ -185,12 +258,48 @@ public partial class ForumModelFactory : IForumModelFactory
     {
         var model = new BoardsIndexModel();
 
+        var allForums = new List<Forum>();
         var forumGroups = await _forumService.GetAllForumGroupsAsync();
         foreach (var forumGroup in forumGroups)
         {
             var forumGroupModel = await PrepareForumGroupModelAsync(forumGroup);
             model.ForumGroups.Add(forumGroupModel);
+
+            var forums = await _forumService.GetAllForumsByGroupIdAsync(forumGroup.Id);
+            allForums.AddRange(forums);
         }
+
+        model.TotalForums = allForums.Count;
+        model.TotalTopics = allForums.Sum(x => x.NumTopics);
+        model.TotalPosts = allForums.Sum(x => x.NumPosts);
+
+        foreach (var forum in allForums
+                     .OrderByDescending(x => x.NumPosts)
+                     .ThenByDescending(x => x.NumTopics)
+                     .Take(6))
+        {
+            model.PopularForums.Add(await PrepareForumRowModelAsync(forum));
+        }
+
+        var feedPageSize = _forumSettings.HomepageActiveDiscussionsTopicCount > 0
+            ? _forumSettings.HomepageActiveDiscussionsTopicCount
+            : 12;
+        var activeTopics = await _forumService.GetActiveTopicsAsync(0, 0, feedPageSize);
+        foreach (var topic in activeTopics)
+        {
+            var forum = allForums.FirstOrDefault(x => x.Id == topic.ForumId) ?? await _forumService.GetForumByIdAsync(topic.ForumId);
+            model.TopicCards.Add(await PrepareForumTopicCardModelAsync(topic, forum));
+        }
+
+        foreach (var topic in activeTopics
+                     .OrderByDescending(x => x.Views)
+                     .ThenByDescending(x => x.NumPosts)
+                     .Take(4))
+        {
+            var forum = allForums.FirstOrDefault(x => x.Id == topic.ForumId) ?? await _forumService.GetForumByIdAsync(topic.ForumId);
+            model.FeaturedTopicCards.Add(await PrepareForumTopicCardModelAsync(topic, forum));
+        }
+
         return model;
     }
 
@@ -299,7 +408,12 @@ public partial class ForumModelFactory : IForumModelFactory
         {
             var topicModel = await PrepareForumTopicRowModelAsync(topic);
             model.ForumTopics.Add(topicModel);
+            model.TopicCards.Add(await PrepareForumTopicCardModelAsync(topic, forum));
         }
+
+        foreach (var featuredTopic in topics.OrderByDescending(x => x.Views).ThenByDescending(x => x.NumPosts).Take(4))
+            model.FeaturedTopicCards.Add(await PrepareForumTopicCardModelAsync(featuredTopic, forum));
+
         model.IsCustomerAllowedToSubscribe = await _forumService.IsCustomerAllowedToSubscribeAsync(customer);
         model.ForumFeedsEnabled = _forumSettings.ForumFeedsEnabled;
         model.PostsPageSize = _forumSettings.PostsPageSize;
@@ -329,6 +443,9 @@ public partial class ForumModelFactory : IForumModelFactory
 
         //prepare model
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var forum = await _forumService.GetForumByIdAsync(forumTopic.ForumId);
+        var forumSeName = forum == null ? string.Empty : await _forumService.GetForumSeNameAsync(forum);
+        var isCustomerAllowedToCreatePost = await _forumService.IsCustomerAllowedToCreatePostAsync(currentCustomer, forumTopic);
 
         var firstPostText = posts.FirstOrDefault()?.Text?.Replace(Environment.NewLine, string.Empty);
 
@@ -342,6 +459,10 @@ public partial class ForumModelFactory : IForumModelFactory
             IsCustomerAllowedToDeleteTopic = await _forumService.IsCustomerAllowedToDeleteTopicAsync(currentCustomer, forumTopic),
             IsCustomerAllowedToMoveTopic = await _forumService.IsCustomerAllowedToMoveTopicAsync(currentCustomer, forumTopic),
             IsCustomerAllowedToSubscribe = await _forumService.IsCustomerAllowedToSubscribeAsync(currentCustomer),
+            IsCustomerAllowedToCreatePost = isCustomerAllowedToCreatePost,
+            ForumId = forumTopic.ForumId,
+            ForumName = forum?.Name,
+            ForumSeName = forumSeName,
 
             MetaTitle = forumTopic.Subject,
             MetaDescription = CommonHelper.EnsureMaximumLength(firstPostText, _forumSettings.TopicMetaDescriptionLength, await _localizationService.GetResourceAsync("Forum.TruncatePostfix"))
@@ -362,6 +483,10 @@ public partial class ForumModelFactory : IForumModelFactory
         foreach (var post in posts)
         {
             var customer = await _customerService.GetCustomerByIdAsync(post.CustomerId);
+            var (replyToPostId, displayPostText) = ParseReplyData(post.Text);
+
+            var originalPostText = post.Text;
+            post.Text = displayPostText;
 
             var customerIsGuest = await _customerService.IsGuestAsync(customer);
             var customerIsModerator = !customerIsGuest && await _customerService.IsForumModeratorAsync(customer);
@@ -370,10 +495,12 @@ public partial class ForumModelFactory : IForumModelFactory
             {
                 Id = post.Id,
                 ForumTopicId = post.TopicId,
+                ReplyToPostId = replyToPostId,
                 ForumTopicSeName = await _forumService.GetTopicSeNameAsync(forumTopic),
                 FormattedText = _forumService.FormatPostText(post),
                 IsCurrentCustomerAllowedToEditPost = await _forumService.IsCustomerAllowedToEditPostAsync(currentCustomer, post),
                 IsCurrentCustomerAllowedToDeletePost = await _forumService.IsCustomerAllowedToDeletePostAsync(currentCustomer, post),
+                IsCurrentCustomerAllowedToCreatePost = isCustomerAllowedToCreatePost,
                 CustomerId = post.CustomerId,
                 AllowViewingProfiles = _customerSettings.AllowViewingProfiles && !customerIsGuest,
                 CustomerName = await _customerService.FormatUsernameAsync(customer),
@@ -417,6 +544,14 @@ public partial class ForumModelFactory : IForumModelFactory
                 forumPostModel.CustomerLocation = country != null ? await _localizationService.GetLocalizedAsync(country, x => x.Name) : string.Empty;
             }
 
+            if (!customerIsGuest)
+            {
+                var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(post.CustomerId);
+                forumPostModel.Rank = militaryProfile?.Rank;
+                forumPostModel.UnitName = militaryProfile?.UnitName;
+                forumPostModel.PositionTitle = militaryProfile?.PositionTitle;
+            }
+
             //votes
             if (_forumSettings.AllowPostVoting)
             {
@@ -429,7 +564,27 @@ public partial class ForumModelFactory : IForumModelFactory
 
             // page number is needed for creating post link in _ForumPost partial view
             forumPostModel.CurrentTopicPage = page;
-            model.ForumPostModels.Add(forumPostModel);
+                model.ForumPostModels.Add(forumPostModel);
+
+            post.Text = originalPostText;
+        }
+
+        if (model.ForumPostModels.Count > 0)
+            model.MainPostId = model.ForumPostModels[0].Id;
+
+        if (forum != null)
+        {
+            var relatedTopics = await _forumService.GetAllTopicsAsync(forum.Id, 0, string.Empty, ForumSearchType.All, 0, 0, 6);
+            foreach (var relatedTopic in relatedTopics)
+            {
+                if (relatedTopic.Id == forumTopic.Id)
+                    continue;
+
+                model.RelatedTopics.Add(await PrepareForumTopicCardModelAsync(relatedTopic, forum));
+
+                if (model.RelatedTopics.Count >= 3)
+                    break;
+            }
         }
 
         if (_seoSettings.MicrodataEnabled)
@@ -577,6 +732,7 @@ public partial class ForumModelFactory : IForumModelFactory
 
                 if (quotePost != null && quotePost.TopicId == forumTopic.Id)
                 {
+                    model.ReplyToPostId = quotePost.Id;
                     var customer = await _customerService.GetCustomerByIdAsync(quotePost.CustomerId);
                     var username = await _customerService.FormatUsernameAsync(customer);
                     var quotePostText = quotePost.Text;
@@ -635,7 +791,9 @@ public partial class ForumModelFactory : IForumModelFactory
 
         if (!excludeProperties)
         {
-            model.Text = forumPost.Text;
+            var (replyToPostId, displayText) = ParseReplyData(forumPost.Text);
+            model.ReplyToPostId = replyToPostId;
+            model.Text = displayText;
             //subscription
             if (model.IsCustomerAllowedToSubscribe)
             {
@@ -1052,6 +1210,20 @@ public partial class ForumModelFactory : IForumModelFactory
         };
 
         return forumModel;
+    }
+
+    private static (int ReplyToPostId, string DisplayText) ParseReplyData(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return (0, string.Empty);
+
+        var match = ReplyToTokenRegex.Match(text);
+        if (!match.Success)
+            return (0, text);
+
+        _ = int.TryParse(match.Groups[1].Value, out var replyToPostId);
+        var displayText = text[match.Length..].TrimStart();
+        return (replyToPostId, displayText);
     }
 
     #endregion

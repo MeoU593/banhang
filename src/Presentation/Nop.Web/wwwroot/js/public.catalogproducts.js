@@ -47,7 +47,15 @@
         data: postData,
         success: function (response) {
           $('.products-wrapper').html(response);
-          $('html, body').animate({ scrollTop: $('.center-2 .page').offset().top }, 'slow');
+          var $scrollTarget = $('.center-2 .page').first();
+          if (!$scrollTarget.length) {
+            $scrollTarget = $('.page').first();
+          }
+
+          if ($scrollTarget.length) {
+            $('html, body').animate({ scrollTop: $scrollTarget.offset().top }, 'slow');
+          }
+
           $(self).trigger({ type: "loaded" });
         },
         error: function () {

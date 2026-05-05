@@ -11,6 +11,8 @@ public partial record EditForumPostModel : BaseNopModel
 
     public int ForumTopicId { get; set; }
 
+    public int ReplyToPostId { get; set; }
+
     public bool IsEdit { get; set; }
 
     public string Text { get; set; }

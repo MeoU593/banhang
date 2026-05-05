@@ -48,6 +48,7 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly GpsrSettings _gpsrSettings;
     protected readonly ICategoryService _categoryService;
     protected readonly ICurrencyService _currencyService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerService _customerService;
     protected readonly IDateRangeService _dateRangeService;
     protected readonly IDateTimeHelper _dateTimeHelper;
@@ -62,6 +63,7 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly IPriceFormatter _priceFormatter;
     protected readonly IProductAttributeParser _productAttributeParser;
     protected readonly IProductAttributeService _productAttributeService;
+    protected readonly IProductFavoriteService _productFavoriteService;
     protected readonly IProductReviewService _productReviewService;
     protected readonly IProductService _productService;
     protected readonly IProductTagService _productTagService;
@@ -95,6 +97,7 @@ public partial class ProductModelFactory : IProductModelFactory
         GpsrSettings gpsrSettings,
         ICategoryService categoryService,
         ICurrencyService currencyService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
         IDateRangeService dateRangeService,
         IDateTimeHelper dateTimeHelper,
@@ -109,6 +112,7 @@ public partial class ProductModelFactory : IProductModelFactory
         IPriceFormatter priceFormatter,
         IProductAttributeParser productAttributeParser,
         IProductAttributeService productAttributeService,
+        IProductFavoriteService productFavoriteService,
         IProductReviewService productReviewService,
         IProductService productService,
         IProductTagService productTagService,
@@ -137,6 +141,7 @@ public partial class ProductModelFactory : IProductModelFactory
         _gpsrSettings = gpsrSettings;
         _categoryService = categoryService;
         _currencyService = currencyService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
         _dateRangeService = dateRangeService;
         _dateTimeHelper = dateTimeHelper;
@@ -151,6 +156,7 @@ public partial class ProductModelFactory : IProductModelFactory
         _priceFormatter = priceFormatter;
         _productAttributeParser = productAttributeParser;
         _productAttributeService = productAttributeService;
+        _productFavoriteService = productFavoriteService;
         _productReviewService = productReviewService;
         _productService = productService;
         _productTagService = productTagService;
@@ -376,17 +382,9 @@ public partial class ProductModelFactory : IProductModelFactory
         var model = new ProductPriceModel
         {
             ProductId = product.Id,
-            //add to cart button (ignore "DisableBuyButton" property for grouped products)
-            DisableBuyButton = (product.ProductType != ProductType.GroupedProduct && product.DisableBuyButton) ||
-                !await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.ENABLE_SHOPPING_CART) ||
-                !await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.DISPLAY_PRICES),
-            //add to wishlist button (ignore "DisableWishlistButton" property for grouped products)
-            DisableWishlistButton = (product.ProductType != ProductType.GroupedProduct && product.DisableWishlistButton) ||
-                !await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.ENABLE_WISHLIST) ||
-                !await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.DISPLAY_PRICES),
-            //compare products
+            DisableBuyButton = product.ProductType != ProductType.GroupedProduct && product.DisableBuyButton,
+            DisableWishlistButton = true,
             DisableAddToCompareListButton = !_catalogSettings.CompareProductsEnabled,
-            //currency code
             CurrencyCode = currentCurrency.CurrencyCode,
             ForceRedirectionAfterAddingToCart = forceRedirectionAfterAddingToCart
         };
@@ -1277,8 +1275,15 @@ public partial class ProductModelFactory : IProductModelFactory
     {
         ArgumentNullException.ThrowIfNull(products);
 
+        var productsList = products.ToList();
+        var favoriteStates = new Dictionary<int, bool>();
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        if (currentCustomer != null && !await _customerService.IsGuestAsync(currentCustomer) && productsList.Any())
+            favoriteStates = (await _productFavoriteService.GetFavoriteStatesAsync(currentCustomer.Id, productsList.Select(p => p.Id).ToList())).ToDictionary(item => item.Key, item => item.Value);
+
         var models = new List<ProductOverviewModel>();
-        foreach (var product in products)
+        foreach (var product in productsList)
         {
             var model = new ProductOverviewModel
             {
@@ -1289,6 +1294,7 @@ public partial class ProductModelFactory : IProductModelFactory
                 SeName = await _urlRecordService.GetSeNameAsync(product),
                 Sku = product.Sku,
                 ProductType = product.ProductType,
+                IsFavorite = favoriteStates.TryGetValue(product.Id, out var isFavorite) && isFavorite,
                 MarkAsNew = product.MarkAsNew &&
                             (!product.MarkAsNewStartDateTimeUtc.HasValue || product.MarkAsNewStartDateTimeUtc.Value < DateTime.UtcNow) &&
                             (!product.MarkAsNewEndDateTimeUtc.HasValue || product.MarkAsNewEndDateTimeUtc.Value > DateTime.UtcNow)
@@ -1433,17 +1439,18 @@ public partial class ProductModelFactory : IProductModelFactory
         }
 
         var store = await _storeContext.GetCurrentStoreAsync();
-        //email a friend
-        model.EmailAFriendEnabled = _catalogSettings.EmailAFriendEnabled;
         //compare products
         model.CompareProductsEnabled = _catalogSettings.CompareProductsEnabled;
         //store name
         model.CurrentStoreName = await _localizationService.GetLocalizedAsync(store, x => x.Name);
 
+        Vendor vendor = null;
+        if (_vendorSettings.ShowVendorOnProductDetailsPage || product.CreatedByCustomerId <= 0)
+            vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
+
         //vendor details
         if (_vendorSettings.ShowVendorOnProductDetailsPage)
         {
-            var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
             if (vendor != null && !vendor.Deleted && vendor.Active)
             {
                 model.ShowVendor = true;
@@ -1453,6 +1460,30 @@ public partial class ProductModelFactory : IProductModelFactory
                     Id = vendor.Id,
                     Name = await _localizationService.GetLocalizedAsync(vendor, x => x.Name),
                     SeName = await _urlRecordService.GetSeNameAsync(vendor),
+                };
+            }
+        }
+
+        //product poster details
+        var posterCustomerId = product.CreatedByCustomerId;
+        if (posterCustomerId <= 0 && vendor?.PmCustomerId > 0)
+            posterCustomerId = vendor.PmCustomerId.Value;
+
+        if (posterCustomerId > 0)
+        {
+            var posterCustomer = await _customerService.GetCustomerByIdAsync(posterCustomerId);
+            if (posterCustomer != null && posterCustomer.Active && !posterCustomer.Deleted)
+            {
+                var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(posterCustomer.Id);
+
+                model.ProductPoster = new ProductDetailsModel.ProductPosterModel
+                {
+                    CustomerId = posterCustomer.Id,
+                    Name = await _customerService.GetCustomerFullNameAsync(posterCustomer),
+                    PhoneNumber = posterCustomer.Phone,
+                    Email = posterCustomer.Email,
+                    Rank = militaryProfile?.Rank,
+                    PositionTitle = militaryProfile?.PositionTitle
                 };
             }
         }
@@ -1512,36 +1543,6 @@ public partial class ProductModelFactory : IProductModelFactory
         model.ProductPrice = await PrepareProductPriceModelAsync(product);
 
         //'Add to cart' model
-        model.AddToCart = await PrepareProductAddToCartModelAsync(product, updatecartitem);
-        var customer = await _workContext.GetCurrentCustomerAsync();
-        //gift card
-        if (product.IsGiftCard)
-        {
-            model.GiftCard.IsGiftCard = true;
-            model.GiftCard.GiftCardType = product.GiftCardType;
-
-            if (updatecartitem == null)
-            {
-                model.GiftCard.SenderName = await _customerService.GetCustomerFullNameAsync(customer);
-                model.GiftCard.SenderEmail = customer.Email;
-            }
-            else
-            {
-                _productAttributeParser.GetGiftCardAttribute(updatecartitem.AttributesXml,
-                    out var giftCardRecipientName, out var giftCardRecipientEmail,
-                    out var giftCardSenderName, out var giftCardSenderEmail, out var giftCardMessage);
-
-                model.GiftCard.RecipientName = giftCardRecipientName;
-                model.GiftCard.RecipientEmail = giftCardRecipientEmail;
-                model.GiftCard.SenderName = giftCardSenderName;
-                model.GiftCard.SenderEmail = giftCardSenderEmail;
-                model.GiftCard.Message = giftCardMessage;
-            }
-        }
-
-        //product attributes
-        model.ProductAttributes = await PrepareProductAttributeModelsAsync(product, updatecartitem);
-
         //product specifications
         //do not prepare this model for the associated products. anyway it's not used
         if (!isAssociatedProduct)
@@ -1551,9 +1552,6 @@ public partial class ProductModelFactory : IProductModelFactory
         model.ProductReviewOverview = await PrepareProductReviewOverviewModelAsync(product);
 
         model.ProductReviews = await PrepareProductReviewsModelAsync(product);
-
-        if (await _permissionService.AuthorizeAsync(StandardPermission.PublicStore.DISPLAY_PRICES))
-            model.TierPrices = await PrepareProductTierPriceModelsAsync(product);
 
         //manufacturers
         model.ProductManufacturers = await PrepareProductManufacturerModelsAsync(product);
@@ -1806,35 +1804,6 @@ public partial class ProductModelFactory : IProductModelFactory
             ProductReviews = productReviews,
             PagerModel = pagerModel
         };
-
-        return model;
-    }
-
-    /// <summary>
-    /// Prepare the product email a friend model
-    /// </summary>
-    /// <param name="model">Product email a friend model</param>
-    /// <param name="product">Product</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the product email a friend model
-    /// </returns>
-    public virtual async Task<ProductEmailAFriendModel> PrepareProductEmailAFriendModelAsync(ProductEmailAFriendModel model, Product product, bool excludeProperties)
-    {
-        ArgumentNullException.ThrowIfNull(model);
-
-        ArgumentNullException.ThrowIfNull(product);
-
-        model.ProductId = product.Id;
-        model.ProductName = await _localizationService.GetLocalizedAsync(product, x => x.Name);
-        model.ProductSeName = await _urlRecordService.GetSeNameAsync(product);
-        model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnEmailProductToFriendPage;
-        if (!excludeProperties)
-        {
-            var customer = await _workContext.GetCurrentCustomerAsync();
-            model.YourEmailAddress = customer.Email;
-        }
 
         return model;
     }

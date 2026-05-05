@@ -13,10 +13,19 @@ public class DocumentDetailModel
     public string? IssuerName { get; set; }
     public DateTime? IssuedDate { get; set; }
     public DateTime? EffectiveDate { get; set; }
-    public bool IsRestricted { get; set; }
-    public bool AllowDownload { get; set; }
+    public string? PreviewUrl { get; set; }
+    public string? DownloadUrl { get; set; }
+    public bool HasContent { get; set; }
+    public bool HasDownload { get; set; }
+    public int? OwnerVendorId { get; set; }
+    public string? OwnerVendorName { get; set; }
+    public string? AccessScopeName { get; set; }
     public int ViewCount { get; set; }
     public int DownloadCount { get; set; }
     public bool CanDelete { get; set; }
+    public bool CanAddComments { get; set; }
+    public int NumberOfComments { get; set; }
+    public AddDocumentCommentModel AddNewComment { get; set; } = new();
+    public IList<DocumentCommentModel> Comments { get; set; } = new List<DocumentCommentModel>();
     public IList<DocumentListItemModel> RelatedDocuments { get; set; } = new List<DocumentListItemModel>();
 }

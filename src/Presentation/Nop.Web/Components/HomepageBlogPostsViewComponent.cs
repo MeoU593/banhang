@@ -18,7 +18,7 @@ public partial class HomepageBlogPostsViewComponent : NopViewComponent
         _blogModelFactory = blogModelFactory;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync(int? postTypeId = null, int take = 4)
+    public async Task<IViewComponentResult> InvokeAsync(int? postTypeId = null, int take = 4, string displayVariant = null)
     {
         if (take <= 0)
             take = 4;
@@ -40,6 +40,7 @@ public partial class HomepageBlogPostsViewComponent : NopViewComponent
             .ToList();
 
         ViewData["HomepagePostTypeId"] = postTypeId;
+        ViewData["HomepagePostDisplayVariant"] = displayVariant;
 
         return View(model);
     }

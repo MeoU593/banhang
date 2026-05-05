@@ -1,40 +1,133 @@
-﻿@model IList<VendorModel>
-
-@using Nop.Core.Domain.Vendors
+@model IList<VendorModel>
 
 @{
-    Layout = "_ColumnsTwo";
+    Layout = "_ColumnsOne";
+    var totalUnits = Model?.Count ?? 0;
 
-    //title
-    NopHtml.AddTitleParts(T("PageTitle.Vendors").Text);
-    //page class
-    NopHtml.AppendPageCssClassParts("html-vendor-list-page");
+    NopHtml.AddTitleParts("Danh sách đơn vị");
+    NopHtml.AddMetaDescriptionParts("Danh sách các đơn vị trực thuộc Bình Chủng Tăng Thiết Giáp");
+    NopHtml.AppendPageCssClassParts("html-unit-list-page");
 }
-<div class="page vendor-list-page">
-    <div class="page-title">
-        <h1>@T("Vendors.List")</h1>
-    </div>
-    <div class="page-body">
-        <div class="vendor-grid">
-            <div class="item-grid">
-                @foreach (var item in Model)
-                {
-                    <div class="item-box">
-                        <div class="vendor-item">
-                            <h2 class="title">
-                                <a href="@(await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = item.SeName }))" title="@item.PictureModel.Title">
-                                    @item.Name
-                                </a>
-                            </h2>
-                            <div class="picture">
-                                <a href="@(await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = item.SeName }))" title="@item.PictureModel.Title">
-                                    <img alt="@item.PictureModel.AlternateText" src="@item.PictureModel.ImageUrl" title="@item.PictureModel.Title" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                }
+
+<div class="page unit-list-page">
+<div class="page-body w-full space-y-8">
+    <section class="overflow-hidden rounded-2xl border p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+            <span class="text-white">Danh sách đơn vị</span>
+        </nav>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="space-y-1.5">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#f6dc9a]">Danh sách đơn vị</p>
+                <h1 class="public-hero-title font-black tracking-tight text-white">Đơn Vị Trực Thuộc</h1>
+                <p class="max-w-2xl text-xs leading-5 text-slate-200 sm:text-sm">Quản lý và tra cứu thông tin các đơn vị hậu cần, quân sự trong hệ thống nội bộ.</p>
+            </div>
+            <div class="rounded-2xl border border-white/20 bg-white/10 px-5 py-4 text-center backdrop-blur">
+                <div class="text-xs uppercase tracking-[0.2em] text-slate-200">Tổng số đơn vị</div>
+                <div class="mt-1 text-lg font-black text-white sm:text-xl">@totalUnits</div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <label class="relative block max-w-3xl">
+            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 material-symbols-outlined text-[20px]">search</span>
+            <input id="unit-search" type="search" class="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-military-green focus:bg-white" placeholder="Tìm kiếm theo tên hoặc mã đơn vị..." />
+        </label>
+    </section>
+
+    <section class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        @if (totalUnits == 0)
+        {
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center text-sm text-slate-500">
+                Chưa có đơn vị nào trong hệ thống.
+            </div>
+        }
+        else
+        {
+            <div id="unit-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                @foreach (var item in Model)
+                {
+                    var detailUrl = Url.RouteUrl(NopRouteNames.General.UNIT_DETAILS, new { vendorId = item.Id });
+                    var searchable = $"{item.Name} {item.Code}".ToLowerInvariant();
+
+                    <article class="unit-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg" data-search="@searchable">
+                        <a href="@detailUrl" class="relative block h-44 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-military-green">
+                            <div class="absolute inset-0 opacity-20" style="background-image:linear-gradient(135deg,rgba(255,255,255,.25) 20%,transparent 20%,transparent 50%,rgba(255,255,255,.25) 50%,rgba(255,255,255,.25) 70%,transparent 70%,transparent)"></div>
+                            <div class="absolute left-3 top-3 rounded-lg bg-slate-950/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-100">@(string.IsNullOrWhiteSpace(item.Code) ? "ĐƠN VỊ" : item.Code)</div>
+                            <div class="relative flex h-full items-center justify-center p-6">
+                                @if (!string.IsNullOrWhiteSpace(item.PictureModel.ImageUrl))
+                                {
+                                    <img src="@item.PictureModel.ImageUrl" alt="@item.PictureModel.AlternateText" title="@item.PictureModel.Title" class="h-24 w-24 rounded-2xl border border-white/20 object-cover bg-white/10" />
+                                }
+                            </div>
+                        </a>
+
+                        <div class="space-y-4 p-5">
+                            <div>
+                                <h2 class="public-card-title font-black text-slate-900">
+                                    <a href="@detailUrl" class="transition hover:text-military-green">@item.Name</a>
+                                </h2>
+                                <p class="mt-1 text-sm text-slate-500">Cấp đơn vị: @item.Level</p>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-slate-600">
+                                <p class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-slate-400">inventory_2</span>
+                                    <span>@item.NumberOfProducts sản phẩm và năng lực</span>
+                                </p>
+                                <p class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-slate-400">account_tree</span>
+                                    <span>Trực thuộc: @(string.IsNullOrWhiteSpace(item.ParentName) ? "BTL TTG" : item.ParentName)</span>
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                                <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">Đơn vị</span>
+                                <a href="@detailUrl" class="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-bold text-white transition hover:bg-slate-800">Chi tiết</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <p id="unit-search-empty" class="mt-4 hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center text-sm text-slate-500">
+                Không tìm thấy đơn vị phù hợp với từ khóa vừa nhập.
+            </p>
+        }
+    </section>
 </div>
+</div>
+
+<script>
+    (function () {
+        var searchInput = document.getElementById("unit-search");
+        var cards = Array.prototype.slice.call(document.querySelectorAll("#unit-grid .unit-card"));
+        var emptyState = document.getElementById("unit-search-empty");
+
+        if (!searchInput || !cards.length) {
+            return;
+        }
+
+        searchInput.addEventListener("input", function () {
+            var keyword = (searchInput.value || "").toLowerCase().trim();
+
+            var visibleCount = 0;
+
+            cards.forEach(function (card) {
+                var searchText = card.getAttribute("data-search") || "";
+                var isVisible = !keyword || searchText.indexOf(keyword) >= 0;
+                card.style.display = isVisible ? "" : "none";
+
+                if (isVisible) {
+                    visibleCount++;
+                }
+            });
+
+            if (emptyState) {
+                emptyState.classList.toggle("hidden", visibleCount > 0);
+            }
+        });
+    })();
+</script>

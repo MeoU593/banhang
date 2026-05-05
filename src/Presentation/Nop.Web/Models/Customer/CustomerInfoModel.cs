@@ -16,7 +16,6 @@ public partial record CustomerInfoModel : BaseNopModel
         AssociatedExternalAuthRecords = new List<AssociatedExternalAuthModel>();
         CustomerAttributes = new List<CustomerAttributeModel>();
         GdprConsents = new List<GdprConsentModel>();
-        NewsLetterSubscriptions = new List<NewsLetterSubscriptionModel>();
         RecentActivities = new List<RecentActivityModel>();
         PostedDocuments = new List<PostedDocumentModel>();
     }
@@ -78,6 +77,8 @@ public partial record CustomerInfoModel : BaseNopModel
 
     public DateTime? EnlistmentDate { get; set; }
 
+    public string AvatarUrl { get; set; }
+
     public bool StreetAddressEnabled { get; set; }
     public bool StreetAddressRequired { get; set; }
     [NopResourceDisplayName("Account.Fields.StreetAddress")]
@@ -127,10 +128,6 @@ public partial record CustomerInfoModel : BaseNopModel
     [NopResourceDisplayName("Account.Fields.Fax")]
     public string Fax { get; set; }
 
-    public bool NewsletterEnabled { get; set; }
-
-    public IList<NewsLetterSubscriptionModel> NewsLetterSubscriptions { get; set; }
-
     //preferences
     public bool SignatureEnabled { get; set; }
     [NopResourceDisplayName("Account.Fields.Signature")]
@@ -162,6 +159,14 @@ public partial record CustomerInfoModel : BaseNopModel
     public IList<RecentActivityModel> RecentActivities { get; set; }
 
     public IList<PostedDocumentModel> PostedDocuments { get; set; }
+
+    public int PostedDocumentsPage { get; set; }
+
+    public int PostedDocumentsPageSize { get; set; }
+
+    public int PostedDocumentsTotalCount { get; set; }
+
+    public int PostedDocumentsTotalPages { get; set; }
 
     #region Nested classes
 
@@ -195,9 +200,25 @@ public partial record CustomerInfoModel : BaseNopModel
 
         public string Slug { get; set; }
 
+        public string Summary { get; set; }
+
+        public int AccessScopeId { get; set; }
+
+        public string AccessScopeName { get; set; }
+
+        public bool HasDownload { get; set; }
+
         public bool Published { get; set; }
 
         public DateTime CreatedOnUtc { get; set; }
+
+        public DateTime UpdatedOnUtc { get; set; }
+
+        public bool CanView { get; set; }
+
+        public bool CanEdit { get; set; }
+
+        public bool CanDelete { get; set; }
     }
 
     #endregion

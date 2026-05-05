@@ -1,125 +1,97 @@
 @model BoardsIndexModel
-@using Nop.Services.Helpers
-@inject IDateTimeHelper dateTimeHelper
 @{
     Layout = "_ColumnsOne";
     NopHtml.AddTitleParts(T("Forum.PageTitle.Default").Text);
     NopHtml.AppendPageCssClassParts("html-forums-main-page");
-    var now = (await dateTimeHelper.ConvertToUserTimeAsync(DateTime.UtcNow)).ToString("dd/MM/yyyy HH:mm");
 }
 
-<style>
-.forum-page-wrap { padding: 24px; background: #f1f5f9; min-height: calc(100vh - 4rem); }
-.forum-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
-.forum-breadcrumb { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
-.forum-breadcrumb a { color: inherit; text-decoration: none; }
-.forum-breadcrumb a:hover { color: #0f172a; }
-.forum-page-title { margin: 0; font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.03em; line-height: 1.1; }
-.forum-meta-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.forum-meta-time { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 12px; color: #64748b; font-weight: 500; }
-.forum-search-wrap form { display: flex; align-items: center; }
-.forum-search-wrap input { height: 40px; padding: 0 14px 0 38px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; font-size: 13px; color: #0f172a; outline: none; width: 220px; transition: border-color 0.2s, box-shadow 0.2s; }
-.forum-search-wrap input:focus { border-color: #2d3a22; box-shadow: 0 0 0 3px rgba(45,58,34,0.08); }
-.forum-search-wrap { position: relative; }
-.forum-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 17px; font-family: 'Material Symbols Outlined' !important; pointer-events: none; }
-.forum-group-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 18px -8px rgba(15,23,42,0.10); }
-.forum-group-title { display: flex; align-items: center; gap: 10px; padding: 16px 20px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
-.forum-group-title .icon { font-size: 20px; color: #eab308; font-family: 'Material Symbols Outlined' !important; }
-.forum-group-title a { color: #fff; text-decoration: none; }
-.forum-group-title a:hover { color: #fbbf24; }
-.forum-list { list-style: none; margin: 0; padding: 0; }
-.forum-item { display: grid; grid-template-columns: 44px 1fr auto auto 220px; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
-.forum-item:last-child { border-bottom: none; }
-.forum-item:hover { background: #f8fafc; }
-.forum-item-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: #f1f5f9; border: 1px solid #e2e8f0; color: #2d3a22; font-size: 20px; font-family: 'Material Symbols Outlined' !important; flex-shrink: 0; }
-.forum-item-info { min-width: 0; }
-.forum-item-name { font-size: 14px; font-weight: 700; color: #0f172a; text-decoration: none; }
-.forum-item-name:hover { color: #2d3a22; }
-.forum-item-desc { font-size: 12px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.forum-item-stat { text-align: center; min-width: 60px; }
-.forum-item-stat-num { font-size: 16px; font-weight: 800; color: #0f172a; }
-.forum-item-stat-label { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1px; }
-.forum-item-last { font-size: 12px; color: #64748b; line-height: 1.5; }
-.forum-item-last a { color: #2d3a22; font-weight: 600; text-decoration: none; }
-.forum-item-last a:hover { text-decoration: underline; }
-.forum-item-last .no-post { color: #94a3b8; font-style: italic; }
-.forum-thead { display: grid; grid-template-columns: 44px 1fr auto auto 220px; gap: 16px; padding: 8px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-.forum-thead-cell { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; }
-.forum-thead-cell.center { text-align: center; }
-@@media (max-width: 767px) {
-    .forum-item { grid-template-columns: 36px 1fr; }
-    .forum-item-stat, .forum-item-last { display: none; }
-    .forum-thead { display: none; }
-}
-</style>
-
-<div class="forum-page-wrap">
-    <div class="forum-page-header">
-        <div>
-            <nav class="forum-breadcrumb" aria-label="Breadcrumb">
-                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)">Trang chủ</a>
-                <span class="material-symbols-outlined" style="font-size:14px;font-family:'Material Symbols Outlined'!important;">chevron_right</span>
-                <span>Diễn đàn</span>
+<div class="page forum-home-page px-4 pb-8 lg:px-0">
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-8">
+        <div class="space-y-2">
+            <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                <span class="text-white">Diễn đàn</span>
             </nav>
-            <h1 class="forum-page-title">Diễn đàn &amp; Thảo luận</h1>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-container">Cộng đồng hậu cần</p>
+            <h1 class="public-page-title font-black tracking-tight">Diễn đàn Hậu cần - Quân nhu</h1>
+            <p class="max-w-2xl text-sm text-white/80 sm:text-base">Trao đổi nghiệp vụ, chia sẻ kinh nghiệm và cập nhật giải pháp thực tế trong công tác bảo đảm hậu cần.</p>
         </div>
-        <div class="forum-meta-bar">
-            <div class="forum-meta-time">
-                <span class="material-symbols-outlined" style="font-size:16px;font-family:'Material Symbols Outlined'!important;">schedule</span>
-                @now
-            </div>
-            <div class="forum-search-wrap">
-                <span class="forum-search-icon material-symbols-outlined">search</span>
-                @await Html.PartialAsync("_SearchBox")
-            </div>
-        </div>
+        <a href="@Url.RouteUrl(NopRouteNames.Standard.ACTIVE_DISCUSSIONS)" class="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-slate-900 transition hover:bg-white/90">
+            Xem thảo luận mới
+        </a>
     </div>
+
+    @await Html.PartialAsync("_ForumHeader")
 
     @await Component.InvokeAsync(typeof(TopicBlockViewComponent), new { systemName = "ForumWelcomeMessage" })
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsMainAfterHeader, additionalData = Model })
 
-    @foreach (var forumGroup in Model.ForumGroups)
-    {
-        <div class="forum-group-card">
-            <div class="forum-group-title">
-                <span class="icon material-symbols-outlined">forum</span>
-                <a href="@Url.RouteUrl(NopRouteNames.Standard.FORUM_GROUP_SLUG, new { id = forumGroup.Id, slug = forumGroup.SeName })">@forumGroup.Name</a>
-            </div>
-            <div class="forum-thead">
-                <div class="forum-thead-cell"></div>
-                <div class="forum-thead-cell">Chủ đề / Diễn đàn</div>
-                <div class="forum-thead-cell center">Chủ đề</div>
-                <div class="forum-thead-cell center">Bài viết</div>
-                <div class="forum-thead-cell">Bài viết gần nhất</div>
-            </div>
-            <ul class="forum-list">
-                @foreach (var forum in forumGroup.Forums)
-                {
-                    <li class="forum-item">
-                        <div class="forum-item-icon material-symbols-outlined">chat_bubble</div>
-                        <div class="forum-item-info">
-                            <a class="forum-item-name" href="@Url.RouteUrl(NopRouteNames.Standard.FORUM_SLUG, new { id = forum.Id, slug = forum.SeName })">@forum.Name</a>
-                            @if (!string.IsNullOrEmpty(forum.Description))
-                            {
-                                <div class="forum-item-desc">@forum.Description</div>
-                            }
-                        </div>
-                        <div class="forum-item-stat">
-                            <div class="forum-item-stat-num">@forum.NumTopics</div>
-                            <div class="forum-item-stat-label">Chủ đề</div>
-                        </div>
-                        <div class="forum-item-stat">
-                            <div class="forum-item-stat-num">@forum.NumPosts</div>
-                            <div class="forum-item-stat-label">Bài viết</div>
-                        </div>
-                        <div class="forum-item-last">
-                            @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new { forumPostId = forum.LastPostId, showTopic = true })
-                        </div>
-                    </li>
-                }
-            </ul>
-        </div>
-    }
+    <div class="grid grid-cols-12 gap-6">
+        <section class="col-span-12 space-y-4 lg:col-span-8">
+            @await Html.PartialAsync("_ForumTopicCards", Model.TopicCards)
+        </section>
+
+        <aside class="col-span-12 space-y-4 lg:col-span-4">
+            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Bài viết nổi bật</div>
+                <div class="space-y-3 p-4">
+                    @if (Model.FeaturedTopicCards.Count == 0)
+                    {
+                        <p class="text-sm text-slate-500">Chưa có dữ liệu nổi bật.</p>
+                    }
+                    else
+                    {
+                        @foreach (var topic in Model.FeaturedTopicCards)
+                        {
+                            <a href="@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName })" class="block rounded-xl border border-slate-100 p-3 transition hover:border-military-green/50 hover:bg-slate-50">
+                                <p class="line-clamp-2 text-sm font-bold text-slate-800">@topic.Subject</p>
+                                <p class="mt-1 text-xs text-slate-500">@topic.CreatedOnStr • @topic.NumReplies bình luận</p>
+                            </a>
+                        }
+                    }
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Chuyên mục phổ biến</div>
+                <div class="space-y-2 p-4">
+                    @if (Model.PopularForums.Count == 0)
+                    {
+                        <p class="text-sm text-slate-500">Chưa có chuyên mục.</p>
+                    }
+                    else
+                    {
+                        @foreach (var forum in Model.PopularForums)
+                        {
+                            <a href="@Url.RouteUrl(NopRouteNames.Standard.FORUM_SLUG, new { id = forum.Id, slug = forum.SeName })" class="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                                <span class="line-clamp-1">@forum.Name</span>
+                                <span class="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">@forum.NumTopics</span>
+                            </a>
+                        }
+                    }
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-slate-900 p-5 text-white shadow-lg">
+                <p class="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-secondary-container">Thống kê diễn đàn</p>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="rounded-xl bg-white/5 px-3 py-3">
+                        <p class="text-lg font-black">@Model.TotalForums</p>
+                        <p class="text-[10px] uppercase text-slate-400">Diễn đàn</p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 px-3 py-3">
+                        <p class="text-lg font-black">@Model.TotalTopics</p>
+                        <p class="text-[10px] uppercase text-slate-400">Chủ đề</p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 px-3 py-3">
+                        <p class="text-lg font-black">@Model.TotalPosts</p>
+                        <p class="text-[10px] uppercase text-slate-400">Bài viết</p>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
 
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsMainBeforeActivediscussions, additionalData = Model })
     @await Component.InvokeAsync(typeof(ForumActiveDiscussionsSmallViewComponent))

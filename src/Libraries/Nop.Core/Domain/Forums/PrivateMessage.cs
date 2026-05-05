@@ -46,6 +46,11 @@ public partial class PrivateMessage : BaseEntity
     public bool IsDeletedByRecipient { get; set; }
 
     /// <summary>
+    /// Gets or sets the vendor identifier when the message belongs to a public unit contact chat
+    /// </summary>
+    public int? UnitContactVendorId { get; set; }
+
+    /// <summary>
     /// Gets or sets the date and time of instance creation
     /// </summary>
     public DateTime CreatedOnUtc { get; set; }

@@ -10,6 +10,8 @@
 </div>
 <script asp-location="Footer">
     $(function() {
+        var $productsContainer = $('.products-container');
+
         CatalogProducts.init({
             ajax: @Model.UseAjaxLoading.ToString().ToLowerInvariant(),
             browserPath: '@Context.Request.Path',
@@ -17,16 +19,18 @@
         });
 
         addPagerHandlers();
-        $(CatalogProducts).on('loaded', function () {
+        $(CatalogProducts).off('loaded.catalogProductsPager').on('loaded.catalogProductsPager', function () {
             addPagerHandlers();
         });
-    });
 
-    function addPagerHandlers() {
-        $('[data-page]').on('click', function (e) {
-            e.preventDefault();
-            CatalogProducts.getProducts($(this).data('page'));
-            return false;
-        });
-    }
+        function addPagerHandlers() {
+            $productsContainer
+                .off('click.catalogProductsPager', '[data-page]')
+                .on('click.catalogProductsPager', '[data-page]', function (e) {
+                    e.preventDefault();
+                    CatalogProducts.getProducts($(this).data('page'));
+                    return false;
+                });
+        }
+    });
 </script>

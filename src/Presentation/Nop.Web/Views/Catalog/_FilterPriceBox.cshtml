@@ -15,6 +15,10 @@
         <script asp-location="Footer">
             $(function() {
                 var $priceRangeEl = $("#price-range-slider");
+                if ($priceRangeEl.data('ui-slider')) {
+                    $priceRangeEl.slider('destroy');
+                }
+
                 $priceRangeEl.slider({
                     range: true,
                     min: @Model.AvailablePriceRange.From,
@@ -36,7 +40,7 @@
                     $priceRangeEl.slider("values", 1)
                 );
 
-                $(CatalogProducts).on('before', function (e) {
+                $(CatalogProducts).off('before.filterPrice').on('before.filterPrice', function (e) {
                     var priceRange = $priceRangeEl.slider('values');
                     if (priceRange && priceRange.length > 0) {
                         e.payload.urlBuilder

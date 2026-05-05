@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Framework.Models;
-using Nop.Web.Framework.Mvc.ModelBinding;
+﻿using Nop.Web.Framework.Models;
 
 namespace Nop.Web.Areas.Admin.Models.Catalog;
 
@@ -9,23 +7,5 @@ namespace Nop.Web.Areas.Admin.Models.Catalog;
 /// </summary>
 public partial record StockQuantityHistorySearchModel : BaseSearchModel
 {
-    #region Ctor
-
-    public StockQuantityHistorySearchModel()
-    {
-        AvailableWarehouses = new List<SelectListItem>();
-    }
-
-    #endregion
-
-    #region Properties
-
     public int ProductId { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Products.List.SearchWarehouse")]
-    public int WarehouseId { get; set; }
-
-    public IList<SelectListItem> AvailableWarehouses { get; set; }
-
-    #endregion
 }

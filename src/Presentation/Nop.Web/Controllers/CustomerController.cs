@@ -81,7 +81,6 @@ public partial class CustomerController : BasePublicController
     protected readonly ILocalizationService _localizationService;
     protected readonly ILogger _logger;
     protected readonly IMultiFactorAuthenticationPluginManager _multiFactorAuthenticationPluginManager;
-    protected readonly INewsLetterSubscriptionService _newsLetterSubscriptionService;
     protected readonly INotificationService _notificationService;
     protected readonly IOrderService _orderService;
     protected readonly IPermissionService _permissionService;
@@ -92,7 +91,6 @@ public partial class CustomerController : BasePublicController
     protected readonly IStoreContext _storeContext;
     protected readonly ITaxService _taxService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly LocalizationSettings _localizationSettings;
     protected readonly MediaSettings _mediaSettings;
     protected readonly MultiFactorAuthenticationSettings _multiFactorAuthenticationSettings;
@@ -135,7 +133,6 @@ public partial class CustomerController : BasePublicController
         ILocalizationService localizationService,
         ILogger logger,
         IMultiFactorAuthenticationPluginManager multiFactorAuthenticationPluginManager,
-        INewsLetterSubscriptionService newsLetterSubscriptionService,
         INotificationService notificationService,
         IOrderService orderService,
         IPermissionService permissionService,
@@ -146,7 +143,6 @@ public partial class CustomerController : BasePublicController
         IStoreContext storeContext,
         ITaxService taxService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings,
         MediaSettings mediaSettings,
         MultiFactorAuthenticationSettings multiFactorAuthenticationSettings,
@@ -184,7 +180,6 @@ public partial class CustomerController : BasePublicController
         _localizationService = localizationService;
         _logger = logger;
         _multiFactorAuthenticationPluginManager = multiFactorAuthenticationPluginManager;
-        _newsLetterSubscriptionService = newsLetterSubscriptionService;
         _notificationService = notificationService;
         _orderService = orderService;
         _permissionService = permissionService;
@@ -195,7 +190,6 @@ public partial class CustomerController : BasePublicController
         _storeContext = storeContext;
         _taxService = taxService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _localizationSettings = localizationSettings;
         _mediaSettings = mediaSettings;
         _multiFactorAuthenticationSettings = multiFactorAuthenticationSettings;
@@ -348,17 +342,6 @@ public partial class CustomerController : BasePublicController
                 }
             }
 
-            //newsletter subscriptions
-            if (_gdprSettings.LogNewsletterConsent)
-            {
-                var oldNewsletter = oldCustomerInfoModel.NewsLetterSubscriptions.Any(subscriptionModel => subscriptionModel.IsActive);
-                var newNewsletter = newCustomerInfoModel.NewsLetterSubscriptions.Any(subscriptionModel => subscriptionModel.IsActive);
-                if (oldNewsletter && !newNewsletter)
-                    await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ConsentDisagree, await _localizationService.GetResourceAsync("Gdpr.Consent.Newsletter"));
-                if (!oldNewsletter && newNewsletter)
-                    await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ConsentAgree, await _localizationService.GetResourceAsync("Gdpr.Consent.Newsletter"));
-            }
-
             //user profile changes
             if (!_gdprSettings.LogUserProfileChanges)
                 return;
@@ -466,14 +449,40 @@ public partial class CustomerController : BasePublicController
         }
     }
 
-    protected virtual async Task PreparePostedDocumentsAsync(CustomerInfoModel model, int customerId)
+    protected virtual async Task PreparePostedDocumentsAsync(CustomerInfoModel model, int customerId, int documentPage = 1)
     {
+        const int pageSize = 10;
+        var page = Math.Max(1, documentPage);
+
+        model.PostedDocumentsPage = page;
+        model.PostedDocumentsPageSize = pageSize;
+
         try
         {
-            const string sql = "SELECT Id, Title, Code, Slug, Published, CreatedOnUtc FROM Document WHERE UploadedByCustomerId = @customerId AND Deleted = 0 ORDER BY UpdatedOnUtc DESC, CreatedOnUtc DESC";
-            var documents = await _dataProvider.QueryAsync<DocumentRow>(sql, new DataParameter("customerId", customerId));
+            const string countSql = "SELECT COUNT(1) AS TotalCount FROM Document WHERE UploadedByCustomerId = @customerId AND Deleted = 0";
+            var countResult = await _dataProvider.QueryAsync<DocumentCountRow>(countSql, new DataParameter("customerId", customerId));
+            model.PostedDocumentsTotalCount = countResult.FirstOrDefault()?.TotalCount ?? 0;
+            model.PostedDocumentsTotalPages = model.PostedDocumentsTotalCount == 0
+                ? 0
+                : (int)Math.Ceiling(model.PostedDocumentsTotalCount / (double)pageSize);
 
-            foreach (var document in documents.Take(10))
+            if (model.PostedDocumentsTotalPages > 0 && page > model.PostedDocumentsTotalPages)
+            {
+                page = model.PostedDocumentsTotalPages;
+                model.PostedDocumentsPage = page;
+            }
+
+            const string sql = @"SELECT Id, Title, Code, Slug, Summary, AccessScopeId, DownloadId, Published, CreatedOnUtc, UpdatedOnUtc
+FROM Document
+WHERE UploadedByCustomerId = @customerId AND Deleted = 0
+ORDER BY UpdatedOnUtc DESC, CreatedOnUtc DESC
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+            var documents = await _dataProvider.QueryAsync<DocumentRow>(sql,
+                new DataParameter("customerId", customerId),
+                new DataParameter("offset", (page - 1) * pageSize),
+                new DataParameter("pageSize", pageSize));
+
+            foreach (var document in documents)
             {
                 model.PostedDocuments.Add(new CustomerInfoModel.PostedDocumentModel
                 {
@@ -481,8 +490,16 @@ public partial class CustomerController : BasePublicController
                     Title = document.Title,
                     Code = document.Code,
                     Slug = document.Slug,
+                    Summary = document.Summary,
+                    AccessScopeId = document.AccessScopeId,
+                    AccessScopeName = document.AccessScopeId == 5 ? "Công khai" : "Nội bộ",
+                    HasDownload = document.DownloadId.HasValue,
                     Published = document.Published,
-                    CreatedOnUtc = document.CreatedOnUtc
+                    CreatedOnUtc = document.CreatedOnUtc,
+                    UpdatedOnUtc = document.UpdatedOnUtc,
+                    CanView = document.Published && !string.IsNullOrWhiteSpace(document.Slug),
+                    CanEdit = true,
+                    CanDelete = true
                 });
             }
         }
@@ -490,6 +507,11 @@ public partial class CustomerController : BasePublicController
         {
             //document portal plugin may be disabled or not installed
         }
+    }
+
+    protected partial record DocumentCountRow
+    {
+        public int TotalCount { get; set; }
     }
 
     protected partial record DocumentRow
@@ -502,9 +524,17 @@ public partial class CustomerController : BasePublicController
 
         public string Slug { get; set; }
 
+        public string Summary { get; set; }
+
+        public int AccessScopeId { get; set; }
+
+        public int? DownloadId { get; set; }
+
         public bool Published { get; set; }
 
         public DateTime CreatedOnUtc { get; set; }
+
+        public DateTime UpdatedOnUtc { get; set; }
     }
 
     #endregion
@@ -595,14 +625,14 @@ public partial class CustomerController : BasePublicController
                     break;
             }
 
-            if (loginResult == CustomerLoginResults.WrongPassword && _customerSettings.NotifyFailedLoginAttempt)
-            {
-                var customer = _customerSettings.UsernamesEnabled
-                        ? await _customerService.GetCustomerByUsernameAsync(customerUserName)
-                        : await _customerService.GetCustomerByEmailAsync(customerEmail);
-
-                await _workflowMessageService.SendCustomerFailedLoginAttemptNotificationAsync(customer, customer.LanguageId ?? 0);
-            }
+            //if (loginResult == CustomerLoginResults.WrongPassword && _customerSettings.NotifyFailedLoginAttempt)
+            //{
+            //    var customer = _customerSettings.UsernamesEnabled
+            //            ? await _customerService.GetCustomerByUsernameAsync(customerUserName)
+            //            : await _customerService.GetCustomerByEmailAsync(customerEmail);
+            //
+            //    await _workflowMessageService.SendCustomerFailedLoginAttemptNotificationAsync(customer, customer.LanguageId ?? 0);
+            //}
 
             await _customerActivityService.InsertActivityAsync("PublicStore.FailedLogin",
                 string.Format(await _localizationService.GetResourceAsync("ActivityLog.PublicStore.Login.Fail"), _customerSettings.UsernamesEnabled ? customerUserName : customerEmail));
@@ -745,9 +775,9 @@ public partial class CustomerController : BasePublicController
                 await _genericAttributeService.SaveAttributeAsync(customer,
                     NopCustomerDefaults.PasswordRecoveryTokenDateGeneratedAttribute, generatedDateTime);
 
-                //send email
-                await _workflowMessageService.SendCustomerPasswordRecoveryMessageAsync(customer,
-                    (await _workContext.GetWorkingLanguageAsync()).Id);
+                ////send email
+                //await _workflowMessageService.SendCustomerPasswordRecoveryMessageAsync(customer,
+                //    (await _workContext.GetWorkingLanguageAsync()).Id);
 
                 _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Account.PasswordRecovery.EmailHasBeenSent"));
             }
@@ -948,9 +978,9 @@ public partial class CustomerController : BasePublicController
 
                     var (vatNumberStatus, _, vatAddress) = await _taxService.GetVatNumberStatusAsync(model.VatNumber);
                     customer.VatNumberStatusId = (int)vatNumberStatus;
-                    //send VAT number admin notification
-                    if (!string.IsNullOrEmpty(model.VatNumber) && _taxSettings.EuVatEmailAdminWhenNewVatSubmitted)
-                        await _workflowMessageService.SendNewVatSubmittedStoreOwnerNotificationAsync(customer, model.VatNumber, vatAddress, _localizationSettings.DefaultAdminLanguageId);
+                    ////send VAT number admin notification
+                    //if (!string.IsNullOrEmpty(model.VatNumber) && _taxSettings.EuVatEmailAdminWhenNewVatSubmitted)
+                    //    await _workflowMessageService.SendNewVatSubmittedStoreOwnerNotificationAsync(customer, model.VatNumber, vatAddress, _localizationSettings.DefaultAdminLanguageId);
                 }
 
                 //form fields
@@ -986,73 +1016,6 @@ public partial class CustomerController : BasePublicController
                 //save customer attributes
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
-
-                //newsletter subscriptions
-                if (_customerSettings.NewsletterEnabled)
-                {
-                    var anyNewSubscriptions = false;
-                    var isNewsletterActive = registrationType != UserRegistrationType.EmailValidation;
-                    var activeSubscriptions = model.NewsLetterSubscriptions.Where(subscriptionModel => subscriptionModel.IsActive);
-                    var currentSubscriptions = await _newsLetterSubscriptionService
-                        .GetNewsLetterSubscriptionsByEmailAsync(customerEmail, storeId: store.Id);
-                    if (currentSubscriptions.Any())
-                    {
-                        var subscriptionGuid = currentSubscriptions.FirstOrDefault().NewsLetterSubscriptionGuid;
-                        foreach (var activeSubscription in activeSubscriptions)
-                        {
-                            var existingSubscription = currentSubscriptions
-                                ?.FirstOrDefault(subscription => subscription.TypeId == activeSubscription.TypeId);
-                            if (existingSubscription is not null)
-                            {
-                                if (!existingSubscription.Active && isNewsletterActive)
-                                {
-                                    existingSubscription.Active = true;
-                                    existingSubscription.LanguageId = customer.LanguageId ?? language.Id;
-                                    await _newsLetterSubscriptionService.UpdateNewsLetterSubscriptionAsync(existingSubscription);
-                                }
-                            }
-                            else
-                            {
-                                await _newsLetterSubscriptionService.InsertNewsLetterSubscriptionAsync(new()
-                                {
-                                    NewsLetterSubscriptionGuid = subscriptionGuid,
-                                    Email = customer.Email,
-                                    Active = isNewsletterActive,
-                                    TypeId = activeSubscription.TypeId,
-                                    StoreId = store.Id,
-                                    LanguageId = customer.LanguageId ?? language.Id,
-                                    CreatedOnUtc = DateTime.UtcNow
-                                });
-                                anyNewSubscriptions = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var subscriptionGuid = Guid.NewGuid();
-                        foreach (var activeSubscription in activeSubscriptions)
-                        {
-                            await _newsLetterSubscriptionService.InsertNewsLetterSubscriptionAsync(new()
-                            {
-                                NewsLetterSubscriptionGuid = subscriptionGuid,
-                                Email = customer.Email,
-                                Active = isNewsletterActive,
-                                TypeId = activeSubscription.TypeId,
-                                StoreId = store.Id,
-                                LanguageId = customer.LanguageId ?? language.Id,
-                                CreatedOnUtc = DateTime.UtcNow
-                            });
-                            anyNewSubscriptions = true;
-                        }
-                    }
-
-                    //GDPR
-                    if (anyNewSubscriptions && _gdprSettings.GdprEnabled && _gdprSettings.LogNewsletterConsent)
-                    {
-                        var consentMessage = await _localizationService.GetResourceAsync("Gdpr.Consent.Newsletter");
-                        await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ConsentAgree, consentMessage);
-                    }
-                }
 
                 if (_customerSettings.AcceptPrivacyPolicyEnabled)
                 {
@@ -1125,12 +1088,12 @@ public partial class CustomerController : BasePublicController
                     await _customerService.UpdateCustomerAsync(customer);
                 }
 
-                //notifications
-                if (_customerSettings.NotifyNewCustomerRegistration)
-                {
-                    await _workflowMessageService.SendCustomerRegisteredStoreOwnerNotificationMessageAsync(customer,
-                        _localizationSettings.DefaultAdminLanguageId);
-                }
+                ////notifications
+                //if (_customerSettings.NotifyNewCustomerRegistration)
+                //{
+                //    await _workflowMessageService.SendCustomerRegisteredStoreOwnerNotificationMessageAsync(customer,
+                //        _localizationSettings.DefaultAdminLanguageId);
+                //}
 
                 //raise event       
                 await _eventPublisher.PublishAsync(new CustomerRegisteredEvent(customer));
@@ -1223,24 +1186,14 @@ public partial class CustomerController : BasePublicController
         await _customerService.UpdateCustomerAsync(customer);
         await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AccountActivationTokenAttribute, "");
 
-        //send welcome message
-        await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
+        ////send welcome message
+        //await _workflowMessageService.SendCustomerWelcomeMessageAsync(customer, (await _workContext.GetWorkingLanguageAsync()).Id);
 
         //raise event       
         await _eventPublisher.PublishAsync(new CustomerActivatedEvent(customer));
 
         //authenticate customer after activation
         await _customerRegistrationService.SignInCustomerAsync(customer, null, true);
-
-        //activating newsletter subscriptions
-        var store = await _storeContext.GetCurrentStoreAsync();
-        var subscriptions = await _newsLetterSubscriptionService
-            .GetNewsLetterSubscriptionsByEmailAsync(customer.Email, storeId: store.Id, isActive: false);
-        foreach (var subscription in subscriptions)
-        {
-            subscription.Active = true;
-            await _newsLetterSubscriptionService.UpdateNewsLetterSubscriptionAsync(subscription);
-        }
 
         model.Result = await _localizationService.GetResourceAsync("Account.AccountActivation.Activated");
         return View(model);
@@ -1250,7 +1203,7 @@ public partial class CustomerController : BasePublicController
 
     #region My account / Info
 
-    public virtual async Task<IActionResult> Profile()
+    public virtual async Task<IActionResult> Profile(int documentPage = 1)
     {
         var customer = await _workContext.GetCurrentCustomerAsync();
         if (!await _customerService.IsRegisteredAsync(customer))
@@ -1259,7 +1212,7 @@ public partial class CustomerController : BasePublicController
         var model = new CustomerInfoModel();
         model = await _customerModelFactory.PrepareCustomerInfoModelAsync(model, customer, false);
         await PrepareRecentActivitiesAsync(model, customer.Id);
-        await PreparePostedDocumentsAsync(model, customer.Id);
+        await PreparePostedDocumentsAsync(model, customer.Id, documentPage);
 
         return View(model);
     }
@@ -1269,6 +1222,10 @@ public partial class CustomerController : BasePublicController
         var customer = await _workContext.GetCurrentCustomerAsync();
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
+
+        var requestPath = HttpContext?.Request?.Path.Value ?? string.Empty;
+        if (requestPath.EndsWith("/customer/info", StringComparison.OrdinalIgnoreCase))
+            return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
 
         var model = new CustomerInfoModel();
         model = await _customerModelFactory.PrepareCustomerInfoModelAsync(model, customer, false);
@@ -1357,101 +1314,41 @@ public partial class CustomerController : BasePublicController
                         var (vatNumberStatus, _, vatAddress) = await _taxService.GetVatNumberStatusAsync(model.VatNumber);
                         customer.VatNumberStatusId = (int)vatNumberStatus;
 
-                        //send VAT number admin notification
-                        if (!string.IsNullOrEmpty(model.VatNumber) && _taxSettings.EuVatEmailAdminWhenNewVatSubmitted)
-                        {
-                            await _workflowMessageService.SendNewVatSubmittedStoreOwnerNotificationAsync(customer,
-                                model.VatNumber, vatAddress, _localizationSettings.DefaultAdminLanguageId);
-                        }
+                        ////send VAT number admin notification
+                        //if (!string.IsNullOrEmpty(model.VatNumber) && _taxSettings.EuVatEmailAdminWhenNewVatSubmitted)
+                        //{
+                        //    await _workflowMessageService.SendNewVatSubmittedStoreOwnerNotificationAsync(customer,
+                        //        model.VatNumber, vatAddress, _localizationSettings.DefaultAdminLanguageId);
+                        //}
                     }
                 }
 
                 //form fields
                 if (_customerSettings.GenderEnabled)
                     customer.Gender = model.Gender;
-                if (_customerSettings.FirstNameEnabled)
-                    customer.FirstName = model.FirstName;
-                if (_customerSettings.LastNameEnabled)
-                    customer.LastName = model.LastName;
+                customer.FirstName = model.FirstName;
+                customer.LastName = model.LastName;
                 if (_customerSettings.DateOfBirthEnabled)
                     customer.DateOfBirth = model.ParseDateOfBirth();
                 if (_customerSettings.CompanyEnabled)
                     customer.Company = model.Company;
-                if (_customerSettings.StreetAddressEnabled)
-                    customer.StreetAddress = model.StreetAddress;
-                if (_customerSettings.StreetAddress2Enabled)
-                    customer.StreetAddress2 = model.StreetAddress2;
+                customer.StreetAddress = model.StreetAddress;
+                customer.StreetAddress2 = model.StreetAddress2;
                 if (_customerSettings.ZipPostalCodeEnabled)
                     customer.ZipPostalCode = model.ZipPostalCode;
-                if (_customerSettings.CityEnabled)
-                    customer.City = model.City;
-                if (_customerSettings.CountyEnabled)
-                    customer.County = model.County;
+                customer.City = model.City;
+                customer.County = model.County;
                 if (_customerSettings.CountryEnabled)
                     customer.CountryId = model.CountryId;
                 if (_customerSettings.CountryEnabled && _customerSettings.StateProvinceEnabled)
                     customer.StateProvinceId = model.StateProvinceId;
-                if (_customerSettings.PhoneEnabled)
-                    customer.Phone = model.Phone;
+                customer.Phone = model.Phone;
                 if (_customerSettings.FaxEnabled)
                     customer.Fax = model.Fax;
 
                 customer.CustomCustomerAttributesXML = customerAttributesXml;
                 await _customerService.UpdateCustomerAsync(customer);
                 await SaveCustomerMilitaryProfileAsync(customer, model);
-
-                //newsletter subscriptions
-                if (_customerSettings.NewsletterEnabled)
-                {
-                    var currentSubscriptions = await _newsLetterSubscriptionService
-                        .GetNewsLetterSubscriptionsByEmailAsync(customer.Email, storeId: store.Id);
-                    if (currentSubscriptions.Any())
-                    {
-                        var subscriptionGuid = currentSubscriptions.FirstOrDefault().NewsLetterSubscriptionGuid;
-                        foreach (var newsLetterSubscriptionModel in model.NewsLetterSubscriptions)
-                        {
-                            var existingSubscription = currentSubscriptions
-                                .FirstOrDefault(subscription => subscription.TypeId == newsLetterSubscriptionModel.TypeId);
-                            if (existingSubscription is not null && existingSubscription.Active != newsLetterSubscriptionModel.IsActive)
-                            {
-                                existingSubscription.Active = newsLetterSubscriptionModel.IsActive;
-                                await _newsLetterSubscriptionService.UpdateNewsLetterSubscriptionAsync(existingSubscription);
-                            }
-
-                            if (existingSubscription is null && newsLetterSubscriptionModel.IsActive)
-                            {
-                                await _newsLetterSubscriptionService.InsertNewsLetterSubscriptionAsync(new()
-                                {
-                                    NewsLetterSubscriptionGuid = subscriptionGuid,
-                                    Email = customer.Email,
-                                    Active = true,
-                                    TypeId = newsLetterSubscriptionModel.TypeId,
-                                    StoreId = store.Id,
-                                    LanguageId = customer.LanguageId ?? language.Id,
-                                    CreatedOnUtc = DateTime.UtcNow
-                                });
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var subscriptionGuid = Guid.NewGuid();
-                        var activeSubscriptions = model.NewsLetterSubscriptions.Where(subscriptionModel => subscriptionModel.IsActive);
-                        foreach (var activeSubscription in activeSubscriptions)
-                        {
-                            await _newsLetterSubscriptionService.InsertNewsLetterSubscriptionAsync(new()
-                            {
-                                NewsLetterSubscriptionGuid = subscriptionGuid,
-                                Email = customer.Email,
-                                Active = true,
-                                StoreId = store.Id,
-                                TypeId = activeSubscription.TypeId,
-                                LanguageId = customer.LanguageId ?? language.Id,
-                                CreatedOnUtc = DateTime.UtcNow
-                            });
-                        }
-                    }
-                }
 
                 if (_forumSettings.ForumsEnabled && _forumSettings.SignaturesEnabled)
                     await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.SignatureAttribute, model.Signature);
@@ -1560,9 +1457,7 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
             return Challenge();
 
-        var model = await _customerModelFactory.PrepareCustomerAddressListModelAsync();
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     [HttpPost]
@@ -1572,20 +1467,9 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
 
-        //find address (ensure that it belongs to the current customer)
-        var address = await _customerService.GetCustomerAddressAsync(customer.Id, addressId);
-        if (address != null)
-        {
-            await _customerService.RemoveCustomerAddressAsync(customer, address);
-            await _customerService.UpdateCustomerAsync(customer);
-            //now delete the address record
-            await _addressService.DeleteAddressAsync(address);
-        }
-
-        //redirect to the address list page
         return Json(new
         {
-            redirect = Url.RouteUrl(NopRouteNames.General.CUSTOMER_ADDRESSES),
+            redirect = Url.RouteUrl(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT),
         });
     }
 
@@ -1594,14 +1478,7 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
             return Challenge();
 
-        var model = new CustomerAddressEditModel();
-        await _addressModelFactory.PrepareAddressModelAsync(model.Address,
-            address: null,
-            excludeProperties: false,
-            addressSettings: _addressSettings,
-            loadCountries: async () => await _countryService.GetAllCountriesAsync((await _workContext.GetWorkingLanguageAsync()).Id));
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     [HttpPost]
@@ -1611,42 +1488,7 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
 
-        //custom address attributes
-        var customAttributes = await _addressAttributeParser.ParseCustomAttributesAsync(form, NopCommonDefaults.AddressAttributeControlName);
-        var customAttributeWarnings = await _addressAttributeParser.GetAttributeWarningsAsync(customAttributes);
-        foreach (var error in customAttributeWarnings)
-            ModelState.AddModelError("", error);
-
-        if (ModelState.IsValid)
-        {
-            var address = model.Address.ToEntity();
-            address.CustomAttributes = customAttributes;
-            address.CreatedOnUtc = DateTime.UtcNow;
-            //some validation
-            if (address.CountryId == 0)
-                address.CountryId = null;
-            if (address.StateProvinceId == 0)
-                address.StateProvinceId = null;
-
-
-            await _addressService.InsertAddressAsync(address);
-
-            await _customerService.InsertCustomerAddressAsync(customer, address);
-
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Account.CustomerAddresses.Added"));
-
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_ADDRESSES);
-        }
-
-        //If we got this far, something failed, redisplay form
-        await _addressModelFactory.PrepareAddressModelAsync(model.Address,
-            address: null,
-            excludeProperties: true,
-            addressSettings: _addressSettings,
-            loadCountries: async () => await _countryService.GetAllCountriesAsync((await _workContext.GetWorkingLanguageAsync()).Id),
-            overrideAttributesXml: customAttributes);
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     public virtual async Task<IActionResult> AddressEdit(int addressId)
@@ -1655,20 +1497,7 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
 
-        //find address (ensure that it belongs to the current customer)
-        var address = await _customerService.GetCustomerAddressAsync(customer.Id, addressId);
-        if (address == null)
-            //address is not found
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_ADDRESSES);
-
-        var model = new CustomerAddressEditModel();
-        await _addressModelFactory.PrepareAddressModelAsync(model.Address,
-            address: address,
-            excludeProperties: false,
-            addressSettings: _addressSettings,
-            loadCountries: async () => await _countryService.GetAllCountriesAsync((await _workContext.GetWorkingLanguageAsync()).Id));
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     [HttpPost]
@@ -1678,38 +1507,7 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
 
-        //find address (ensure that it belongs to the current customer)
-        var address = await _customerService.GetCustomerAddressAsync(customer.Id, model.Address.Id);
-        if (address == null)
-            //address is not found
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_ADDRESSES);
-
-        //custom address attributes
-        var customAttributes = await _addressAttributeParser.ParseCustomAttributesAsync(form, NopCommonDefaults.AddressAttributeControlName);
-        var customAttributeWarnings = await _addressAttributeParser.GetAttributeWarningsAsync(customAttributes);
-        foreach (var error in customAttributeWarnings)
-            ModelState.AddModelError("", error);
-
-        if (ModelState.IsValid)
-        {
-            address = model.Address.ToEntity(address);
-            address.CustomAttributes = customAttributes;
-            await _addressService.UpdateAddressAsync(address);
-
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Account.CustomerAddresses.Updated"));
-
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_ADDRESSES);
-        }
-
-        //If we got this far, something failed, redisplay form
-        await _addressModelFactory.PrepareAddressModelAsync(model.Address,
-            address: address,
-            excludeProperties: true,
-            addressSettings: _addressSettings,
-            loadCountries: async () => await _countryService.GetAllCountriesAsync((await _workContext.GetWorkingLanguageAsync()).Id),
-            overrideAttributesXml: customAttributes);
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     #endregion
@@ -1721,30 +1519,14 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
             return Challenge();
 
-        if (_customerSettings.HideDownloadableProductsTab)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
-
-        var model = await _customerModelFactory.PrepareCustomerDownloadableProductsModelAsync();
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT);
     }
 
     //ignore SEO friendly URLs checks
     [CheckLanguageSeoCode(ignore: true)]
-    public virtual async Task<IActionResult> UserAgreement(Guid orderItemId)
+    public virtual IActionResult UserAgreement(Guid orderItemId)
     {
-        var orderItem = await _orderService.GetOrderItemByGuidAsync(orderItemId);
-        if (orderItem == null)
-            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
-
-        var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
-
-        if (product == null || !product.HasUserAgreement)
-            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
-
-        var model = await _customerModelFactory.PrepareUserAgreementModelAsync(orderItem, product);
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
     }
 
     #endregion
@@ -1814,30 +1596,23 @@ public partial class CustomerController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(await _workContext.GetCurrentCustomerAsync()))
             return Challenge();
 
-        if (!_customerSettings.AllowCustomersToUploadAvatars)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
-
-        var model = new CustomerAvatarModel();
-        model = await _customerModelFactory.PrepareCustomerAvatarModelAsync(model);
-
-        return View(model);
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
     }
 
     [HttpPost, ActionName("Avatar")]
     [FormValueRequired("upload-avatar")]
-    public virtual async Task<IActionResult> UploadAvatar(CustomerAvatarModel model, IFormFile uploadedFile)
+    public virtual async Task<IActionResult> UploadAvatar(CustomerAvatarModel model, IFormFile uploadedFile, string returnUrl = null)
     {
         var customer = await _workContext.GetCurrentCustomerAsync();
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
 
-        if (!_customerSettings.AllowCustomersToUploadAvatars)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
-
         var contentType = uploadedFile?.ContentType.ToLowerInvariant();
 
-        if (contentType != null && !contentType.Equals("image/jpeg") && !contentType.Equals("image/gif"))
-            ModelState.AddModelError("", await _localizationService.GetResourceAsync("Account.Avatar.UploadRules"));
+        if (uploadedFile == null || string.IsNullOrEmpty(uploadedFile.FileName))
+            ModelState.AddModelError("", "Vui lòng chọn ảnh đại diện.");
+        else if (contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/gif" && contentType != "image/webp")
+            ModelState.AddModelError("", "Ảnh đại diện chỉ hỗ trợ JPG, PNG, GIF hoặc WEBP.");
 
         if (ModelState.IsValid)
         {
@@ -1846,9 +1621,9 @@ public partial class CustomerController : BasePublicController
                 var customerAvatar = await _pictureService.GetPictureByIdAsync(await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute));
                 if (uploadedFile != null && !string.IsNullOrEmpty(uploadedFile.FileName))
                 {
-                    var avatarMaxSize = _customerSettings.AvatarMaximumSizeBytes;
+                    var avatarMaxSize = Math.Max(_customerSettings.AvatarMaximumSizeBytes, 5 * 1024 * 1024);
                     if (uploadedFile.Length > avatarMaxSize)
-                        throw new NopException(string.Format(await _localizationService.GetResourceAsync("Account.Avatar.MaximumUploadedFileSize"), avatarMaxSize));
+                        throw new NopException($"Dung lượng ảnh đại diện tối đa là {avatarMaxSize / 1024 / 1024} MB.");
 
                     var customerPictureBinary = await _downloadService.GetDownloadBitsAsync(uploadedFile);
                     if (customerAvatar != null)
@@ -1868,7 +1643,14 @@ public partial class CustomerController : BasePublicController
                     _mediaSettings.AvatarPictureSize,
                     false);
 
-                return View(model);
+                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    TempData["ProfileAvatarMessage"] = "Đã cập nhật ảnh đại diện.";
+                    return Redirect(returnUrl);
+                }
+
+                TempData["ProfileAvatarMessage"] = "Đã cập nhật ảnh đại diện.";
+                return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
             }
             catch (Exception exc)
             {
@@ -1876,28 +1658,38 @@ public partial class CustomerController : BasePublicController
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            TempData["ProfileAvatarError"] = ModelState.Values.SelectMany(value => value.Errors).Select(error => error.ErrorMessage).FirstOrDefault() ?? "Không thể cập nhật ảnh đại diện.";
+            return Redirect(returnUrl);
+        }
+
         //If we got this far, something failed, redisplay form
-        model = await _customerModelFactory.PrepareCustomerAvatarModelAsync(model);
-        return View(model);
+        TempData["ProfileAvatarError"] = ModelState.Values.SelectMany(value => value.Errors).Select(error => error.ErrorMessage).FirstOrDefault() ?? "Không thể cập nhật ảnh đại diện.";
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
     }
 
     [HttpPost, ActionName("Avatar")]
     [FormValueRequired("remove-avatar")]
-    public virtual async Task<IActionResult> RemoveAvatar(CustomerAvatarModel model)
+    public virtual async Task<IActionResult> RemoveAvatar(CustomerAvatarModel model, string returnUrl = null)
     {
         var customer = await _workContext.GetCurrentCustomerAsync();
         if (!await _customerService.IsRegisteredAsync(customer))
             return Challenge();
-
-        if (!_customerSettings.AllowCustomersToUploadAvatars)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
 
         var customerAvatar = await _pictureService.GetPictureByIdAsync(await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute));
         if (customerAvatar != null)
             await _pictureService.DeletePictureAsync(customerAvatar);
         await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.AvatarPictureIdAttribute, 0);
 
-        return RedirectToRoute(NopRouteNames.Standard.CUSTOMER_AVATAR);
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            TempData["ProfileAvatarMessage"] = "Đã xóa ảnh đại diện.";
+            return Redirect(returnUrl);
+        }
+
+        TempData["ProfileAvatarMessage"] = "Đã xóa ảnh đại diện.";
+        return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
     }
 
     #endregion
@@ -1953,7 +1745,7 @@ public partial class CustomerController : BasePublicController
         //log
         await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.DeleteCustomer, await _localizationService.GetResourceAsync("Gdpr.DeleteRequested"));
 
-        await _workflowMessageService.SendDeleteCustomerRequestStoreOwnerNotificationAsync(customer, _localizationSettings.DefaultAdminLanguageId);
+        //await _workflowMessageService.SendDeleteCustomerRequestStoreOwnerNotificationAsync(customer, _localizationSettings.DefaultAdminLanguageId);
 
         var model = await _customerModelFactory.PrepareGdprToolsModelAsync();
         model.Result = await _localizationService.GetResourceAsync("Gdpr.DeleteRequested.Success");

@@ -30,6 +30,8 @@ public class DocumentBuilder : NopEntityBuilder<Document>
             .WithColumn(nameof(Document.DisplayOrder)).AsInt32().NotNullable().WithDefaultValue(0)
             .WithColumn(nameof(Document.Deleted)).AsBoolean().NotNullable().WithDefaultValue(false)
             .WithColumn(nameof(Document.UploadedByCustomerId)).AsInt32().Nullable()
+            .WithColumn(nameof(Document.OwnerVendorId)).AsInt32().Nullable()
+            .WithColumn(nameof(Document.AccessScopeId)).AsInt32().NotNullable().WithDefaultValue((int)DocumentAccessScope.Public)
             .WithColumn(nameof(Document.CreatedOnUtc)).AsDateTime2().NotNullable()
             .WithColumn(nameof(Document.UpdatedOnUtc)).AsDateTime2().NotNullable();
     }

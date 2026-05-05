@@ -5,8 +5,8 @@ namespace Nop.Plugin.Misc.LogisticsReports.Domain;
 public class UnitReport : BaseEntity
 {
     public int ReportPeriodId { get; set; }
-    public int OrganizationUnitId { get; set; }
-    public int? ParentOrganizationUnitId { get; set; }
+    public int VendorId { get; set; }
+    public int? ParentVendorId { get; set; }
     public int StatusId { get; set; }
     public int CurrentVersion { get; set; }
     public DateTime? SubmittedOnUtc { get; set; }

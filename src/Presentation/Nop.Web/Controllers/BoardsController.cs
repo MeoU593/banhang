@@ -8,6 +8,7 @@ using Nop.Core.Rss;
 using Nop.Services.Customers;
 using Nop.Services.Forums;
 using Nop.Services.Localization;
+using Nop.Services.Messages;
 using Nop.Web.Factories;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
@@ -18,6 +19,15 @@ namespace Nop.Web.Controllers;
 [AutoValidateAntiforgeryToken]
 public partial class BoardsController : BasePublicController
 {
+    public sealed class InlinePostCreateRequest
+    {
+        public int ForumTopicId { get; set; }
+        public int ReplyToPostId { get; set; }
+        public string Text { get; set; }
+        public bool Subscribed { get; set; }
+        public bool FromTopicInline { get; set; }
+    }
+
     #region Fields
 
     protected readonly CaptchaSettings _captchaSettings;
@@ -27,6 +37,7 @@ public partial class BoardsController : BasePublicController
     protected readonly IForumModelFactory _forumModelFactory;
     protected readonly IForumService _forumService;
     protected readonly ILocalizationService _localizationService;
+    protected readonly INotificationService _notificationService;
     protected readonly IStoreContext _storeContext;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
@@ -42,6 +53,7 @@ public partial class BoardsController : BasePublicController
         IForumModelFactory forumModelFactory,
         IForumService forumService,
         ILocalizationService localizationService,
+        INotificationService notificationService,
         IStoreContext storeContext,
         IWebHelper webHelper,
         IWorkContext workContext)
@@ -53,6 +65,7 @@ public partial class BoardsController : BasePublicController
         _forumModelFactory = forumModelFactory;
         _forumService = forumService;
         _localizationService = localizationService;
+        _notificationService = notificationService;
         _storeContext = storeContext;
         _webHelper = webHelper;
         _workContext = workContext;
@@ -62,14 +75,64 @@ public partial class BoardsController : BasePublicController
 
     #region Methods
 
-    public virtual async Task<IActionResult> Index()
+    protected virtual async Task<Forum> GetPrimaryForumAsync()
+    {
+        var forumGroups = await _forumService.GetAllForumGroupsAsync();
+        if (!forumGroups.Any())
+            return null;
+
+        var preferredGroupIds = forumGroups
+            .Where(group => !string.IsNullOrWhiteSpace(group.Name)
+                && (string.Equals(group.Name.Trim(), "Diễn đàn", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(group.Name.Trim(), "Dien dan", StringComparison.OrdinalIgnoreCase)))
+            .Select(group => group.Id)
+            .ToHashSet();
+
+        var allForums = new List<Forum>();
+        foreach (var forumGroup in forumGroups)
+        {
+            var forums = await _forumService.GetAllForumsByGroupIdAsync(forumGroup.Id);
+            if (forums.Any())
+                allForums.AddRange(forums);
+        }
+
+        if (!allForums.Any())
+            return null;
+
+        var preferredForums = allForums
+            .Where(forum => preferredGroupIds.Contains(forum.ForumGroupId))
+            .ToList();
+
+        var selectionPool = preferredForums.Any() ? preferredForums : allForums;
+
+        return selectionPool
+            .OrderByDescending(forum => forum.NumTopics)
+            .ThenByDescending(forum => forum.NumPosts)
+            .ThenByDescending(forum => forum.LastPostTime ?? DateTime.MinValue)
+            .ThenBy(forum => forum.DisplayOrder)
+            .FirstOrDefault();
+    }
+
+    protected virtual IActionResult RedirectToBoards(int pageNumber = 1)
+    {
+        return pageNumber > 1
+            ? RedirectToRoute(NopRouteNames.Standard.BOARDS_PAGED, new { pageNumber })
+            : RedirectToRoute(NopRouteNames.General.BOARDS);
+    }
+
+    public virtual async Task<IActionResult> Index(int pageNumber = 1)
     {
         if (!_forumSettings.ForumsEnabled)
             return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
 
-        var model = await _forumModelFactory.PrepareBoardsIndexModelAsync();
+        var forum = await GetPrimaryForumAsync();
+        if (forum == null)
+            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
 
-        return View(model);
+        var model = await _forumModelFactory.PrepareForumPageModelAsync(forum, pageNumber);
+        model.IsRootBoards = true;
+
+        return View("Forum", model);
     }
 
     public virtual async Task<IActionResult> ActiveDiscussions(int forumId = 0, int pageNumber = 1)
@@ -122,32 +185,20 @@ public partial class BoardsController : BasePublicController
         return new RssActionResult(feed, _webHelper.GetThisPageUrl(false));
     }
 
-    public virtual async Task<IActionResult> ForumGroup(int id)
+    public virtual IActionResult ForumGroup(int id)
     {
         if (!_forumSettings.ForumsEnabled)
             return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
 
-        var forumGroup = await _forumService.GetForumGroupByIdAsync(id);
-        if (forumGroup == null)
-            return RedirectToRoute(NopRouteNames.General.BOARDS);
-
-        var model = await _forumModelFactory.PrepareForumGroupModelAsync(forumGroup);
-
-        return View(model);
+        return RedirectToBoards();
     }
 
-    public virtual async Task<IActionResult> Forum(int id, int pageNumber = 1)
+    public virtual IActionResult Forum(int id, int pageNumber = 1)
     {
         if (!_forumSettings.ForumsEnabled)
             return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
 
-        var forum = await _forumService.GetForumByIdAsync(id);
-        if (forum == null)
-            return RedirectToRoute(NopRouteNames.General.BOARDS);
-
-        var model = await _forumModelFactory.PrepareForumPageModelAsync(forum, pageNumber);
-
-        return View(model);
+        return RedirectToBoards(pageNumber);
     }
 
     public virtual async Task<IActionResult> ForumRss(int id)
@@ -687,24 +738,33 @@ public partial class BoardsController : BasePublicController
         if (!await _forumService.IsCustomerAllowedToCreatePostAsync(await _workContext.GetCurrentCustomerAsync(), forumTopic))
             return Challenge();
 
-        var model = await _forumModelFactory.PreparePostCreateModelAsync(forumTopic, quote, false);
+        var topicUrl = Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new
+        {
+            id = forumTopic.Id,
+            slug = await _forumService.GetTopicSeNameAsync(forumTopic)
+        });
 
-        return View(model);
+        if (quote.HasValue && quote.Value > 0)
+            return LocalRedirect($"{topicUrl}#post{quote.Value}");
+
+        return LocalRedirect(topicUrl);
     }
 
     [HttpPost]
     [ValidateCaptcha]
-    public virtual async Task<IActionResult> PostCreate(EditForumPostModel model, bool captchaValid)
+    public virtual async Task<IActionResult> PostCreate(InlinePostCreateRequest model, bool captchaValid)
     {
         if (!_forumSettings.ForumsEnabled)
             return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
+
+        var fromTopicInline = model.FromTopicInline;
 
         var forumTopic = await _forumService.GetTopicByIdAsync(model.ForumTopicId);
         if (forumTopic == null)
             return RedirectToRoute(NopRouteNames.General.BOARDS);
 
         //validate CAPTCHA
-        if (_captchaSettings.Enabled && _captchaSettings.ShowOnForum && !captchaValid)
+        if (_captchaSettings.Enabled && _captchaSettings.ShowOnForum && !captchaValid && !fromTopicInline)
             ModelState.AddModelError("", await _localizationService.GetResourceAsync("Common.WrongCaptchaMessage"));
 
         if (ModelState.IsValid)
@@ -715,7 +775,21 @@ public partial class BoardsController : BasePublicController
                 if (!await _forumService.IsCustomerAllowedToCreatePostAsync(customer, forumTopic))
                     return Challenge();
 
-                var text = model.Text;
+                var text = (model.Text ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(text))
+                    throw new Exception(await _localizationService.GetResourceAsync("Forum.TextCannotBeEmpty"));
+
+                var replyToPostId = 0;
+                if (model.ReplyToPostId > 0)
+                {
+                    var repliedPost = await _forumService.GetPostByIdAsync(model.ReplyToPostId);
+                    if (repliedPost != null && repliedPost.TopicId == forumTopic.Id)
+                        replyToPostId = model.ReplyToPostId;
+                }
+
+                if (replyToPostId > 0)
+                    text = $"[replyto:{replyToPostId}]\n{text}";
+
                 var maxPostLength = _forumSettings.PostMaxLength;
                 if (maxPostLength > 0 && text.Length > maxPostLength)
                     text = text[0..maxPostLength];
@@ -768,7 +842,11 @@ public partial class BoardsController : BasePublicController
                     url = Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG_PAGED, new { id = forumPost.TopicId, slug = await _forumService.GetTopicSeNameAsync(forumTopic), pageNumber = pageIndex });
                 else
                     url = Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = forumPost.TopicId, slug = await _forumService.GetTopicSeNameAsync(forumTopic) });
-                return LocalRedirect($"{url}#{forumPost.Id}");
+
+                if (fromTopicInline)
+                    _notificationService.SuccessNotification("Đăng bình luận thành công");
+
+                return LocalRedirect($"{url}#post{forumPost.Id}");
             }
             catch (Exception ex)
             {
@@ -776,10 +854,30 @@ public partial class BoardsController : BasePublicController
             }
         }
 
-        //redisplay form
-        model = await _forumModelFactory.PreparePostCreateModelAsync(forumTopic, 0, true);
+        //if posted from topic page, keep user on the same topic page (avoid switching to PostCreate screen)
+        var topicUrl = Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new
+        {
+            id = forumTopic.Id,
+            slug = await _forumService.GetTopicSeNameAsync(forumTopic)
+        });
 
-        return View(model);
+        if (fromTopicInline)
+        {
+            var modelStateErrors = ModelState.Values
+                .SelectMany(state => state.Errors)
+                .Select(error => error.ErrorMessage)
+                .Where(error => !string.IsNullOrWhiteSpace(error))
+                .Distinct()
+                .ToList();
+
+            if (!modelStateErrors.Any())
+                modelStateErrors.Add(await _localizationService.GetResourceAsync("Forum.TextCannotBeEmpty"));
+
+            foreach (var errorMessage in modelStateErrors)
+                _notificationService.ErrorNotification(errorMessage);
+        }
+
+        return LocalRedirect(topicUrl);
     }
 
     public virtual async Task<IActionResult> PostEdit(int id)

@@ -98,6 +98,16 @@ public static partial class NopRouteNames
         public const string VENDORS = "VendorList";
 
         /// <summary>
+        /// Gets the units route name
+        /// </summary>
+        public const string UNITS = "UnitList";
+
+        /// <summary>
+        /// Gets the unit details route name
+        /// </summary>
+        public const string UNIT_DETAILS = "UnitDetails";
+
+        /// <summary>
         /// Gets the sitemap route name
         /// </summary>
         public const string SITEMAP = "Sitemap";
@@ -563,6 +573,11 @@ public static partial class NopRouteNames
         /// Gets the forum group slug route name
         /// </summary>
         public const string FORUM_GROUP_SLUG = "ForumGroupSlug";
+
+        /// <summary>
+        /// Gets the boards paged route name
+        /// </summary>
+        public const string BOARDS_PAGED = "BoardsPaged";
 
         /// <summary>
         /// Gets the forum search route name

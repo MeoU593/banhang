@@ -21,14 +21,17 @@
       jqXHR: false,
       displayErrors: false,
       delayTimer: false,
-      selectedShippingOption: false
+      selectedShippingOption: false,
+      initialized: false
     },
 
     init: function () {
       var self = this;
       var $content = $(this.settings.contentEl);
 
-      $('.apply-shipping-button', $content).on('click', function () {
+      this.destroy();
+
+      $('.apply-shipping-button', $content).off('click.estimateShipping').on('click.estimateShipping', function () {
         var option = self.getActiveShippingOption();
         if (option && option.provider && option.price) {
           self.selectShippingOption(option);
@@ -52,22 +55,52 @@
         }
       });
 
+      this.params.initialized = true;
+
       var addressChangedHandler = function () {
         self.clearShippingOptions();
         var address = self.getShippingAddress();
         self.getShippingOptions(address);
       };
-      $(this.settings.countryEl, $content).on('change', function () {
+      $(this.settings.countryEl, $content).off('change.estimateShipping').on('change.estimateShipping', function () {
         $(self.settings.stateProvinceEl, $content).val(0);
         addressChangedHandler();
       });
-      $(this.settings.stateProvinceEl, $content).on('change', addressChangedHandler);
+      $(this.settings.stateProvinceEl, $content).off('change.estimateShipping').on('change.estimateShipping', addressChangedHandler);
 
       if (this.settings.useCity) {
-        $(this.settings.cityEl, $content).on('input propertychange paste', addressChangedHandler);
+        $(this.settings.cityEl, $content).off('input.estimateShipping propertychange.estimateShipping paste.estimateShipping').on('input.estimateShipping propertychange.estimateShipping paste.estimateShipping', addressChangedHandler);
       } else {
-        $(this.settings.zipPostalCodeEl, $content).on('input propertychange paste', addressChangedHandler);
+        $(this.settings.zipPostalCodeEl, $content).off('input.estimateShipping propertychange.estimateShipping paste.estimateShipping').on('input.estimateShipping propertychange.estimateShipping paste.estimateShipping', addressChangedHandler);
       }
+    },
+
+    destroy: function () {
+      var $content = $(this.settings.contentEl);
+
+      clearTimeout(this.params.delayTimer);
+      this.params.delayTimer = false;
+
+      if (this.params.jqXHR && this.params.jqXHR.readyState !== 4)
+        this.params.jqXHR.abort();
+
+      this.params.jqXHR = false;
+
+      $('.apply-shipping-button', $content).off('click.estimateShipping');
+      $(this.settings.countryEl, $content).off('change.estimateShipping');
+      $(this.settings.stateProvinceEl, $content).off('change.estimateShipping');
+      $(this.settings.cityEl, $content).off('input.estimateShipping propertychange.estimateShipping paste.estimateShipping');
+      $(this.settings.zipPostalCodeEl, $content).off('input.estimateShipping propertychange.estimateShipping paste.estimateShipping');
+
+      if ($.fn.magnificPopup) {
+        try {
+          $(this.settings.opener).magnificPopup('destroy');
+        } catch (e) {
+          // magnificPopup throws when destroy is called before initialization.
+        }
+      }
+
+      this.params.initialized = false;
     },
 
     closePopup: function () {
@@ -218,7 +251,7 @@
 
       var self = this;
 
-      shippingOption.on('click', function () {
+      shippingOption.on('click.estimateShipping', function () {
         $('input[name="shipping-option' + '-' + self.settings.contentEl + '"]', $(this)).prop('checked', true);
         $('.shipping-option.active', $(self.settings.contentEl)).removeClass('active');
         $(this).addClass('active');

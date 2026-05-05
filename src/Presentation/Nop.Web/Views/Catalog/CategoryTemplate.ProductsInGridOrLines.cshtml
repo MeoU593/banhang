@@ -57,7 +57,7 @@
         gap: 8px;
         margin: 0 0 10px;
         color: #64748b;
-        font-size: 11px;
+        font-size: var(--public-font-meta);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -78,7 +78,7 @@
         gap: 6px;
         margin-bottom: 8px;
         color: #2e0001;
-        font-size: 11px;
+        font-size: var(--public-font-label);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.16em;
@@ -87,7 +87,7 @@
     .category-page-command .category-title {
         margin: 0;
         color: #2e0001;
-        font-size: 34px;
+        font-size: var(--public-font-hero-title);
         font-weight: 900;
         line-height: 1.1;
         letter-spacing: -0.03em;
@@ -96,7 +96,7 @@
     .category-page-command .category-description {
         margin-top: 10px;
         color: #4b5563;
-        font-size: 14px;
+        font-size: var(--public-font-body);
         line-height: 1.75;
         max-width: 700px;
     }
@@ -117,7 +117,7 @@
         background: #ffffff;
         padding: 6px 12px;
         color: #334155;
-        font-size: 12px;
+        font-size: var(--public-font-meta);
         font-weight: 700;
     }
 
@@ -133,7 +133,7 @@
         background: #2e0001;
         color: #ffffff;
         text-decoration: none;
-        font-size: 13px;
+        font-size: var(--public-font-control);
         font-weight: 800;
         box-shadow: 0 24px 34px -28px rgba(46, 0, 1, 0.9);
         transition: transform 0.2s ease, background-color 0.2s ease;
@@ -160,7 +160,7 @@
         }
 
         .category-page-command .category-title {
-            font-size: 28px;
+            font-size: 1.75rem;
         }
 
         .category-page-command .category-header-action {
@@ -226,8 +226,10 @@
             var catalogProductsViewData = new ViewDataDictionary(ViewData);
             catalogProductsViewData["fetchUrl"] = Html.Raw(Url.RouteUrl(NopRouteNames.Ajax.GET_CATEGORY_PRODUCTS, new { categoryId = Model.Id }));
             catalogProductsViewData["categoryName"] = Model.Name;
-            catalogProductsViewData["LockCategorySelector"] = true;
+            catalogProductsViewData["LockCategorySelector"] = false;
+            catalogProductsViewData["CurrentCategoryId"] = Model.Id;
             catalogProductsViewData["CurrentCategoryName"] = Model.Name;
+            catalogProductsViewData["ResetCategoryUrl"] = Url.Action("CategoryAll", "Catalog");
         }
 
         @await Html.PartialAsync("_CatalogSelectors", Model.CatalogProductsModel, catalogProductsViewData)

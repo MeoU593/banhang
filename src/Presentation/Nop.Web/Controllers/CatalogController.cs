@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using LinqToDB.Data;
 using Nop.Core;
+using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.FilterLevels;
@@ -7,12 +9,16 @@ using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Http;
 using Nop.Core.Rss;
+using Nop.Data;
+using Nop.Services.Blogs;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Customers;
 using Nop.Services.FilterLevels;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Security;
+using Nop.Services.Seo;
 using Nop.Services.Stores;
 using Nop.Services.Vendors;
 using Nop.Web.Factories;
@@ -31,9 +37,12 @@ public partial class CatalogController : BasePublicController
 
     protected readonly CatalogSettings _catalogSettings;
     protected readonly IAclService _aclService;
+    protected readonly IBlogService _blogService;
     protected readonly ICatalogModelFactory _catalogModelFactory;
     protected readonly ICategoryService _categoryService;
     protected readonly ICustomerActivityService _customerActivityService;
+    protected readonly ICustomerService _customerService;
+    protected readonly INopDataProvider _dataProvider;
     protected readonly IFilterLevelValueModelFactory _filterLevelValueModelFactory;
     protected readonly IFilterLevelValueService _filterLevelValueService;
     protected readonly IGenericAttributeService _genericAttributeService;
@@ -41,11 +50,13 @@ public partial class CatalogController : BasePublicController
     protected readonly IManufacturerService _manufacturerService;
     protected readonly INopUrlHelper _nopUrlHelper;
     protected readonly IPermissionService _permissionService;
+    protected readonly IProductFavoriteService _productFavoriteService;
     protected readonly IProductModelFactory _productModelFactory;
     protected readonly IProductService _productService;
     protected readonly IProductTagService _productTagService;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreMappingService _storeMappingService;
+    protected readonly IUrlRecordService _urlRecordService;
     protected readonly IVendorService _vendorService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
@@ -59,9 +70,12 @@ public partial class CatalogController : BasePublicController
 
     public CatalogController(CatalogSettings catalogSettings,
         IAclService aclService,
+        IBlogService blogService,
         ICatalogModelFactory catalogModelFactory,
         ICategoryService categoryService,
         ICustomerActivityService customerActivityService,
+        ICustomerService customerService,
+        INopDataProvider dataProvider,
         IFilterLevelValueModelFactory filterLevelValueModelFactory,
         IFilterLevelValueService filterLevelValueService,
         IGenericAttributeService genericAttributeService,
@@ -69,11 +83,13 @@ public partial class CatalogController : BasePublicController
         IManufacturerService manufacturerService,
         INopUrlHelper nopUrlHelper,
         IPermissionService permissionService,
+        IProductFavoriteService productFavoriteService,
         IProductModelFactory productModelFactory,
         IProductService productService,
         IProductTagService productTagService,
         IStoreContext storeContext,
         IStoreMappingService storeMappingService,
+        IUrlRecordService urlRecordService,
         IVendorService vendorService,
         IWebHelper webHelper,
         IWorkContext workContext,
@@ -83,9 +99,12 @@ public partial class CatalogController : BasePublicController
     {
         _catalogSettings = catalogSettings;
         _aclService = aclService;
+        _blogService = blogService;
         _catalogModelFactory = catalogModelFactory;
         _categoryService = categoryService;
         _customerActivityService = customerActivityService;
+        _customerService = customerService;
+        _dataProvider = dataProvider;
         _filterLevelValueModelFactory = filterLevelValueModelFactory;
         _filterLevelValueService = filterLevelValueService;
         _genericAttributeService = genericAttributeService;
@@ -93,11 +112,13 @@ public partial class CatalogController : BasePublicController
         _manufacturerService = manufacturerService;
         _nopUrlHelper = nopUrlHelper;
         _permissionService = permissionService;
+        _productFavoriteService = productFavoriteService;
         _productModelFactory = productModelFactory;
         _productService = productService;
         _productTagService = productTagService;
         _storeContext = storeContext;
         _storeMappingService = storeMappingService;
+        _urlRecordService = urlRecordService;
         _vendorService = vendorService;
         _webHelper = webHelper;
         _workContext = workContext;
@@ -195,12 +216,21 @@ public partial class CatalogController : BasePublicController
             ? (ProductSortingEnum)command.OrderBy.Value
             : ProductSortingEnum.Position;
 
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        var canFilterByFavorites = customer != null && !await _customerService.IsGuestAsync(customer);
+        var favoritesOnly = canFilterByFavorites && command.FavoritesOnly;
+        var favoriteProductIds = favoritesOnly
+            ? await _productFavoriteService.GetFavoriteProductIdsAsync(customer.Id)
+            : null;
+
         var store = await _storeContext.GetCurrentStoreAsync();
         var products = await _productService.SearchProductsAsync(
             pageNumber - 1,
             pageSize,
             storeId: store.Id,
             visibleIndividuallyOnly: true,
+            productIds: favoriteProductIds,
+            manufacturerIds: command.Ms,
             orderBy: orderBy);
 
         var model = new CatalogProductsModel
@@ -208,7 +238,11 @@ public partial class CatalogController : BasePublicController
             UseAjaxLoading = false,
             OrderBy = (int)orderBy,
             ViewMode = string.Equals(command.ViewMode, "list", StringComparison.OrdinalIgnoreCase) ? "list" : "grid",
-            NoResultMessage = await _localizationService.GetResourceAsync("Categories.NoProducts")
+            NoResultMessage = favoritesOnly
+                ? "Tai khoan nay chua co san pham yeu thich."
+                : await _localizationService.GetResourceAsync("Categories.NoProducts"),
+            CanFilterByFavorites = canFilterByFavorites,
+            FavoritesOnly = favoritesOnly
         };
 
         model.LoadPagedList(products);
@@ -244,6 +278,39 @@ public partial class CatalogController : BasePublicController
         var model = await _catalogModelFactory.PrepareVendorModelAsync(vendor, command);
 
         return View(model);
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> UpdateUnitContactCustomer(int vendorId, int contactCustomerId)
+    {
+        var vendor = await _vendorService.GetVendorByIdAsync(vendorId);
+        if (!await CheckVendorAvailabilityAsync(vendor))
+            return Json(new { success = false, message = "Không tìm thấy đơn vị." });
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        if (!vendor.PmCustomerId.HasValue || vendor.PmCustomerId.Value != currentCustomer.Id)
+            return Json(new { success = false, message = "Bạn không có quyền cập nhật phụ trách liên hệ của đơn vị này." });
+
+        if (contactCustomerId <= 0)
+        {
+            vendor.ContactCustomerId = null;
+            await _vendorService.UpdateVendorAsync(vendor);
+            return Json(new { success = true, message = "Đã bỏ phụ trách liên hệ." });
+        }
+
+        var contactCustomer = await _customerService.GetCustomerByIdAsync(contactCustomerId);
+        if (contactCustomer == null || !contactCustomer.Active || contactCustomer.Deleted || await _customerService.IsGuestAsync(contactCustomer))
+            return Json(new { success = false, message = "Tài khoản phụ trách không hợp lệ." });
+
+        vendor.ContactCustomerId = contactCustomer.Id;
+        await _vendorService.UpdateVendorAsync(vendor);
+
+        return Json(new
+        {
+            success = true,
+            message = "Đã cập nhật phụ trách liên hệ.",
+            contactCustomerName = await _customerService.FormatUsernameAsync(contactCustomer)
+        });
     }
 
     [HttpPost]
@@ -388,17 +455,126 @@ public partial class CatalogController : BasePublicController
     public virtual async Task<IActionResult> Search(SearchModel model, CatalogProductsCommand command)
     {
         var store = await _storeContext.GetCurrentStoreAsync();
+        var language = await _workContext.GetWorkingLanguageAsync();
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var isGuest = await _customerService.IsGuestAsync(currentCustomer);
 
         //'Continue shopping' URL
-        await _genericAttributeService.SaveAttributeAsync(await _workContext.GetCurrentCustomerAsync(),
+        await _genericAttributeService.SaveAttributeAsync(currentCustomer,
             NopCustomerDefaults.LastContinueShoppingPageAttribute,
             _webHelper.GetThisPageUrl(true),
             store.Id);
 
-        if (model == null)
-            model = new SearchModel();
+        model ??= new SearchModel();
 
-        model = await _catalogModelFactory.PrepareSearchModelAsync(model, command);
+        model.q = model.q?.Trim();
+        model.Type = model.Type?.Trim().ToLowerInvariant();
+
+        if (model.Type is not (null or "products" or "units" or "news" or "documents"))
+            model.Type = null;
+
+        model.ProductPage = Math.Max(1, model.ProductPage);
+        model.UnitPage = Math.Max(1, model.UnitPage);
+        model.BlogPage = Math.Max(1, model.BlogPage);
+        model.DocumentPage = Math.Max(1, model.DocumentPage);
+
+        model.ProductPageSize = 4;
+        model.UnitPageSize = 4;
+        model.BlogPageSize = 5;
+        model.DocumentPageSize = 5;
+
+        if (model.HasQuery)
+        {
+            if (model.ShowProductsSection)
+            {
+                var products = await _productService.SearchProductsAsync(
+                    pageIndex: model.ProductPage - 1,
+                    pageSize: model.ProductPageSize,
+                    storeId: store.Id,
+                    keywords: model.q,
+                    languageId: language.Id,
+                    visibleIndividuallyOnly: true);
+
+                model.ProductTotalCount = products.TotalCount;
+                model.ProductResults = (await _productModelFactory.PrepareProductOverviewModelsAsync(
+                    products,
+                    preparePriceModel: true,
+                    preparePictureModel: true,
+                    productThumbPictureSize: _mediaSettings.ProductThumbPictureSize)).ToList();
+            }
+
+            if (model.ShowUnitsSection)
+            {
+                var units = await _vendorService.GetAllVendorsAsync(
+                    name: model.q,
+                    pageIndex: model.UnitPage - 1,
+                    pageSize: model.UnitPageSize,
+                    showHidden: false);
+
+                model.UnitTotalCount = units.TotalCount;
+                model.UnitResults = new List<SearchModel.UnitSearchResultModel>();
+
+                foreach (var unit in units)
+                {
+                    var unitSeName = await _urlRecordService.GetSeNameAsync(unit);
+                    model.UnitResults.Add(new SearchModel.UnitSearchResultModel
+                    {
+                        Id = unit.Id,
+                        Name = unit.Name,
+                        SeName = unitSeName,
+                        Url = await _nopUrlHelper.RouteGenericUrlAsync(unit)
+                    });
+                }
+            }
+
+            if (model.ShowBlogsSection)
+            {
+                var blogPosts = await _blogService.GetAllBlogPostsAsync(
+                    storeId: store.Id,
+                    languageId: language.Id,
+                    pageIndex: model.BlogPage - 1,
+                    pageSize: model.BlogPageSize,
+                    keywords: model.q);
+
+                model.BlogTotalCount = blogPosts.TotalCount;
+                model.BlogResults = new List<SearchModel.BlogPostSearchResultModel>();
+
+                foreach (var blogPost in blogPosts)
+                {
+                    var seName = await _urlRecordService.GetSeNameAsync(blogPost, blogPost.LanguageId, ensureTwoPublishedLanguages: false);
+                    var routeName = blogPost.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
+                    var blogUrl = Url.RouteUrl(routeName, new { SeName = seName })
+                                  ?? await _nopUrlHelper.RouteGenericUrlAsync(blogPost, languageId: blogPost.LanguageId, ensureTwoPublishedLanguages: false);
+
+                    model.BlogResults.Add(new SearchModel.BlogPostSearchResultModel
+                    {
+                        Id = blogPost.Id,
+                        Title = blogPost.Title,
+                        SeName = seName,
+                        Url = blogUrl,
+                        CreatedOnUtc = blogPost.StartDateUtc ?? blogPost.CreatedOnUtc,
+                        PostTypeId = blogPost.PostTypeId
+                    });
+                }
+            }
+
+            if (model.ShowDocumentsSection)
+            {
+                var (items, totalCount) = await SearchDocumentsAsync(model.q, model.DocumentPage - 1, model.DocumentPageSize, isGuest);
+                model.DocumentResults = items;
+                model.DocumentTotalCount = totalCount;
+            }
+        }
+
+        var blogTags = await _blogService.GetAllBlogPostTagsAsync(store.Id, language.Id);
+        model.TopBlogTags = blogTags
+            .OrderByDescending(tag => tag.BlogPostCount)
+            .ThenBy(tag => tag.Name)
+            .Take(10)
+            .Select(tag => tag.Name)
+            .ToList();
+
+        model.TopDocumentKeywords = await GetTopDocumentKeywordsAsync(10, isGuest);
 
         return View(model);
     }
@@ -565,6 +741,143 @@ public partial class CatalogController : BasePublicController
     #endregion
 
     #region Utilities
+
+    protected virtual async Task<(IList<SearchModel.DocumentSearchResultModel> items, int totalCount)> SearchDocumentsAsync(string keywords, int pageIndex, int pageSize, bool isGuest)
+    {
+        try
+        {
+            var normalizedKeywords = keywords?.Trim() ?? string.Empty;
+            var likeKeywords = $"%{normalizedKeywords}%";
+            var offset = Math.Max(0, pageIndex) * Math.Max(1, pageSize);
+            const int publicAccessScopeId = 5;
+
+            var totalCountResult = await _dataProvider.QueryAsync<DocumentCountResult>(
+                @"SELECT COUNT(1) AS TotalCount
+                  FROM [Document]
+                  WHERE [Published] = 1
+                    AND [Deleted] = 0
+                    AND (@IsGuest = 0 OR [AccessScopeId] = @PublicAccessScopeId)
+                    AND (@Keywords = ''
+                         OR ([Code] IS NOT NULL AND [Code] LIKE @LikeKeywords)
+                         OR [Title] LIKE @LikeKeywords
+                         OR ([Keywords] IS NOT NULL AND [Keywords] LIKE @LikeKeywords)
+                         OR ([Summary] IS NOT NULL AND [Summary] LIKE @LikeKeywords))",
+                new DataParameter("IsGuest", isGuest ? 1 : 0),
+                new DataParameter("PublicAccessScopeId", publicAccessScopeId),
+                new DataParameter("Keywords", normalizedKeywords),
+                new DataParameter("LikeKeywords", likeKeywords));
+
+            var totalCount = totalCountResult.FirstOrDefault()?.TotalCount ?? 0;
+
+            var rows = await _dataProvider.QueryAsync<DocumentSearchRow>(
+                @"SELECT [Id], [Title], [Slug], [Code], [Summary], [IssuedDate]
+                  FROM [Document]
+                  WHERE [Published] = 1
+                    AND [Deleted] = 0
+                    AND (@IsGuest = 0 OR [AccessScopeId] = @PublicAccessScopeId)
+                    AND (@Keywords = ''
+                         OR ([Code] IS NOT NULL AND [Code] LIKE @LikeKeywords)
+                         OR [Title] LIKE @LikeKeywords
+                         OR ([Keywords] IS NOT NULL AND [Keywords] LIKE @LikeKeywords)
+                         OR ([Summary] IS NOT NULL AND [Summary] LIKE @LikeKeywords))
+                  ORDER BY
+                    CASE WHEN @Keywords <> '' AND [Code] = @Keywords THEN 0 ELSE 1 END,
+                    CASE WHEN @Keywords <> '' AND [Title] LIKE @Keywords + '%' THEN 0 ELSE 1 END,
+                    [IssuedDate] DESC,
+                    [DisplayOrder] ASC,
+                    [Id] DESC
+                  OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+                new DataParameter("IsGuest", isGuest ? 1 : 0),
+                new DataParameter("PublicAccessScopeId", publicAccessScopeId),
+                new DataParameter("Keywords", normalizedKeywords),
+                new DataParameter("LikeKeywords", likeKeywords),
+                new DataParameter("Offset", offset),
+                new DataParameter("PageSize", Math.Max(1, pageSize)));
+
+            var items = rows.Select(row => new SearchModel.DocumentSearchResultModel
+            {
+                Id = row.Id,
+                Title = row.Title,
+                Slug = row.Slug,
+                Code = row.Code,
+                Summary = row.Summary,
+                IssuedDate = row.IssuedDate
+            }).ToList();
+
+            return (items, totalCount);
+        }
+        catch
+        {
+            return (new List<SearchModel.DocumentSearchResultModel>(), 0);
+        }
+    }
+
+    protected virtual async Task<IList<string>> GetTopDocumentKeywordsAsync(int limit, bool isGuest)
+    {
+        try
+        {
+            const int publicAccessScopeId = 5;
+            var rows = await _dataProvider.QueryAsync<DocumentKeywordRow>(
+                @"SELECT [Keywords]
+                  FROM [Document]
+                  WHERE [Published] = 1
+                    AND [Deleted] = 0
+                    AND (@IsGuest = 0 OR [AccessScopeId] = @PublicAccessScopeId)
+                    AND [Keywords] IS NOT NULL
+                    AND LTRIM(RTRIM([Keywords])) <> ''",
+                new DataParameter("IsGuest", isGuest ? 1 : 0),
+                new DataParameter("PublicAccessScopeId", publicAccessScopeId));
+
+            var frequency = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var separators = new[] { ',', ';', '|' };
+
+            foreach (var row in rows)
+            {
+                if (string.IsNullOrWhiteSpace(row.Keywords))
+                    continue;
+
+                var tokens = row.Keywords.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                foreach (var token in tokens)
+                {
+                    if (string.IsNullOrWhiteSpace(token))
+                        continue;
+
+                    frequency[token] = frequency.GetValueOrDefault(token) + 1;
+                }
+            }
+
+            return frequency
+                .OrderByDescending(entry => entry.Value)
+                .ThenBy(entry => entry.Key)
+                .Take(limit)
+                .Select(entry => entry.Key)
+                .ToList();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    protected sealed class DocumentSearchRow
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Slug { get; set; }
+        public string Code { get; set; }
+        public string Summary { get; set; }
+        public DateTime? IssuedDate { get; set; }
+    }
+
+    protected sealed class DocumentCountResult
+    {
+        public int TotalCount { get; set; }
+    }
+
+    protected sealed class DocumentKeywordRow
+    {
+        public string Keywords { get; set; }
+    }
 
     protected virtual async Task<Vendor> ResolveVendorFromManufacturerAsync(int manufacturerId)
     {

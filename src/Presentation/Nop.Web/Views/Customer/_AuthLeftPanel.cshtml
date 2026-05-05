@@ -1,0 +1,58 @@
+@inject Nop.Core.Domain.Common.DutyMessageSettings dutyMessageSettings
+<section class="relative hidden w-full overflow-hidden lg:flex lg:flex-col lg:items-start lg:justify-center lg:gap-8 lg:p-12 xl:p-16" style="background: linear-gradient(135deg, #1B2E20 0%, #1A365D 100%);">
+    <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
+    <div class="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-28 -left-24 h-80 w-80 rounded-full bg-emerald-900/30 blur-3xl"></div>
+
+    <div class="relative w-full max-w-2xl space-y-8 text-white">
+        <div class="flex items-center gap-5">
+            <div class="flex-shrink-0 inline-flex h-16 w-16 items-center justify-center rounded-[20px] border border-white/20 bg-white/10 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+                <span class="material-symbols-outlined text-[36px] text-[#FFD700]">shield</span>
+            </div>
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#FFD700]">Hệ thống điều phối</p>
+                <p class="text-sm text-slate-300">Cổng thông tin nội bộ</p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <h1 class="public-hero-title font-black tracking-tight">
+                @(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginTitle) ? "Cổng thông tin Hậu cần – Quân nhu" : dutyMessageSettings.LoginTitle)
+            </h1>
+            <p class="public-card-title font-medium text-slate-200">
+                @(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginSubtitle) ? "Bộ Tư lệnh Tăng Thiết Giáp" : dutyMessageSettings.LoginSubtitle)
+            </p>
+            <p class="public-body-text max-w-lg text-slate-300">
+                @(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginDescription) ? "Quản lý kho bãi, danh mục vật tư và luồng văn bản nghiệp vụ trên một giao diện thống nhất, ưu tiên tốc độ xử lý và tính sẵn sàng." : dutyMessageSettings.LoginDescription)
+            </p>
+        </div>
+    </div>
+
+    <div class="relative w-full max-w-2xl space-y-4">
+        @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Message))
+        {
+            <div class="rounded-[20px] border border-white/10 bg-white/5 p-6 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md">
+                <p class="text-xs uppercase tracking-[0.28em] text-[#FFD700]">Thông điệp trực ban</p>
+                <blockquote class="public-body-text mt-3 font-semibold text-white italic">"@dutyMessageSettings.Message"</blockquote>
+                @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Author))
+                {
+                    <p class="mt-3 text-sm text-slate-400">— @dutyMessageSettings.Author</p>
+                }
+            </div>
+        }
+
+        <div class="rounded-[20px] border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+            <div class="flex items-center gap-4">
+                <div class="flex-shrink-0 h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <svg class="h-5 w-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A11.3 11.3 0 002.944 12c0 4.391 2.243 8.257 5.618 10.58a11.952 11.952 0 0010.58 0c3.375-2.323 5.618-6.19 5.618-10.58a11.303 11.303 0 00-.382-2.962z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="public-list-title font-semibold text-white">Bảo mật &amp; Tập trung</h4>
+                    <p class="text-xs text-slate-400">Dữ liệu được mã hóa đa lớp tiêu chuẩn quân đội.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

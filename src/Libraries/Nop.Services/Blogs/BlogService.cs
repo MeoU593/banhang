@@ -76,16 +76,21 @@ public partial class BlogService : IBlogService
     /// <param name="showHidden">A value indicating whether to show hidden records</param>
     /// <param name="title">Filter by blog post title</param>
     /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
+    /// <param name="vendorIds">Vendor identifiers; null/empty to load all records</param>
+    /// <param name="keywords">Filter by keywords (title/body/overview/tags/author); null to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the blog posts
     /// </returns>
     public virtual async Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
         DateTime? dateFrom = null, DateTime? dateTo = null,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null)
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null)
     {
         return await _blogPostRepository.GetAllPagedAsync(async query =>
         {
+            if (vendorIds?.Any() ?? false)
+                query = query.Where(b => vendorIds.Contains(b.VendorId));
+
             if (dateFrom.HasValue)
                 query = query.Where(b => dateFrom.Value <= (b.StartDateUtc ?? b.CreatedOnUtc));
 
@@ -97,6 +102,17 @@ public partial class BlogService : IBlogService
 
             if (!string.IsNullOrEmpty(title))
                 query = query.Where(b => b.Title.Contains(title));
+
+            if (!string.IsNullOrWhiteSpace(keywords))
+            {
+                var normalizedKeywords = keywords.Trim();
+                query = query.Where(b =>
+                    b.Title.Contains(normalizedKeywords) ||
+                    (b.BodyOverview != null && b.BodyOverview.Contains(normalizedKeywords)) ||
+                    (b.Body != null && b.Body.Contains(normalizedKeywords)) ||
+                    (b.Tags != null && b.Tags.Contains(normalizedKeywords)) ||
+                    (b.AuthorName != null && b.AuthorName.Contains(normalizedKeywords)));
+            }
 
             if (postTypeId.HasValue)
                 query = query.Where(b => b.PostTypeId == postTypeId.Value);
@@ -113,10 +129,75 @@ public partial class BlogService : IBlogService
                 query = query.Where(b => !b.EndDateUtc.HasValue || b.EndDateUtc >= DateTime.UtcNow);
             }
 
-            query = query.OrderByDescending(b => b.StartDateUtc ?? b.CreatedOnUtc);
+            if (!string.IsNullOrWhiteSpace(keywords))
+            {
+                var normalizedKeywords = keywords.Trim();
+                query = query
+                    .OrderBy(b => b.Title == normalizedKeywords ? 0 : 1)
+                    .ThenBy(b => b.Title.StartsWith(normalizedKeywords) ? 0 : 1)
+                    .ThenByDescending(b => b.StartDateUtc ?? b.CreatedOnUtc);
+            }
+            else
+            {
+                query = query.OrderByDescending(b => b.StartDateUtc ?? b.CreatedOnUtc);
+            }
 
             return query;
         }, pageIndex, pageSize);
+    }
+
+    /// <summary>
+    /// Gets popular blog posts ordered by public views
+    /// </summary>
+    /// <param name="storeId">The store identifier; pass 0 to load all records</param>
+    /// <param name="languageId">Language identifier; 0 if you want to get all records</param>
+    /// <param name="pageSize">Number of records to return</param>
+    /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
+    /// <param name="excludeBlogPostId">Blog post identifier to exclude; 0 to ignore</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task<IList<BlogPost>> GetPopularBlogPostsAsync(int storeId = 0, int languageId = 0,
+        int pageSize = 5, int? postTypeId = null, int excludeBlogPostId = 0)
+    {
+        if (pageSize <= 0)
+            return new List<BlogPost>();
+
+        var posts = await _blogPostRepository.GetAllAsync(async query =>
+        {
+            if (languageId > 0)
+                query = query.Where(b => languageId == b.LanguageId);
+
+            if (postTypeId.HasValue)
+                query = query.Where(b => b.PostTypeId == postTypeId.Value);
+
+            if (excludeBlogPostId > 0)
+                query = query.Where(b => b.Id != excludeBlogPostId);
+
+            if (storeId > 0)
+                query = await _storeMappingService.ApplyStoreMapping(query, storeId);
+
+            query = query.Where(b => !b.StartDateUtc.HasValue || b.StartDateUtc <= DateTime.UtcNow);
+            query = query.Where(b => !b.EndDateUtc.HasValue || b.EndDateUtc >= DateTime.UtcNow);
+
+            return query
+                .OrderByDescending(b => b.ViewCount)
+                .ThenByDescending(b => b.StartDateUtc ?? b.CreatedOnUtc)
+                .Take(pageSize);
+        });
+
+        return posts;
+    }
+
+    /// <summary>
+    /// Increments the blog post public view count
+    /// </summary>
+    /// <param name="blogPost">Blog post</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task IncrementBlogPostViewCountAsync(BlogPost blogPost)
+    {
+        ArgumentNullException.ThrowIfNull(blogPost);
+
+        blogPost.ViewCount++;
+        await _blogPostRepository.UpdateAsync(blogPost);
     }
 
     /// <summary>
@@ -134,12 +215,12 @@ public partial class BlogService : IBlogService
     /// </returns>
     public virtual async Task<IPagedList<BlogPost>> GetAllBlogPostsByTagAsync(int storeId = 0,
         int languageId = 0, string tag = "",
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, IList<int> vendorIds = null)
     {
         tag = tag.Trim();
 
         //we load all records and only then filter them by tag
-        var blogPostsAll = await GetAllBlogPostsAsync(storeId: storeId, languageId: languageId, showHidden: showHidden);
+        var blogPostsAll = await GetAllBlogPostsAsync(storeId: storeId, languageId: languageId, showHidden: showHidden, vendorIds: vendorIds);
         var taggedBlogPosts = new List<BlogPost>();
         foreach (var blogPost in blogPostsAll)
         {
@@ -297,15 +378,25 @@ public partial class BlogService : IBlogService
     /// <param name="fromUtc">Item creation from; null to load all records</param>
     /// <param name="toUtc">Item creation to; null to load all records</param>
     /// <param name="commentText">Search comment text; null to load all records</param>
+    /// <param name="vendorIds">Vendor identifiers of related blog posts; null/empty to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the comments
     /// </returns>
     public virtual async Task<IList<BlogComment>> GetAllCommentsAsync(int customerId = 0, int storeId = 0, int? blogPostId = null,
-        bool? approved = null, DateTime? fromUtc = null, DateTime? toUtc = null, string commentText = null)
+        bool? approved = null, DateTime? fromUtc = null, DateTime? toUtc = null, string commentText = null, IList<int> vendorIds = null)
     {
         return await _blogCommentRepository.GetAllAsync(query =>
         {
+            if (vendorIds?.Any() ?? false)
+            {
+                var scopedBlogPostIds = _blogPostRepository.Table
+                    .Where(bp => vendorIds.Contains(bp.VendorId))
+                    .Select(bp => bp.Id);
+
+                query = query.Where(comment => scopedBlogPostIds.Contains(comment.BlogPostId));
+            }
+
             if (approved.HasValue)
                 query = query.Where(comment => comment.IsApproved == approved);
 

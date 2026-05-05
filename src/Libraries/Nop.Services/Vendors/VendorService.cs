@@ -154,6 +154,48 @@ public partial class VendorService : IVendorService
     }
 
     /// <summary>
+    /// Gets descendant vendor identifiers for the specified vendor
+    /// </summary>
+    /// <param name="vendorId">Vendor identifier</param>
+    /// <param name="includeSelf">Whether to include the specified vendor identifier in result</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains descendant vendor identifiers
+    /// </returns>
+    public virtual async Task<IList<int>> GetDescendantVendorIdsAsync(int vendorId, bool includeSelf = false)
+    {
+        if (vendorId <= 0)
+            return new List<int>();
+
+        var vendors = await _vendorRepository.Table
+            .Where(v => !v.Deleted)
+            .Select(v => new { v.Id, v.ParentId })
+            .ToListAsync();
+
+        if (!vendors.Any(v => v.Id == vendorId))
+            return new List<int>();
+
+        var descendants = new List<int>();
+        var queue = new Queue<int>();
+        queue.Enqueue(vendorId);
+
+        while (queue.Count > 0)
+        {
+            var parentId = queue.Dequeue();
+            foreach (var childId in vendors.Where(v => v.ParentId == parentId).Select(v => v.Id))
+            {
+                descendants.Add(childId);
+                queue.Enqueue(childId);
+            }
+        }
+
+        if (includeSelf)
+            descendants.Insert(0, vendorId);
+
+        return descendants;
+    }
+
+    /// <summary>
     /// Inserts a vendor
     /// </summary>
     /// <param name="vendor">Vendor</param>

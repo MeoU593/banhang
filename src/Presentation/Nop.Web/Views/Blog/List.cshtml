@@ -2,7 +2,7 @@
 @using Nop.Core.Domain.Blogs
 
 @{
-    Layout = "_ColumnsTwo";
+    Layout = "_ColumnsOne";
 
     NopHtml.AddTitleParts(T("PageTitle.Blog").Text);
     NopHtml.AppendPageCssClassParts("html-blog-page");
@@ -12,139 +12,320 @@
     var documentListUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS);
     var allListUrl = Url.RouteUrl(NopRouteNames.General.BLOG);
 
-    var pageTitle = string.Empty;
-    if (string.IsNullOrEmpty(Model.PagingFilteringContext.Tag))
+    var posts = Model.BlogPosts.ToList();
+    var newsPosts = posts.Where(post => post.PostTypeId == 0).ToList();
+    var documentPosts = posts.Where(post => post.PostTypeId == 1).ToList();
+    var latestDocumentPosts = Model.LatestDocumentPosts.Any() ? Model.LatestDocumentPosts.ToList() : documentPosts;
+    var totalNews = newsPosts.Count;
+    var totalDocuments = documentPosts.Count;
+    var dateFromQuery = Model.PagingFilteringContext.DateFrom?.ToString("yyyy-MM-dd") ?? string.Empty;
+    var dateToQuery = Model.PagingFilteringContext.DateTo?.ToString("yyyy-MM-dd") ?? string.Empty;
+    var selectedVendorId = Model.PagingFilteringContext.VendorId;
+    var unitFilterRouteName = currentType == 0
+        ? NopRouteNames.Standard.BLOG_NEWS
+        : currentType == 1
+            ? NopRouteNames.Standard.BLOG_DOCUMENTS
+            : NopRouteNames.General.BLOG;
+
+    string buildListUrl(string routeName)
     {
-        if (currentType.HasValue)
+        return Url.RouteUrl(routeName, new
         {
-            pageTitle = currentType.Value == 1 ? "Văn bản" : "Tin tức";
+            Q = Model.PagingFilteringContext.Q,
+            VendorId = selectedVendorId > 0 ? (int?)selectedVendorId : null,
+            DateFrom = dateFromQuery,
+            DateTo = dateToQuery
+        }) ?? "#";
+    }
+
+    allListUrl = buildListUrl(NopRouteNames.General.BLOG);
+    newsListUrl = buildListUrl(NopRouteNames.Standard.BLOG_NEWS);
+    documentListUrl = buildListUrl(NopRouteNames.Standard.BLOG_DOCUMENTS);
+
+    const string filterLinkBase = "inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold transition";
+    const string filterLinkInactive = "border border-slate-200 bg-white text-slate-600 hover:border-military-green hover:text-military-green";
+    const string filterLinkActive = "blog-filter-link--active border border-military-green bg-military-green text-white";
+}
+
+<style>
+    .blog-page .blog-filter-link--active {
+        border-color: #2d3a22 !important;
+        background: #2d3a22 !important;
+        color: #ffffff !important;
+        opacity: 1 !important;
+    }
+</style>
+
+<div class="page blog-page">
+    <div class="page-body w-full space-y-8">
+        <section class="overflow-hidden rounded-2xl border p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+            <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                <span class="text-white">Tin tức &amp; văn bản</span>
+            </nav>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-1.5">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#f6dc9a]">Kênh nội dung nghiệp vụ</p>
+                    <h1 class="public-hero-title font-black tracking-tight text-white">Tin tức &amp; Văn bản hậu cần</h1>
+                    <p class="max-w-3xl text-xs leading-5 text-slate-200 sm:text-sm">Cập nhật hoạt động đơn vị, văn bản pháp quy và thông báo mới từ hệ thống hậu cần - quân nhu.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-center sm:min-w-[280px]">
+                    <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                        <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Tin tức</p>
+                        <p class="mt-1 text-base font-black sm:text-lg">@totalNews</p>
+                    </div>
+                    <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                        <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Văn bản</p>
+                        <p class="mt-1 text-base font-black sm:text-lg">@totalDocuments</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="@allListUrl" class="@($"{filterLinkBase} {(currentType.HasValue ? filterLinkInactive : filterLinkActive)}")">Tất cả</a>
+                <a href="@newsListUrl" class="@($"{filterLinkBase} {(currentType == 0 ? filterLinkActive : filterLinkInactive)}")">Tin tức</a>
+                <a href="@documentListUrl" class="@($"{filterLinkBase} {(currentType == 1 ? filterLinkActive : filterLinkInactive)}")">Văn bản</a>
+            </div>
+            <form action="@Url.RouteUrl(unitFilterRouteName)" method="get" class="flex min-w-[260px] items-center gap-2">
+                <input type="hidden" name="Q" value="@Model.PagingFilteringContext.Q" />
+                <input type="hidden" name="DateFrom" value="@dateFromQuery" />
+                <input type="hidden" name="DateTo" value="@dateToQuery" />
+                <select name="VendorId" asp-items="Model.AvailableVendors" class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-military-green" onchange="this.form.submit()"></select>
+            </form>
+        </div>
+
+        @if (!currentType.HasValue)
+        {
+            var featuredNews = newsPosts.FirstOrDefault();
+            var secondaryNews = newsPosts.Skip(1).Take(4).ToList();
+            <div class="grid grid-cols-1 gap-8 xl:grid-cols-12">
+                <section class="xl:col-span-7 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="public-card-title font-bold text-slate-900">Tin tức hoạt động</h3>
+                        <a href="@newsListUrl" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
+                    </div>
+                    @if (featuredNews != null)
+                    {
+                        var featuredUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS_POST, new { SeName = featuredNews.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = featuredNews.SeName });
+                        var featuredAuthor = string.IsNullOrWhiteSpace(featuredNews.AuthorName) ? "Ban biên tập" : featuredNews.AuthorName;
+                        <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <a href="@featuredUrl" class="block aspect-[21/9] overflow-hidden bg-slate-100">
+                                @if (!string.IsNullOrWhiteSpace(featuredNews.ThumbnailImageUrl))
+                                {
+                                    <img src="@featuredNews.ThumbnailImageUrl" alt="@featuredNews.Title" class="h-full w-full object-cover object-[56%_50%] transition duration-500 hover:scale-105" />
+                                }
+                                else
+                                {
+                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Ảnh tin tức</div>
+                                }
+                            </a>
+                            <div class="p-5">
+                                <div class="mb-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                    <span>@featuredNews.CreatedOn.ToString("dd/MM/yyyy")</span>
+                                    <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                                    <span>@featuredAuthor</span>
+                                </div>
+                                <h4 class="public-section-title font-bold text-slate-900"><a href="@featuredUrl" class="hover:text-military-green">@featuredNews.Title</a></h4>
+                                <div class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">@Html.Raw(!string.IsNullOrWhiteSpace(featuredNews.BodyOverview) ? featuredNews.BodyOverview : featuredNews.Body)</div>
+                            </div>
+                        </article>
+                    }
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        @foreach (var item in secondaryNews)
+                        {
+                            var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS_POST, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                            <a href="@postUrl" class="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-military-green hover:shadow-md">
+                                <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                                    @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
+                                    {
+                                        <img src="@item.ThumbnailImageUrl" alt="@item.Title" class="h-full w-full object-cover object-center" />
+                                    }
+                                    else
+                                    {
+                                        <div class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase text-slate-400">Ảnh</div>
+                                    }
+                                </div>
+                                <div class="min-w-0">
+                                    <h5 class="public-list-title line-clamp-2 font-bold text-slate-900">@item.Title</h5>
+                                    <p class="mt-2 text-[11px] text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </section>
+
+                <section class="xl:col-span-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="public-card-title font-bold text-slate-900">Văn bản mới nhất</h3>
+                        <a href="@documentListUrl" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="divide-y divide-slate-100">
+                            @foreach (var item in latestDocumentPosts.Take(8))
+                            {
+                                var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENT_POST, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                                var pdfUrl = item.PdfDownloadGuid.HasValue ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = item.PdfDownloadGuid.Value }) : null;
+                                var docUrl = item.DocDownloadGuid.HasValue ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = item.DocDownloadGuid.Value }) : null;
+
+                                <div class="p-4">
+                                    <a href="@postUrl" class="line-clamp-2 text-sm font-semibold text-slate-800 hover:text-military-green">@item.Title</a>
+                                    <div class="mt-3 flex items-center justify-between gap-3">
+                                        <span class="text-[11px] text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</span>
+                                        <div class="flex items-center gap-2">
+                                            <a href="@postUrl" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-military-green hover:text-military-green">Xem</a>
+                                            @if (!string.IsNullOrWhiteSpace(pdfUrl))
+                                            {
+                                                <a href="@pdfUrl" target="_blank" rel="noopener" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-red-300 hover:text-red-600">PDF</a>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(docUrl))
+                                            {
+                                                <a href="@docUrl" target="_blank" rel="noopener" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600">DOC</a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            </div>
         }
-        else if (Model.PagingFilteringContext.GetParsedMonth().HasValue)
+        else if (currentType == 0)
         {
-            pageTitle = string.Format(T("Blog.FilteredByMonth").Text,
-                Model.PagingFilteringContext.GetParsedMonth().Value.Year,
-                Model.PagingFilteringContext.GetParsedMonth().Value.ToString("MMMM"));
+            <div class="grid grid-cols-1 gap-8 xl:grid-cols-12">
+                <aside class="xl:col-span-3 space-y-4">
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="public-meta-text mb-3 font-bold uppercase tracking-wider text-slate-700">Từ khóa</h3>
+                        <form asp-route="@NopRouteNames.Standard.BLOG_NEWS" method="get">
+                            <input name="Q" value="@Model.PagingFilteringContext.Q" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Nhập từ khóa..." type="text" />
+                            <div class="mt-3 grid grid-cols-1 gap-2">
+                                <select name="VendorId" asp-items="Model.AvailableVendors" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"></select>
+                                <input name="DateFrom" value="@dateFromQuery" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" type="date" />
+                                <input name="DateTo" value="@dateToQuery" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" type="date" />
+                                <button type="submit" class="inline-flex h-10 items-center justify-center rounded-lg bg-military-green px-4 text-sm font-semibold text-white">Lọc</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="public-meta-text mb-3 font-bold uppercase tracking-wider text-slate-700">Tags</h3>
+                        @await Component.InvokeAsync(typeof(BlogTagsViewComponent))
+                    </div>
+                </aside>
+
+                <section class="xl:col-span-9 space-y-5">
+                    @foreach (var item in posts)
+                    {
+                        var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS_POST, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                        var author = string.IsNullOrWhiteSpace(item.AuthorName) ? "Ban biên tập" : item.AuthorName;
+                        <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                            <div class="flex flex-col md:flex-row">
+                                <a href="@postUrl" class="md:w-72 h-48 shrink-0 overflow-hidden bg-slate-100">
+                                    @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
+                                    {
+                                        <img src="@item.ThumbnailImageUrl" alt="@item.Title" class="h-full w-full object-cover object-center transition duration-500 hover:scale-105" />
+                                    }
+                                    else
+                                    {
+                                        <div class="flex h-full w-full items-center justify-center text-xs font-semibold uppercase text-slate-500">Ảnh tin tức</div>
+                                    }
+                                </a>
+                                <div class="flex-1 p-5">
+                                    <div class="mb-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                        <span>@item.CreatedOn.ToString("dd/MM/yyyy")</span>
+                                        <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                                        <span>@author</span>
+                                    </div>
+                                    <h3 class="public-card-title font-bold text-slate-900"><a href="@postUrl" class="hover:text-military-green">@item.Title</a></h3>
+                                    <div class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">@Html.Raw(!string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body)</div>
+                                </div>
+                            </div>
+                        </article>
+                    }
+
+                    @{
+                        var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
+                    }
+                    @if (!(await pager.IsEmpty()))
+                    {
+                        <div class="pager rounded-xl border border-slate-200 bg-white p-3 shadow-sm">@pager</div>
+                    }
+                </section>
+            </div>
         }
         else
         {
-            pageTitle = T("Blog").Text;
-        }
-    }
-    else
-    {
-        pageTitle = string.Format(T("Blog.TaggedWith").Text, Model.PagingFilteringContext.Tag);
-    }
-}
-
-@section left {
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogBefore, additionalData = Model })
-    @await Component.InvokeAsync(typeof(BlogMonthsViewComponent))
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnAfterBlogArchive, additionalData = Model })
-    @await Component.InvokeAsync(typeof(BlogTagsViewComponent))
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogAfter, additionalData = Model })
-}
-
-<div class="page blog-page">
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold tracking-tight text-on-surface">@pageTitle</h2>
-        <div class="mt-1 flex items-center gap-2">
-            <span class="h-1 w-12 rounded-full bg-military-green"></span>
-            <p class="text-sm font-medium text-on-surface-variant">
-                @if (currentType == 1)
-                {
-                    @:Kho văn bản nội bộ được quản lý trong blog
-                }
-                else if (currentType == 0)
-                {
-                    @:Cập nhật tin tức và thông báo mới nhất
-                }
-                else
-                {
-                    @:Hệ thống blog hợp nhất cho tin tức và văn bản
-                }
-            </p>
-        </div>
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a href="@allListUrl" class="@(currentType.HasValue ? "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container" : "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition")">Tất cả</a>
-            <a href="@newsListUrl" class="@(currentType == 0 ? "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition" : "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container")">Tin tức</a>
-            <a href="@documentListUrl" class="@(currentType == 1 ? "inline-flex items-center gap-2 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white shadow-sm transition" : "inline-flex items-center gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container")">Văn bản</a>
-        </div>
-    </div>
-
-    <div class="page-body">
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePosts, additionalData = Model })
-
-        <div class="blog-posts space-y-4">
-            @foreach (var item in Model.BlogPosts)
-            {
-                var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
-                var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
-                var commentsUrl = $"{postUrl}#comments";
-                var typeLabel = item.PostTypeId == 1 ? "Văn bản" : "Tin tức";
-                var typeClass = item.PostTypeId == 1
-                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                    : "bg-red-50 text-red-700 border border-red-100";
-
-                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePost, additionalData = item })
-                <article class="post group rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm transition hover:shadow-md">
-                    <div class="mb-3 flex flex-wrap items-center gap-2">
-                        <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider @typeClass">@typeLabel</span>
-                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="text-xs text-on-surface-variant">
-                            @item.CreatedOn.ToString("dd/MM/yyyy")
-                        </time>
-                    </div>
-
-                    <h2 class="mb-2 text-base font-bold leading-snug text-on-surface transition group-hover:text-military-green">
-                        <a href="@postUrl">@item.Title</a>
-                    </h2>
-
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageBeforePostBody, additionalData = item })
-                    <div class="post-body mt-2 line-clamp-3 text-sm leading-relaxed text-on-surface-variant">
-                        @Html.Raw(!string.IsNullOrEmpty(item.BodyOverview) ? item.BodyOverview : item.Body)
-                    </div>
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPostBody, additionalData = item })
-
-                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/20 pt-3">
-                        @if (item.Tags.Count > 0)
-                        {
-                            <div class="tags flex flex-wrap items-center gap-1.5">
-                                @for (var i = 0; i < item.Tags.Count; i++)
-                                {
-                                    var tag = item.Tags[i];
-                                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag = tag })" class="inline-flex items-center rounded-full border border-outline-variant/40 bg-surface-container px-2.5 py-0.5 text-xs font-medium text-on-surface-variant transition hover:border-military-green hover:text-military-green">@tag</a>
-                                }
-                            </div>
-                        }
-
-                        <div class="buttons flex items-center gap-2">
-                            @if (item.AllowComments)
-                            {
-                                <a href="@commentsUrl" class="read-comments inline-flex h-8 items-center justify-center rounded-lg border border-outline-variant/40 px-3 text-xs font-semibold text-on-surface-variant transition hover:border-military-green hover:text-military-green">
-                                    @string.Format(T("Blog.CommentsLink").Text, item.NumberOfComments)
-                                </a>
-                            }
-                            <a href="@postUrl" class="read-more inline-flex h-8 items-center justify-center rounded-lg bg-military-green px-4 text-xs font-semibold text-white transition hover:bg-military-green/90">
-                                @T("Blog.MoreInfo")
-                            </a>
+            <div class="space-y-5">
+                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <form asp-route="@NopRouteNames.Standard.BLOG_DOCUMENTS" method="get" class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+                        <input name="Q" value="@Model.PagingFilteringContext.Q" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Tìm theo tiêu đề văn bản..." type="text" />
+                        <div class="grid grid-cols-1 gap-2 md:grid-cols-4">
+                            <select name="VendorId" asp-items="Model.AvailableVendors" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"></select>
+                            <input name="DateFrom" value="@dateFromQuery" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" type="date" />
+                            <input name="DateTo" value="@dateToQuery" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" type="date" />
+                            <button type="submit" class="inline-flex h-10 items-center justify-center rounded-lg bg-military-green px-5 text-sm font-semibold text-white">Tìm kiếm</button>
                         </div>
+                    </form>
+                </div>
+
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[860px]">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
+                                    <th class="px-5 py-4">Ngày</th>
+                                    <th class="px-5 py-4">Tên văn bản</th>
+                                    <th class="px-5 py-4">Tác giả</th>
+                                    <th class="px-5 py-4 text-center">Xem / Tải xuống</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                @foreach (var item in posts)
+                                {
+                                    var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENT_POST, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
+                                    var author = string.IsNullOrWhiteSpace(item.AuthorName) ? "Ban hành nội bộ" : item.AuthorName;
+                                    var pdfUrl = item.PdfDownloadGuid.HasValue ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = item.PdfDownloadGuid.Value }) : null;
+                                    var docUrl = item.DocDownloadGuid.HasValue ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = item.DocDownloadGuid.Value }) : null;
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-5 py-4 text-slate-600">@item.CreatedOn.ToString("dd/MM/yyyy")</td>
+                                        <td class="px-5 py-4">
+                                            <a href="@postUrl" class="font-semibold text-slate-800 hover:text-military-green">@item.Title</a>
+                                        </td>
+                                        <td class="px-5 py-4 text-slate-600">@author</td>
+                                        <td class="px-5 py-4">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <a href="@postUrl" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-military-green hover:text-military-green">Xem</a>
+                                                @if (!string.IsNullOrWhiteSpace(pdfUrl))
+                                                {
+                                                    <a href="@pdfUrl" target="_blank" rel="noopener" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-red-300 hover:text-red-600">PDF</a>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(docUrl))
+                                                {
+                                                    <a href="@docUrl" target="_blank" rel="noopener" class="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600">DOC</a>
+                                                }
+                                                @if (string.IsNullOrWhiteSpace(pdfUrl) && string.IsNullOrWhiteSpace(docUrl))
+                                                {
+                                                    <span class="inline-flex h-8 items-center rounded-lg bg-slate-100 px-2.5 text-[11px] font-semibold text-slate-400">Chưa có file</span>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
+                </div>
 
-                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageInsidePost, additionalData = item })
-                </article>
-                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPost, additionalData = item })
-            }
-        </div>
-
-        @{
-            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
-        }
-        @if (!(await pager.IsEmpty()))
-        {
-            <div class="pager mt-6 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 shadow-sm">
-                @pager
+                @{
+                    var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
+                }
+                @if (!(await pager.IsEmpty()))
+                {
+                    <div class="pager rounded-xl border border-slate-200 bg-white p-3 shadow-sm">@pager</div>
+                }
             </div>
         }
-
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogListPageAfterPosts, additionalData = Model })
     </div>
 </div>

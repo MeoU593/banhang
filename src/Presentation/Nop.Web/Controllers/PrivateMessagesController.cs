@@ -2,11 +2,13 @@
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Forums;
+using Nop.Core.Domain.Vendors;
 using Nop.Core.Http;
 using Nop.Services.Customers;
 using Nop.Services.Forums;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Vendors;
 using Nop.Web.Factories;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Models.PrivateMessages;
@@ -25,6 +27,7 @@ public partial class PrivateMessagesController : BasePublicController
     protected readonly ILocalizationService _localizationService;
     protected readonly IPrivateMessagesModelFactory _privateMessagesModelFactory;
     protected readonly IStoreContext _storeContext;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
 
     #endregion
@@ -38,6 +41,7 @@ public partial class PrivateMessagesController : BasePublicController
         ILocalizationService localizationService,
         IPrivateMessagesModelFactory privateMessagesModelFactory,
         IStoreContext storeContext,
+        IVendorService vendorService,
         IWorkContext workContext)
     {
         _forumSettings = forumSettings;
@@ -47,6 +51,7 @@ public partial class PrivateMessagesController : BasePublicController
         _localizationService = localizationService;
         _privateMessagesModelFactory = privateMessagesModelFactory;
         _storeContext = storeContext;
+        _vendorService = vendorService;
         _workContext = workContext;
     }
 
@@ -235,6 +240,7 @@ public partial class PrivateMessagesController : BasePublicController
                     Text = text,
                     IsDeletedByAuthor = false,
                     IsDeletedByRecipient = false,
+                    UnitContactVendorId = replyToPM?.UnitContactVendorId,
                     IsRead = false,
                     CreatedOnUtc = nowUtc
                 };
@@ -255,6 +261,124 @@ public partial class PrivateMessagesController : BasePublicController
 
         model = await _privateMessagesModelFactory.PrepareSendPrivateMessageModelAsync(toCustomer, replyToPM);
         return View(model);
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> UnitContactHistory(int vendorId)
+    {
+        var validation = await ValidateUnitContactChatAsync(vendorId);
+        if (!validation.Success)
+            return Json(new { success = false, validation.LoginRequired, validation.Message });
+
+        var store = await _storeContext.GetCurrentStoreAsync();
+        var messages = await _forumService.GetUnitContactPrivateMessagesAsync(validation.Vendor.Id, validation.Customer.Id, validation.ContactCustomer.Id, store.Id);
+
+        foreach (var message in messages.Where(message => message.ToCustomerId == validation.Customer.Id && !message.IsRead))
+        {
+            message.IsRead = true;
+            await _forumService.UpdatePrivateMessageAsync(message);
+        }
+
+        return Json(new
+        {
+            success = true,
+            contactCustomerName = await _customerService.FormatUsernameAsync(validation.ContactCustomer),
+            messages = await PrepareUnitContactMessagesAsync(messages, validation.Customer.Id)
+        });
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> UnitContactSend(int vendorId, string message)
+    {
+        var validation = await ValidateUnitContactChatAsync(vendorId);
+        if (!validation.Success)
+            return Json(new { success = false, validation.LoginRequired, validation.Message });
+
+        message = (message ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(message))
+            return Json(new { success = false, message = "Vui lòng nhập nội dung tin nhắn." });
+
+        if (_forumSettings.PMTextMaxLength > 0 && message.Length > _forumSettings.PMTextMaxLength)
+            message = message[0.._forumSettings.PMTextMaxLength];
+
+        var subject = $"Liên hệ đơn vị: {validation.Vendor.Name}";
+        if (_forumSettings.PMSubjectMaxLength > 0 && subject.Length > _forumSettings.PMSubjectMaxLength)
+            subject = subject[0.._forumSettings.PMSubjectMaxLength];
+
+        var store = await _storeContext.GetCurrentStoreAsync();
+        var privateMessage = new PrivateMessage
+        {
+            StoreId = store.Id,
+            ToCustomerId = validation.ContactCustomer.Id,
+            FromCustomerId = validation.Customer.Id,
+            Subject = subject,
+            Text = message,
+            IsDeletedByAuthor = false,
+            IsDeletedByRecipient = false,
+            UnitContactVendorId = validation.Vendor.Id,
+            IsRead = false,
+            CreatedOnUtc = DateTime.UtcNow
+        };
+
+        await _forumService.InsertPrivateMessageAsync(privateMessage);
+
+        await _customerActivityService.InsertActivityAsync("PublicStore.SendUnitContactPM",
+            $"Sent a unit contact private message to {validation.ContactCustomer.Email}", validation.ContactCustomer);
+
+        return Json(new
+        {
+            success = true,
+            message = await PrepareUnitContactMessageAsync(privateMessage, validation.Customer.Id)
+        });
+    }
+
+    protected virtual async Task<(bool Success, bool LoginRequired, string Message, Vendor Vendor, Customer Customer, Customer ContactCustomer)> ValidateUnitContactChatAsync(int vendorId)
+    {
+        if (!_forumSettings.AllowPrivateMessages)
+            return (false, false, "Tin nhắn riêng đang tắt.", null, null, null);
+
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        if (await _customerService.IsGuestAsync(customer))
+            return (false, true, "Vui lòng đăng nhập để liên hệ đơn vị.", null, customer, null);
+
+        var vendor = await _vendorService.GetVendorByIdAsync(vendorId);
+        if (vendor == null || vendor.Deleted || !vendor.Active)
+            return (false, false, "Không tìm thấy đơn vị.", vendor, customer, null);
+
+        if (!vendor.ContactCustomerId.HasValue)
+            return (false, false, "Đơn vị chưa thiết lập phụ trách liên hệ.", vendor, customer, null);
+
+        if (vendor.ContactCustomerId.Value == customer.Id)
+            return (false, false, "Bạn đang là phụ trách liên hệ của đơn vị này.", vendor, customer, null);
+
+        var contactCustomer = await _customerService.GetCustomerByIdAsync(vendor.ContactCustomerId.Value);
+        if (contactCustomer == null || !contactCustomer.Active || contactCustomer.Deleted || await _customerService.IsGuestAsync(contactCustomer))
+            return (false, false, "Tài khoản phụ trách liên hệ không hợp lệ.", vendor, customer, null);
+
+        return (true, false, null, vendor, customer, contactCustomer);
+    }
+
+    protected virtual async Task<IList<object>> PrepareUnitContactMessagesAsync(IList<PrivateMessage> messages, int currentCustomerId)
+    {
+        var result = new List<object>();
+        foreach (var message in messages)
+            result.Add(await PrepareUnitContactMessageAsync(message, currentCustomerId));
+
+        return result;
+    }
+
+    protected virtual async Task<object> PrepareUnitContactMessageAsync(PrivateMessage message, int currentCustomerId)
+    {
+        var fromCustomer = await _customerService.GetCustomerByIdAsync(message.FromCustomerId);
+
+        return new
+        {
+            id = message.Id,
+            mine = message.FromCustomerId == currentCustomerId,
+            author = fromCustomer == null ? "Tài khoản" : await _customerService.FormatUsernameAsync(fromCustomer),
+            text = message.Text,
+            createdOnUtc = message.CreatedOnUtc.ToString("O")
+        };
     }
 
     public virtual async Task<IActionResult> ViewPM(int privateMessageId)

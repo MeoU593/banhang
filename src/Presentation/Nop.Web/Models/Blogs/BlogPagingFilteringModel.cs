@@ -31,15 +31,39 @@ public partial record BlogPagingFilteringModel : BasePageableModel
             return filterByMonth.Value.AddMonths(1).AddSeconds(-1);
         return null;
     }
+
+    public virtual DateTime? GetFromDate()
+    {
+        if (DateFrom.HasValue)
+            return DateFrom.Value.Date;
+
+        return GetFromMonth();
+    }
+
+    public virtual DateTime? GetToDate()
+    {
+        if (DateTo.HasValue)
+            return DateTo.Value.Date.AddDays(1).AddSeconds(-1);
+
+        return GetToMonth();
+    }
     #endregion
 
     #region Properties
+
+    public string Q { get; set; }
 
     public string Month { get; set; }
 
     public string Tag { get; set; }
 
     public int? PostTypeId { get; set; }
+
+    public int VendorId { get; set; }
+
+    public DateTime? DateFrom { get; set; }
+
+    public DateTime? DateTo { get; set; }
 
     #endregion
 }

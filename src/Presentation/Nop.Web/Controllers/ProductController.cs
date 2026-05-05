@@ -9,7 +9,6 @@ using Nop.Core.Events;
 using Nop.Core.Http;
 using Nop.Services.Catalog;
 using Nop.Services.Customers;
-using Nop.Services.Html;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Messages;
@@ -37,13 +36,13 @@ public partial class ProductController : BasePublicController
     protected readonly ICustomerActivityService _customerActivityService;
     protected readonly ICustomerService _customerService;
     protected readonly IEventPublisher _eventPublisher;
-    protected readonly IHtmlFormatter _htmlFormatter;
     protected readonly ILocalizationService _localizationService;
     protected readonly INopUrlHelper _nopUrlHelper;
     protected readonly INotificationService _notificationService;
     protected readonly IOrderService _orderService;
     protected readonly IPermissionService _permissionService;
     protected readonly IProductAttributeParser _productAttributeParser;
+    protected readonly IProductFavoriteService _productFavoriteService;
     protected readonly IProductModelFactory _productModelFactory;
     protected readonly IProductReviewService _productReviewService;
     protected readonly IProductService _productService;
@@ -53,7 +52,6 @@ public partial class ProductController : BasePublicController
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreMappingService _storeMappingService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly LocalizationSettings _localizationSettings;
     protected readonly ShoppingCartSettings _shoppingCartSettings;
     protected readonly ShippingSettings _shippingSettings;
@@ -69,13 +67,13 @@ public partial class ProductController : BasePublicController
         ICustomerActivityService customerActivityService,
         ICustomerService customerService,
         IEventPublisher eventPublisher,
-        IHtmlFormatter htmlFormatter,
         ILocalizationService localizationService,
         INopUrlHelper nopUrlHelper,
         INotificationService notificationService,
         IOrderService orderService,
         IPermissionService permissionService,
         IProductAttributeParser productAttributeParser,
+        IProductFavoriteService productFavoriteService,
         IProductModelFactory productModelFactory,
         IProductReviewService productReviewService,
         IProductService productService,
@@ -85,7 +83,6 @@ public partial class ProductController : BasePublicController
         IStoreContext storeContext,
         IStoreMappingService storeMappingService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings,
         ShoppingCartSettings shoppingCartSettings,
         ShippingSettings shippingSettings)
@@ -97,13 +94,13 @@ public partial class ProductController : BasePublicController
         _customerActivityService = customerActivityService;
         _customerService = customerService;
         _eventPublisher = eventPublisher;
-        _htmlFormatter = htmlFormatter;
         _localizationService = localizationService;
         _nopUrlHelper = nopUrlHelper;
         _notificationService = notificationService;
         _orderService = orderService;
         _permissionService = permissionService;
         _productAttributeParser = productAttributeParser;
+        _productFavoriteService = productFavoriteService;
         _productModelFactory = productModelFactory;
         _productReviewService = productReviewService;
         _productService = productService;
@@ -113,7 +110,6 @@ public partial class ProductController : BasePublicController
         _storeContext = storeContext;
         _storeMappingService = storeMappingService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _localizationSettings = localizationSettings;
         _shoppingCartSettings = shoppingCartSettings;
         _shippingSettings = shippingSettings;
@@ -209,6 +205,37 @@ public partial class ProductController : BasePublicController
 
         var model = await _productModelFactory.PrepareProductCombinationModelsAsync(product);
         return Ok(model);
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> ToggleFavorite(int productId)
+    {
+        var customer = await _workContext.GetCurrentCustomerAsync();
+        if (await _customerService.IsGuestAsync(customer))
+        {
+            return Json(new
+            {
+                success = false,
+                loginUrl = Url.RouteUrl(NopRouteNames.General.LOGIN)
+            });
+        }
+
+        var product = await _productService.GetProductByIdAsync(productId);
+        if (product == null || product.Deleted)
+        {
+            return Json(new
+            {
+                success = false
+            });
+        }
+
+        var isFavorite = await _productFavoriteService.ToggleFavoriteAsync(customer.Id, productId);
+
+        return Json(new
+        {
+            success = true,
+            isFavorite
+        });
     }
 
     #endregion
@@ -359,59 +386,6 @@ public partial class ProductController : BasePublicController
 
         var model = await _productModelFactory.PrepareCustomerProductReviewsModelAsync(pageNumber);
 
-        return View(model);
-    }
-
-    #endregion
-
-    #region Email a friend
-
-    public virtual async Task<IActionResult> ProductEmailAFriend(int productId)
-    {
-        var product = await _productService.GetProductByIdAsync(productId);
-        if (product == null || product.Deleted || !product.Published || !_catalogSettings.EmailAFriendEnabled)
-            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
-
-        var model = new ProductEmailAFriendModel();
-        model = await _productModelFactory.PrepareProductEmailAFriendModelAsync(model, product, false);
-        return View(model);
-    }
-
-    [HttpPost, ActionName("ProductEmailAFriend")]
-    [FormValueRequired("send-email")]
-    [ValidateCaptcha]
-    public virtual async Task<IActionResult> ProductEmailAFriendSend(ProductEmailAFriendModel model, bool captchaValid)
-    {
-        var product = await _productService.GetProductByIdAsync(model.ProductId);
-        if (product == null || product.Deleted || !product.Published || !_catalogSettings.EmailAFriendEnabled)
-            return RedirectToRoute(NopRouteNames.General.HOMEPAGE);
-
-        //validate CAPTCHA
-        if (_captchaSettings.Enabled && _captchaSettings.ShowOnEmailProductToFriendPage && !captchaValid)
-            ModelState.AddModelError("", await _localizationService.GetResourceAsync("Common.WrongCaptchaMessage"));
-
-        //check whether the current customer is guest and ia allowed to email a friend
-        var customer = await _workContext.GetCurrentCustomerAsync();
-        if (await _customerService.IsGuestAsync(customer) && !_catalogSettings.AllowAnonymousUsersToEmailAFriend)
-            ModelState.AddModelError("", await _localizationService.GetResourceAsync("Products.EmailAFriend.OnlyRegisteredUsers"));
-
-        if (ModelState.IsValid)
-        {
-            //email
-            await _workflowMessageService.SendProductEmailAFriendMessageAsync(customer,
-                (await _workContext.GetWorkingLanguageAsync()).Id, product,
-                model.YourEmailAddress, model.FriendEmail,
-                _htmlFormatter.FormatText(model.PersonalMessage, false, true, false, false, false, false));
-
-            model = await _productModelFactory.PrepareProductEmailAFriendModelAsync(model, product, true);
-            model.SuccessfullySent = true;
-            model.Result = await _localizationService.GetResourceAsync("Products.EmailAFriend.SuccessfullySent");
-
-            return View(model);
-        }
-
-        //If we got this far, something failed, redisplay form
-        model = await _productModelFactory.PrepareProductEmailAFriendModelAsync(model, product, true);
         return View(model);
     }
 

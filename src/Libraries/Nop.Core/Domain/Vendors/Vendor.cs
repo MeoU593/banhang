@@ -110,6 +110,11 @@ public partial class Vendor : BaseEntity, ILocalizedEntity, ISlugSupported, ISof
     public int? PmCustomerId { get; set; }
 
     /// <summary>
+    /// Gets or sets the customer identifier responsible for public unit contact chats
+    /// </summary>
+    public int? ContactCustomerId { get; set; }
+
+    /// <summary>
     /// Gets or sets the unit code
     /// </summary>
     public string Code { get; set; }

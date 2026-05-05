@@ -1,0 +1,40 @@
+# Build outputs
+bin
+obj
+artifacts
+out
+publish
+
+# IDE
+.vs
+.vscode
+.idea
+*.user
+*.suo
+
+# Dependencies
+node_modules
+
+# Test results
+TestResults
+coverage
+
+# Logs
+*.log
+logs
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Package files
+packages.config
+*.nupkg
+
+# Ignore these for docker build
+Tests
+.git
+.gitignore
+README*
+*.md

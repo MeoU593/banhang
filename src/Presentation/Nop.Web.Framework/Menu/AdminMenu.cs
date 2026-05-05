@@ -151,7 +151,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Vendors",
-                            Title = await _localizationService.GetResourceAsync("Admin.Vendors"),
+                            Title = "Đơn vị",
                             PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
                             Url = GetMenuItemUrl("Vendor", "List"),
                             IconClass = "far fa-dot-circle"
@@ -182,14 +182,6 @@ public partial class AdminMenu : IAdminMenu
                         },
                         new()
                         {
-                            SystemName = "GDPR log",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.GdprLog"),
-                            PermissionNames = new List<string> { StandardPermission.Customers.GDPR_MANAGE },
-                            Url = GetMenuItemUrl("Customer", "GdprLog"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Pending customers",
                             Title = "Tài khoản chờ duyệt",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
@@ -206,14 +198,6 @@ public partial class AdminMenu : IAdminMenu
                     IconClass = "fas fa-cubes",
                     ChildNodes = new List<AdminMenuItem>
                     {
-                        new()
-                        {
-                            SystemName = "Topics",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Topics"),
-                            PermissionNames = new List<string> { StandardPermission.ContentManagement.TOPICS_VIEW },
-                            Url = GetMenuItemUrl("Topic", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
                         new()
                         {
                             SystemName = "Menus",
@@ -292,44 +276,9 @@ public partial class AdminMenu : IAdminMenu
                                 },
                                 new()
                                 {
-                                    SystemName = "Order settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Order"),
-                                    Url = GetMenuItemUrl("Setting", "Order"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Shipping settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Shipping"),
-                                    Url = GetMenuItemUrl("Setting", "Shipping"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Tax settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Tax"),
-                                    Url = GetMenuItemUrl("Setting", "Tax"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
                                     SystemName = "Catalog settings",
                                     Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Catalog"),
                                     Url = GetMenuItemUrl("Setting", "Catalog"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Filter (YMM) settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.FilterLevel"),
-                                    Url = GetMenuItemUrl("Setting", "FilterLevel"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "GDPR settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Gdpr"),
-                                    Url = GetMenuItemUrl("Setting", "Gdpr"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
@@ -381,15 +330,6 @@ public partial class AdminMenu : IAdminMenu
                                     IconClass = "far fa-circle"
                                 }
                             }
-                        },
-                        new()
-                        {
-                            SystemName = "Email accounts",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.EmailAccounts"),
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_EMAIL_ACCOUNTS },
-                            Url = GetMenuItemUrl("EmailAccount",
-                            "List"),
-                            IconClass = "far fa-dot-circle"
                         },
                         new()
                         {
@@ -448,15 +388,6 @@ public partial class AdminMenu : IAdminMenu
                             Title = await _localizationService.GetResourceAsync("Admin.System.Maintenance"),
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "Maintenance"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Queued emails",
-                            Title =
-                                await _localizationService.GetResourceAsync("Admin.System.QueuedEmails"),
-                            PermissionNames = new List<string> { StandardPermission.System.MANAGE_MESSAGE_QUEUE },
-                            Url = GetMenuItemUrl("QueuedEmail", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()

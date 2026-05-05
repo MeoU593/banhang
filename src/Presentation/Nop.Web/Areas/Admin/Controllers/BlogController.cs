@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nop.Core;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Events;
 using Nop.Services.Blogs;
@@ -8,6 +9,7 @@ using Nop.Services.Messages;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Blogs;
@@ -28,6 +30,8 @@ public partial class BlogController : BaseAdminController
     protected readonly INotificationService _notificationService;
     protected readonly IStoreMappingService _storeMappingService;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
+    protected readonly IWorkContext _workContext;
 
     #endregion
 
@@ -42,7 +46,9 @@ public partial class BlogController : BaseAdminController
         IPermissionService permissionService,
         IStoreMappingService storeMappingService,
         IStoreService storeService,
-        IUrlRecordService urlRecordService)
+        IUrlRecordService urlRecordService,
+        IVendorService vendorService,
+        IWorkContext workContext)
     {
         _blogModelFactory = blogModelFactory;
         _blogService = blogService;
@@ -52,11 +58,39 @@ public partial class BlogController : BaseAdminController
         _notificationService = notificationService;
         _storeMappingService = storeMappingService;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
+        _workContext = workContext;
     }
 
     #endregion
 
     #region Methods        
+
+    protected virtual async Task<ISet<int>> GetCurrentVendorScopeIdsAsync()
+    {
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor == null)
+            return null;
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var scope = currentVendor.PmCustomerId == currentCustomer.Id
+            ? await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)
+            : [currentVendor.Id];
+
+        return scope.ToHashSet();
+    }
+
+    protected virtual async Task<bool> IsBlogPostInCurrentVendorScopeAsync(BlogPost blogPost)
+    {
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        return vendorScopeIds == null || vendorScopeIds.Contains(blogPost.VendorId);
+    }
+
+    protected virtual async Task<bool> IsBlogCommentInCurrentVendorScopeAsync(BlogComment blogComment)
+    {
+        var blogPost = await _blogService.GetBlogPostByIdAsync(blogComment.BlogPostId);
+        return blogPost != null && await IsBlogPostInCurrentVendorScopeAsync(blogPost);
+    }
 
     #region Blog posts
 
@@ -100,6 +134,10 @@ public partial class BlogController : BaseAdminController
         if (ModelState.IsValid)
         {
             var blogPost = model.ToEntity<BlogPost>();
+            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            if (currentVendor != null)
+                blogPost.VendorId = currentVendor.Id;
+
             blogPost.CreatedOnUtc = DateTime.UtcNow;
             await _blogService.InsertBlogPostAsync(blogPost);
 
@@ -137,6 +175,9 @@ public partial class BlogController : BaseAdminController
         if (blogPost == null)
             return RedirectToAction("BlogPosts");
 
+        if (!await IsBlogPostInCurrentVendorScopeAsync(blogPost))
+            return RedirectToAction("BlogPosts");
+
         //prepare model
         var model = await _blogModelFactory.PrepareBlogPostModelAsync(null, blogPost);
 
@@ -152,9 +193,21 @@ public partial class BlogController : BaseAdminController
         if (blogPost == null)
             return RedirectToAction("BlogPosts");
 
+        if (!await IsBlogPostInCurrentVendorScopeAsync(blogPost))
+            return RedirectToAction("BlogPosts");
+
         if (ModelState.IsValid)
         {
             blogPost = model.ToEntity(blogPost);
+
+            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            if (currentVendor != null)
+            {
+                var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+                if (!(vendorScopeIds?.Contains(blogPost.VendorId) ?? false))
+                    blogPost.VendorId = currentVendor.Id;
+            }
+
             await _blogService.UpdateBlogPostAsync(blogPost);
 
             //activity log
@@ -192,6 +245,9 @@ public partial class BlogController : BaseAdminController
         if (blogPost == null)
             return RedirectToAction("BlogPosts");
 
+        if (!await IsBlogPostInCurrentVendorScopeAsync(blogPost))
+            return RedirectToAction("BlogPosts");
+
         await _blogService.DeleteBlogPostAsync(blogPost);
 
         //activity log
@@ -212,6 +268,9 @@ public partial class BlogController : BaseAdminController
     {
         //try to get a blog post with the specified id
         var blogPost = await _blogService.GetBlogPostByIdAsync(filterByBlogPostId ?? 0);
+        if (blogPost != null && !await IsBlogPostInCurrentVendorScopeAsync(blogPost))
+            blogPost = null;
+
         if (blogPost == null && filterByBlogPostId.HasValue)
             return RedirectToAction("BlogComments");
 
@@ -239,6 +298,9 @@ public partial class BlogController : BaseAdminController
         var comment = await _blogService.GetBlogCommentByIdAsync(model.Id)
             ?? throw new ArgumentException("No comment found with the specified id");
 
+        if (!await IsBlogCommentInCurrentVendorScopeAsync(comment))
+            return AccessDeniedView();
+
         var previousIsApproved = comment.IsApproved;
 
         //fill entity from model
@@ -264,6 +326,9 @@ public partial class BlogController : BaseAdminController
         var comment = await _blogService.GetBlogCommentByIdAsync(id)
             ?? throw new ArgumentException("No comment found with the specified id", nameof(id));
 
+        if (!await IsBlogCommentInCurrentVendorScopeAsync(comment))
+            return AccessDeniedView();
+
         await _blogService.DeleteBlogCommentAsync(comment);
 
         //activity log
@@ -281,6 +346,11 @@ public partial class BlogController : BaseAdminController
             return NoContent();
 
         var comments = await _blogService.GetBlogCommentsByIdsAsync(selectedIds.ToArray());
+        comments = (await comments
+            .SelectAwait(async comment => new { comment, inScope = await IsBlogCommentInCurrentVendorScopeAsync(comment) })
+            .Where(x => x.inScope)
+            .Select(x => x.comment)
+            .ToListAsync());
 
         await _blogService.DeleteBlogCommentsAsync(comments);
 
@@ -300,6 +370,11 @@ public partial class BlogController : BaseAdminController
 
         //filter not approved comments
         var blogComments = (await _blogService.GetBlogCommentsByIdsAsync(selectedIds.ToArray())).Where(comment => !comment.IsApproved).ToList();
+        blogComments = (await blogComments
+            .SelectAwait(async comment => new { comment, inScope = await IsBlogCommentInCurrentVendorScopeAsync(comment) })
+            .Where(x => x.inScope)
+            .Select(x => x.comment)
+            .ToListAsync());
 
         foreach (var blogComment in blogComments)
         {
@@ -327,6 +402,11 @@ public partial class BlogController : BaseAdminController
 
         //filter approved comments
         var blogComments = (await _blogService.GetBlogCommentsByIdsAsync(selectedIds.ToArray())).Where(comment => comment.IsApproved).ToList();
+        blogComments = (await blogComments
+            .SelectAwait(async comment => new { comment, inScope = await IsBlogCommentInCurrentVendorScopeAsync(comment) })
+            .Where(x => x.inScope)
+            .Select(x => x.comment)
+            .ToListAsync());
 
         foreach (var blogComment in blogComments)
         {

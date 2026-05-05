@@ -7,6 +7,8 @@ public partial record ForumPageModel : BaseNopModel
     public ForumPageModel()
     {
         ForumTopics = new List<ForumTopicRowModel>();
+        TopicCards = new List<ForumTopicCardModel>();
+        FeaturedTopicCards = new List<ForumTopicCardModel>();
     }
 
     public int Id { get; set; }
@@ -28,4 +30,10 @@ public partial record ForumPageModel : BaseNopModel
     public int PostsPageSize { get; set; }
 
     public bool AllowPostVoting { get; set; }
+
+    public bool IsRootBoards { get; set; }
+
+    public IList<ForumTopicCardModel> TopicCards { get; set; }
+
+    public IList<ForumTopicCardModel> FeaturedTopicCards { get; set; }
 }

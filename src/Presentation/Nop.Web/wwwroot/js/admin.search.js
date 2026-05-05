@@ -75,7 +75,12 @@ Admin.Search = (function () {
             Admin.Navigation.initOnce();
 
             var $input = $(".admin-search-box");
-            $input.blur(function (e) { e.preventDefault(); e.stopPropagation(); });
+            if ($input.data('adminSearchInitialized')) {
+                return;
+            }
+
+            $input.data('adminSearchInitialized', true);
+            $input.off('blur.adminSearch').on('blur.adminSearch', function (e) { e.preventDefault(); e.stopPropagation(); });
             $input.typeahead({ minLength: 2, highlight: true, hint: false },
             {
                 name: "pages",
@@ -97,7 +102,7 @@ Admin.Search = (function () {
                 Admin.Navigation.open(item.link);
             };
 
-            $input.on("typeahead:selected", function (e, item) {
+            $input.off("typeahead:selected.adminSearch").on("typeahead:selected.adminSearch", function (e, item) {
                 navigateTo(item);
             });
         }

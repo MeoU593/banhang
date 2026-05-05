@@ -1,11 +1,212 @@
-﻿@using Nop.Services.Helpers
-@inject IDateTimeHelper dateTimeHelper
-<div class="forums-header mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-    <div class="current-time inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
-        <span class="material-symbols-outlined !text-base text-military-green">schedule</span>
-        @((await dateTimeHelper.ConvertToUserTimeAsync(DateTime.UtcNow)).ToString("F"))
-    </div>
-    <div class="min-w-[220px] sm:min-w-[280px]">
-        @await Html.PartialAsync("_SearchBox")
+﻿@{
+    var boardsUrl = Url.RouteUrl(NopRouteNames.General.BOARDS) ?? "/boards";
+    var unreadUrl = Url.RouteUrl(NopRouteNames.General.BOARDS, new { unread = 1 }) ?? "/boards?unread=1";
+    var isUnreadMode = string.Equals(Context.Request.Query["unread"], "1", StringComparison.OrdinalIgnoreCase);
+    var forumId = 0;
+
+    if (ViewData["ForumId"] is int value)
+        forumId = value;
+    else if (!string.IsNullOrWhiteSpace(Convert.ToString(ViewData["ForumId"])))
+        int.TryParse(Convert.ToString(ViewData["ForumId"]), out forumId);
+
+    var createTopicUrl = forumId > 0
+        ? (Url.RouteUrl(NopRouteNames.Standard.TOPIC_CREATE, new { id = forumId }) ?? $"/boards/topiccreate/{forumId}")
+        : null;
+
+    var boardsSearchUrl = Url.RouteUrl(NopRouteNames.Standard.BOARDS_SEARCH) ?? "/boards/search";
+    var disableSearchForm = ViewData["DisableSearchForm"] is bool valueDisable && valueDisable;
+    var searchTerms = Context.Request.Query["searchterms"].ToString();
+}
+
+<style>
+    .boards-toolbar-v2 {
+        margin-bottom: 1.25rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 12px;
+        box-shadow: 0 8px 24px -20px rgba(15, 23, 42, 0.45);
+    }
+
+    .boards-toolbar-v2__row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .boards-toolbar-v2__actions {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .boards-toolbar-v2__link {
+        display: inline-flex;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 0 16px;
+        background: #ffffff;
+        color: #334155;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1;
+        text-decoration: none;
+    }
+
+    .boards-toolbar-v2__link:hover {
+        border-color: #2d3a22;
+        color: #2d3a22;
+    }
+
+    .boards-toolbar-v2__link--primary {
+        border-color: #2d3a22;
+        background: #2d3a22;
+        color: #ffffff;
+    }
+
+    .boards-toolbar-v2__link--primary:hover {
+        border-color: #24301a;
+        background: #24301a;
+        color: #ffffff;
+    }
+
+    .boards-toolbar-v2__search {
+        display: flex;
+        width: 100%;
+        max-width: 420px;
+        min-width: 0;
+        margin: 0 0 0 auto;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .boards-toolbar-v2__search-label {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-width: 0;
+        flex: 0 1 290px;
+    }
+
+    .boards-toolbar-v2__search-icon {
+        pointer-events: none;
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 18px;
+        z-index: 2;
+    }
+
+    .boards-toolbar-v2__search-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 42px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px !important;
+        background: #f8fafc;
+        padding: 0 12px 0 56px !important;
+        color: #334155;
+        font-size: 15px;
+        line-height: 42px;
+        outline: none;
+    }
+
+    .boards-toolbar-v2__search-input:focus {
+        border-color: #2d3a22;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(45, 58, 34, 0.12);
+    }
+
+    .boards-toolbar-v2__search-submit {
+        height: 42px;
+        border: 1px solid #2d3a22 !important;
+        border-radius: 12px;
+        background: #2d3a22 !important;
+        background-image: none !important;
+        padding: 0 16px;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1;
+        box-shadow: none !important;
+    }
+
+    .boards-toolbar-v2__search-submit:hover {
+        border-color: #24301a !important;
+        background: #24301a !important;
+    }
+
+    @@media (min-width: 1280px) {
+        .boards-toolbar-v2__row {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .boards-toolbar-v2__actions {
+            justify-content: flex-start;
+        }
+
+        .boards-toolbar-v2__search {
+            margin: 0 0 0 auto;
+        }
+    }
+</style>
+
+<div class="boards-toolbar-v2">
+    <div class="boards-toolbar-v2__row">
+        <div class="boards-toolbar-v2__actions">
+            @if (!string.IsNullOrWhiteSpace(createTopicUrl))
+            {
+                <a href="@createTopicUrl" class="boards-toolbar-v2__link boards-toolbar-v2__link--primary">
+                    @T("Forum.NewTopic")
+                </a>
+            }
+
+            <a href="@unreadUrl" class="boards-toolbar-v2__link @(isUnreadMode ? "boards-toolbar-v2__link--primary" : string.Empty)">
+                Xem chủ đề chưa xem
+            </a>
+
+            @if (isUnreadMode)
+            {
+                <a href="@boardsUrl" class="boards-toolbar-v2__link">
+                    Tất cả chủ đề
+                </a>
+            }
+        </div>
+
+        @if (!disableSearchForm)
+        {
+            <form action="@boardsSearchUrl" method="get" class="boards-toolbar-v2__search">
+                <label for="forums-small-searchterms" class="boards-toolbar-v2__search-label">
+                    <span class="material-symbols-outlined boards-toolbar-v2__search-icon">search</span>
+                    <input type="text" id="forums-small-searchterms" name="searchterms" value="@searchTerms" placeholder="@T("Forum.SearchForumsTooltip")" class="boards-toolbar-v2__search-input" autocomplete="off" />
+                </label>
+                <button type="submit" class="boards-toolbar-v2__search-submit">@T("Forum.SearchButton")</button>
+            </form>
+        }
+        else
+        {
+            <div class="boards-toolbar-v2__search">
+                <label for="forums-small-searchterms" class="boards-toolbar-v2__search-label">
+                    <span class="material-symbols-outlined boards-toolbar-v2__search-icon">search</span>
+                    <input type="text" id="forums-small-searchterms" name="searchterms" value="@searchTerms" placeholder="@T("Forum.SearchForumsTooltip")" class="boards-toolbar-v2__search-input" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();window.location.href='@boardsSearchUrl?searchterms='+encodeURIComponent(this.value||'');}" />
+                </label>
+                <button type="button" class="boards-toolbar-v2__search-submit" onclick="window.location.href='@boardsSearchUrl?searchterms='+encodeURIComponent(document.getElementById('forums-small-searchterms')?.value||'');">@T("Forum.SearchButton")</button>
+            </div>
+        }
     </div>
 </div>

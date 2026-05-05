@@ -43,11 +43,15 @@
         });
     }
     if ($(document).has('[data-trigger="country-select"]')) {
-        $('select[data-trigger="country-select"]').change(countrySelectHandler);
+        $('select[data-trigger="country-select"]')
+            .off('change.countrySelect')
+            .on('change.countrySelect', countrySelectHandler);
     }
     $.fn.countrySelect = function () {
         this.each(function () {
-            $(this).change(countrySelectHandler);
+            $(this)
+                .off('change.countrySelect')
+                .on('change.countrySelect', countrySelectHandler);
         });
     }
 }(jQuery); 

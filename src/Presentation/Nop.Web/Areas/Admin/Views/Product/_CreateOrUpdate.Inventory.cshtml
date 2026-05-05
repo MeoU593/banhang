@@ -4,7 +4,6 @@
 <script>
     $(function() {
         $("#@Html.IdFor(model => model.ManageInventoryMethodId)").change(toggleManageStock);
-        $("#@Html.IdFor(model => model.UseMultipleWarehouses)").click(toggleManageStock);
         $("#@Html.IdFor(model => model.BackorderModeId)").change(toggleManageStock);
         $("#@Html.IdFor(model => model.DisplayStockAvailability)").click(toggleManageStock);
 
@@ -22,9 +21,6 @@
         var selectedManageInventoryMethodId = $("#@Html.IdFor(model => model.ManageInventoryMethodId)").val();
         if (selectedManageInventoryMethodId == dontManageStockId) {
             $('#pnlProductAvailabilityRange').hideElement();
-            $('#pnlUseMultipleWarehouses').hideElement();
-            $('#pnlWarehouse').hideElement();
-            $('#pnlMultipleWarehouses').hideElement();
             $('#pnlStockQuantity').hideElement();
             $('#pnlDisplayStockAvailability').hideElement();
             $('#pnlDisplayStockQuantity').hideElement();
@@ -37,17 +33,7 @@
 
             $('[data-card-name=product-stock-quantity-history]').hideElement();
         } else if (selectedManageInventoryMethodId == manageStockId) {
-            $('#pnlUseMultipleWarehouses').showElement();
-
-            if ($('#@Html.IdFor(model => model.UseMultipleWarehouses)').is(':checked')) {
-                $('#pnlWarehouse').hideElement();
-                $('#pnlMultipleWarehouses').showElement();
-                $('#pnlStockQuantity').hideElement();
-            } else {
-                $('#pnlWarehouse').showElement();
-                $('#pnlMultipleWarehouses').hideElement();
-                $('#pnlStockQuantity').showElement();
-            }
+            $('#pnlStockQuantity').showElement();
 
             $('#pnlDisplayStockAvailability').showElement();
             if ($('#@Html.IdFor(model => model.DisplayStockAvailability)').is(':checked')) {
@@ -82,9 +68,6 @@
             $('[data-card-name=product-stock-quantity-history]').showElement();
         } else {
             $('#pnlProductAvailabilityRange').showElement();
-            $('#pnlUseMultipleWarehouses').hideElement();
-            $('#pnlWarehouse').showElement();
-            $('#pnlMultipleWarehouses').hideElement();
             $('#pnlStockQuantity').hideElement();
             $('#pnlDisplayStockAvailability').showElement();
 
@@ -125,105 +108,6 @@
                 <nop-editor asp-for="StockQuantity" />
                 <input type="hidden" asp-for="LastStockQuantity" />
                 <span asp-validation-for="StockQuantity"></span>
-            </div>
-        </div>
-        <div class="form-group row @(Model.ProductEditorSettingsModel.Warehouse ? null : "advanced-setting")" id="pnlWarehouse">
-            <div class="col-md-3">
-                <nop-label asp-for="WarehouseId" />
-            </div>
-            <div class="col-md-9">
-                <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
-                <span asp-validation-for="WarehouseId"></span>
-            </div>
-        </div>
-        <div class="form-group row @(Model.ProductEditorSettingsModel.UseMultipleWarehouses ? null : "advanced-setting")" id="pnlUseMultipleWarehouses">
-            <div class="col-md-3">
-                <nop-label asp-for="UseMultipleWarehouses" />
-            </div>
-            <div class="col-md-9">
-                <nop-editor asp-for="UseMultipleWarehouses" />
-                <span asp-validation-for="UseMultipleWarehouses"></span>
-            </div>
-        </div>
-        <div class="form-group row @(Model.ProductEditorSettingsModel.UseMultipleWarehouses ? null : "advanced-setting")" id="pnlMultipleWarehouses">
-            <div class="col-md-12" style="overflow-x: auto;">
-                @if (Model.ProductWarehouseInventoryModels.Count > 0)
-                {
-                    <table class="table table-hover table-bordered text-center">
-                        <thead>
-                            <tr>
-                                <th>
-                                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.Warehouse")
-                                </th>
-                                <th>
-                                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.WarehouseUsed")
-                                </th>
-                                <th>
-                                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.StockQuantity")
-                                </th>
-                                <th>
-                                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.ReservedQuantity")
-                                </th>
-                                <th>
-                                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.PlannedQuantity")
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.ProductWarehouseInventoryModels)
-                            {
-                                <tr>
-                                    <td style="width: 36%;">
-                                        <div style="padding-left: 10px; padding-right: 10px;">
-                                            @item.WarehouseName
-                                        </div>
-                                    </td>
-                                    <td style="width: 10%;">
-                                        <input type="checkbox" id="warehouse_used_@(item.WarehouseId)" name="warehouse_used_@(item.WarehouseId)" value="@item.WarehouseId" checked="@item.WarehouseUsed" />
-                                        <script>
-                                        $(function() {
-                                            $("#warehouse_used_@(item.WarehouseId)").change(toggleWarehouseUsed_@(item.WarehouseId));
-                                            toggleWarehouseUsed_@(item.WarehouseId)();
-                                        });
-
-                                        function toggleWarehouseUsed_@(item.WarehouseId)() {
-                                            if ($('#warehouse_used_@(item.WarehouseId)').is(':checked')) {
-                                                $('#warehouse_qty_@(item.WarehouseId)').prop('disabled', false);
-                                                $('#warehouse_reserved_@(item.WarehouseId)').prop('disabled', false);
-                                            } else {
-                                                $('#warehouse_qty_@(item.WarehouseId)').prop('disabled', true);
-                                                $('#warehouse_reserved_@(item.WarehouseId)').prop('disabled', true);
-                                            }
-                                        }
-                                        </script>
-                                    </td>
-                                    <td style="width: 18%;">
-                                        <input id="warehouse_qty_@(item.WarehouseId)" name="warehouse_qty_@(item.WarehouseId)" type="number" value="@item.StockQuantity" class="form-control" />
-                                    </td>
-                                    <td style="width: 18%;">
-                                        <input id="warehouse_reserved_@(item.WarehouseId)" name="warehouse_reserved_@(item.WarehouseId)" type="number" value="@item.ReservedQuantity" class="form-control" />
-                                    </td>
-                                    <td style="width: 18%;">
-                                        @item.PlannedQuantity
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                    <p>
-                        <em>@T("Admin.Catalog.Products.ProductWarehouseInventory.Description1")</em>
-                    </p>
-                    <p>
-                        <em>@T("Admin.Catalog.Products.ProductWarehouseInventory.Description2")</em>
-                    </p>
-                    <p>
-                        <em>@T("Admin.Catalog.Products.ProductWarehouseInventory.Description3")</em>
-                    </p>
-                }
-                else
-                {
-                    @T("Admin.Catalog.Products.ProductWarehouseInventory.Fields.Warehouse.NotDefined")
-                }
             </div>
         </div>
         <div class="form-group row @(Model.ProductEditorSettingsModel.DisplayStockAvailability ? null : "advanced-setting")" id="pnlDisplayStockAvailability">

@@ -2,11 +2,14 @@
 using Microsoft.Extensions.Primitives;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Forums;
 using Nop.Core.Domain.Vendors;
+using Nop.Data;
 using Nop.Services.Attributes;
 using Nop.Services.Common;
 using Nop.Services.Customers;
+using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Media;
@@ -16,6 +19,7 @@ using Nop.Services.Seo;
 using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
+using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Models.Vendors;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Mvc;
@@ -25,6 +29,8 @@ namespace Nop.Web.Areas.Admin.Controllers;
 
 public partial class VendorController : BaseAdminController
 {
+    private const string VietnamCountryIsoCode = "VN";
+
     #region Fields
 
     protected readonly ForumSettings _forumSettings;
@@ -34,6 +40,7 @@ public partial class VendorController : BaseAdminController
     protected readonly IAttributeService<VendorAttribute, VendorAttributeValue> _vendorAttributeService;
     protected readonly ICustomerActivityService _customerActivityService;
     protected readonly ICustomerService _customerService;
+    protected readonly ICountryService _countryService;
     protected readonly IGenericAttributeService _genericAttributeService;
     protected readonly ILocalizationService _localizationService;
     protected readonly ILocalizedEntityService _localizedEntityService;
@@ -41,6 +48,7 @@ public partial class VendorController : BaseAdminController
     protected readonly IPermissionService _permissionService;
     protected readonly IPictureService _pictureService;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IRepository<Vendor> _vendorRepository;
     protected readonly IVendorModelFactory _vendorModelFactory;
     protected readonly IVendorService _vendorService;
     private static readonly char[] _separator = [','];
@@ -56,6 +64,7 @@ public partial class VendorController : BaseAdminController
         IAttributeService<VendorAttribute, VendorAttributeValue> vendorAttributeService,
         ICustomerActivityService customerActivityService,
         ICustomerService customerService,
+        ICountryService countryService,
         IGenericAttributeService genericAttributeService,
         ILocalizationService localizationService,
         ILocalizedEntityService localizedEntityService,
@@ -63,6 +72,7 @@ public partial class VendorController : BaseAdminController
         IPermissionService permissionService,
         IPictureService pictureService,
         IUrlRecordService urlRecordService,
+        IRepository<Vendor> vendorRepository,
         IVendorModelFactory vendorModelFactory,
         IVendorService vendorService)
     {
@@ -73,6 +83,7 @@ public partial class VendorController : BaseAdminController
         _vendorAttributeService = vendorAttributeService;
         _customerActivityService = customerActivityService;
         _customerService = customerService;
+        _countryService = countryService;
         _genericAttributeService = genericAttributeService;
         _localizationService = localizationService;
         _localizedEntityService = localizedEntityService;
@@ -80,6 +91,7 @@ public partial class VendorController : BaseAdminController
         _permissionService = permissionService;
         _pictureService = pictureService;
         _urlRecordService = urlRecordService;
+        _vendorRepository = vendorRepository;
         _vendorModelFactory = vendorModelFactory;
         _vendorService = vendorService;
     }
@@ -209,6 +221,89 @@ public partial class VendorController : BaseAdminController
         return attributesXml;
     }
 
+    protected virtual async Task NormalizeVendorAddressAsync(AddressModel model)
+    {
+        if (model == null)
+            return;
+
+        var vietnamCountryId = (await _countryService.GetCountryByTwoLetterIsoCodeAsync(VietnamCountryIsoCode))?.Id;
+        if (vietnamCountryId.HasValue)
+            model.CountryId = vietnamCountryId.Value;
+
+        model.FirstName = null;
+        model.LastName = null;
+        model.County = null;
+        model.Address2 = null;
+        model.FaxNumber = null;
+    }
+
+    protected virtual async Task ValidateParentVendorAsync(int vendorId, int? parentId)
+    {
+        if (!parentId.HasValue || parentId <= 0)
+            return;
+
+        var allVendors = await _vendorService.GetAllVendorsAsync(showHidden: true, pageSize: int.MaxValue);
+        var byId = allVendors.ToDictionary(v => v.Id, v => v);
+
+        if (!byId.ContainsKey(parentId.Value))
+        {
+            ModelState.AddModelError(nameof(VendorModel.ParentId), "Đơn vị cấp trên không tồn tại.");
+            return;
+        }
+
+        if (vendorId <= 0)
+            return;
+
+        if (parentId.Value == vendorId || WouldCreateHierarchyCycle(vendorId, parentId, byId))
+            ModelState.AddModelError(nameof(VendorModel.ParentId), "Không thể chọn đơn vị cấp trên là chính đơn vị hoặc đơn vị cấp dưới của nó.");
+    }
+
+    protected virtual async Task ValidateVendorManagerAssignmentAsync(int? pmCustomerId, int? vendorId)
+    {
+        if (!pmCustomerId.HasValue || pmCustomerId <= 0)
+            return;
+
+        var manager = await _customerService.GetCustomerByIdAsync(pmCustomerId.Value);
+        if (manager == null)
+        {
+            ModelState.AddModelError(nameof(VendorModel.PmCustomerId), "Tài khoản trưởng đơn vị không tồn tại.");
+            return;
+        }
+
+        var assignedVendorId = vendorId.GetValueOrDefault();
+        if (assignedVendorId > 0)
+        {
+            if (manager.VendorId > 0 && manager.VendorId != assignedVendorId)
+                ModelState.AddModelError(nameof(VendorModel.PmCustomerId), "Tài khoản này đang thuộc đơn vị khác.");
+        }
+        else if (manager.VendorId > 0)
+        {
+            ModelState.AddModelError(nameof(VendorModel.PmCustomerId), "Tài khoản này đang thuộc đơn vị khác.");
+        }
+
+        if (await _vendorRepository.Table.AnyAsync(v => v.PmCustomerId == pmCustomerId.Value && (!vendorId.HasValue || v.Id != vendorId.Value)))
+            ModelState.AddModelError(nameof(VendorModel.PmCustomerId), "Mỗi tài khoản chỉ có thể làm trưởng đơn vị của một đơn vị duy nhất.");
+    }
+
+    private static bool WouldCreateHierarchyCycle(int vendorId, int? parentId, IDictionary<int, Vendor> byId)
+    {
+        var currentParentId = parentId;
+        var visited = new HashSet<int> { vendorId };
+
+        while (currentParentId.HasValue && currentParentId.Value > 0)
+        {
+            if (!visited.Add(currentParentId.Value))
+                return true;
+
+            if (!byId.TryGetValue(currentParentId.Value, out var parent))
+                return false;
+
+            currentParentId = parent.ParentId;
+        }
+
+        return false;
+    }
+
     #endregion
 
     #region Vendors
@@ -293,8 +388,13 @@ public partial class VendorController : BaseAdminController
         foreach (var warning in warnings)
             ModelState.AddModelError(string.Empty, warning);
 
+        await ValidateParentVendorAsync(0, model.ParentId);
+        await ValidateVendorManagerAssignmentAsync(model.PmCustomerId, null);
+
         if (ModelState.IsValid)
         {
+            await NormalizeVendorAddressAsync(model.Address);
+
             var vendor = model.ToEntity<Vendor>();
             await _vendorService.InsertVendorAsync(vendor);
 
@@ -318,6 +418,7 @@ public partial class VendorController : BaseAdminController
             await _addressService.InsertAddressAsync(address);
             vendor.AddressId = address.Id;
             await _vendorService.UpdateVendorAsync(vendor);
+            await RecalculateVendorHierarchyAsync(vendor);
 
             //vendor attributes
             await _genericAttributeService.SaveAttributeAsync(vendor, NopVendorDefaults.VendorAttributes, vendorAttributesXml);
@@ -327,6 +428,9 @@ public partial class VendorController : BaseAdminController
 
             //update picture seo file name
             await UpdatePictureSeoNamesAsync(vendor);
+
+            //grant Vendors role to the unit manager
+            await UpdateVendorManagerRoleAsync(null, vendor.PmCustomerId, vendor.Id);
 
             _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Vendors.Added"));
 
@@ -381,11 +485,18 @@ public partial class VendorController : BaseAdminController
         foreach (var error in customAttributeWarnings)
             ModelState.AddModelError(string.Empty, error);
 
+        await ValidateParentVendorAsync(model.Id, model.ParentId);
+        await ValidateVendorManagerAssignmentAsync(model.PmCustomerId, model.Id);
+
         if (ModelState.IsValid)
         {
+            await NormalizeVendorAddressAsync(model.Address);
+
             var prevPictureId = vendor.PictureId;
+            var oldPmCustomerId = vendor.PmCustomerId;
             vendor = model.ToEntity(vendor);
             await _vendorService.UpdateVendorAsync(vendor);
+            await RecalculateVendorHierarchyAsync(vendor);
 
             //vendor attributes
             await _genericAttributeService.SaveAttributeAsync(vendor, NopVendorDefaults.VendorAttributes, vendorAttributesXml);
@@ -443,6 +554,9 @@ public partial class VendorController : BaseAdminController
             //update picture seo file name
             await UpdatePictureSeoNamesAsync(vendor);
 
+            //sync Vendors role with unit manager assignment
+            await UpdateVendorManagerRoleAsync(oldPmCustomerId, vendor.PmCustomerId, vendor.Id);
+
             _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Vendors.Updated"));
 
             if (!continueEditing)
@@ -467,6 +581,8 @@ public partial class VendorController : BaseAdminController
         if (vendor == null)
             return RedirectToAction("List");
 
+        var oldPmCustomerId = vendor.PmCustomerId;
+
         //clear associated customer references
         var associatedCustomers = await _customerService.GetAllCustomersAsync(vendorId: vendor.Id);
         foreach (var customer in associatedCustomers)
@@ -478,6 +594,9 @@ public partial class VendorController : BaseAdminController
         //delete a vendor
         await _vendorService.DeleteVendorAsync(vendor);
 
+        //revoke Vendors role from former manager if they no longer manage any vendor
+        await UpdateVendorManagerRoleAsync(oldPmCustomerId, null, null);
+
         //activity log
         await _customerActivityService.InsertActivityAsync("DeleteVendor",
             string.Format(await _localizationService.GetResourceAsync("ActivityLog.DeleteVendor"), vendor.Id), vendor);
@@ -485,6 +604,99 @@ public partial class VendorController : BaseAdminController
         _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Vendors.Deleted"));
 
         return RedirectToAction("List");
+    }
+
+    protected virtual async Task RecalculateVendorHierarchyAsync(Vendor vendor)
+    {
+        var allVendors = await _vendorService.GetAllVendorsAsync(showHidden: true, pageSize: int.MaxValue);
+        var byId = allVendors.ToDictionary(v => v.Id, v => v);
+
+        if (!byId.TryGetValue(vendor.Id, out var currentVendor))
+            return;
+
+        if (WouldCreateHierarchyCycle(currentVendor.Id, currentVendor.ParentId, byId))
+            throw new InvalidOperationException("Cấu trúc cây đơn vị không hợp lệ.");
+
+        var parent = currentVendor.ParentId.HasValue && currentVendor.ParentId.Value > 0 && byId.TryGetValue(currentVendor.ParentId.Value, out var parentVendor)
+            ? parentVendor
+            : null;
+
+        var currentCode = string.IsNullOrWhiteSpace(currentVendor.Code) ? $"V-{currentVendor.Id}" : currentVendor.Code.Trim();
+        var currentPath = parent == null ? $"/{currentCode}" : $"{parent.Path}/{currentCode}";
+        var currentLevel = parent == null ? 0 : parent.Level + 1;
+
+        if (currentVendor.Code != currentCode || currentVendor.Path != currentPath || currentVendor.Level != currentLevel)
+        {
+            currentVendor.Code = currentCode;
+            currentVendor.Path = currentPath;
+            currentVendor.Level = currentLevel;
+            await _vendorService.UpdateVendorAsync(currentVendor);
+        }
+
+        var descendants = allVendors
+            .Where(v => v.Id != currentVendor.Id)
+            .ToDictionary(v => v.Id, v => v);
+
+        var queue = new Queue<Vendor>();
+        queue.Enqueue(currentVendor);
+
+        while (queue.Count > 0)
+        {
+            var parentNode = queue.Dequeue();
+            var children = descendants.Values.Where(v => v.ParentId == parentNode.Id).ToList();
+
+            foreach (var child in children)
+            {
+                var childCode = string.IsNullOrWhiteSpace(child.Code) ? $"V-{child.Id}" : child.Code.Trim();
+                var childPath = $"{parentNode.Path}/{childCode}";
+                var childLevel = parentNode.Level + 1;
+
+                if (child.Code != childCode || child.Path != childPath || child.Level != childLevel)
+                {
+                    child.Code = childCode;
+                    child.Path = childPath;
+                    child.Level = childLevel;
+                    await _vendorService.UpdateVendorAsync(child);
+                }
+
+                queue.Enqueue(child);
+            }
+        }
+    }
+
+    protected virtual async Task UpdateVendorManagerRoleAsync(int? oldPmCustomerId, int? newPmCustomerId, int? vendorId)
+    {
+        var vendorsRole = await _customerService.GetCustomerRoleBySystemNameAsync(NopCustomerDefaults.VendorsRoleName);
+        if (vendorsRole == null)
+            return;
+
+        // Grant Vendors role to new manager
+        if (newPmCustomerId > 0)
+        {
+            var newManager = await _customerService.GetCustomerByIdAsync(newPmCustomerId.Value);
+            if (newManager != null)
+            {
+                if (vendorId.HasValue && vendorId > 0 && newManager.VendorId != vendorId.Value)
+                {
+                    newManager.VendorId = vendorId.Value;
+                    await _customerService.UpdateCustomerAsync(newManager);
+                }
+
+                if (!await _customerService.IsInCustomerRoleAsync(newManager, NopCustomerDefaults.VendorsRoleName))
+                    await _customerService.AddCustomerRoleMappingAsync(new CustomerCustomerRoleMapping { CustomerId = newManager.Id, CustomerRoleId = vendorsRole.Id });
+            }
+        }
+
+        // Revoke Vendors role from old manager if they no longer manage any vendor
+        if (oldPmCustomerId > 0 && oldPmCustomerId != newPmCustomerId)
+        {
+            if (!await _vendorRepository.Table.AnyAsync(v => v.PmCustomerId == oldPmCustomerId))
+            {
+                var oldManager = await _customerService.GetCustomerByIdAsync(oldPmCustomerId.Value);
+                if (oldManager != null)
+                    await _customerService.RemoveCustomerRoleMappingAsync(oldManager, vendorsRole);
+            }
+        }
     }
 
     #endregion

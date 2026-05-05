@@ -1,15 +1,17 @@
-﻿@using Nop.Services.Localization
+@using Nop.Services.Localization
 @using Nop.Web.Factories
 @model ActiveDiscussionsModel
 @inject ILocalizationService localizationService
-<div class="forums-table-section topic-group active-discussions overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <div class="forums-table-section-title flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-900 px-4 py-3 text-sm font-bold text-white">
+
+<div class="active-discussions space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-sm">
+        <strong>@T("Forum.ActiveDiscussions")</strong>
         @if (Model.ActiveDiscussionsFeedEnabled)
         {
             <a href="@Url.RouteUrl(NopRouteNames.Standard.ACTIVE_DISCUSSIONS_RSS)" class="link-rss inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white" title="@T("Forum.ActiveDiscussionsRSSLinkTitle")">@T("Forum.RSS")</a>
         }
-        <strong>@T("Forum.ActiveDiscussions")</strong>
     </div>
+
     @{
         var pager = await Html.PagerAsync(new PagerModel(localizationService)
         {
@@ -24,107 +26,85 @@
     }
     @if (!string.IsNullOrEmpty(await pager.RenderHtmlContentAsync()))
     {
-        <div class="pager upper">
+        <div class="pager upper rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
             @pager
         </div>
     }
-    <div class="forums-table-section-body">
-        @if (Model.ForumTopics.Count > 0)
-        {
-            <div class="table-wrapper overflow-x-auto">
-                <table class="forum-table min-w-full">
-                    <colgroup>
-                        <col />
-                        <col width="1" />
-                        <col width="1" />
-                        @if (Model.AllowPostVoting)
-                        {
-                            <col width="1" />
-                        }
-                        <col width="1" />
-                    </colgroup>
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="topic-details px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                                @T("Forum.TopicTitle")
-                            </th>
-                            <th class="replies px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                                @T("Forum.Replies")
-                            </th>
-                            <th class="views px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                                @T("Forum.Views")
-                            </th>
-                            @if (Model.AllowPostVoting)
+
+    @if (Model.ForumTopics.Count == 0)
+    {
+        <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500">
+            Chưa có thảo luận nào.
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var topic in Model.ForumTopics)
+            {
+                <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-military-green/40 hover:shadow-md">
+                    <div class="flex flex-wrap items-start gap-4">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-military-green/10 text-military-green">
+                            <span class="material-symbols-outlined">mark_chat_read</span>
+                        </div>
+
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <h3 class="public-card-title font-bold text-slate-900">
+                                @Html.RouteLink(topic.Subject, NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName }, new { @class = "transition hover:text-military-green" })
+                            </h3>
+
+                            @if (topic.NumPosts > Model.PostsPageSize)
                             {
-                                <th class="votes px-3 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                                    @T("Forum.Votes")
-                                </th>
+                                <div class="topic-pager text-xs">
+                                    @await Html.ForumTopicSmallPagerAsync(topic)
+                                </div>
                             }
-                            <th class="latest-post px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                                @T("Forum.LatestPost")
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var topic in Model.ForumTopics)
-                        {
-                            <tr class="border-t border-slate-100 hover:bg-slate-50/70">
-                                <td class="topic-details px-4 py-3 align-top">
-                                    <div class="topic-title">
-                                        @Html.RouteLink(topic.Subject, NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName }, new { @class = "text-sm font-bold text-slate-900 hover:text-military-red sm:text-base" })
-                                    </div>
-                                    @if (topic.NumPosts > Model.PostsPageSize)
+
+                            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                <span class="font-semibold text-slate-600">@T("Forum.Author"):</span>
+                                @if (topic.CustomerId > 0)
+                                {
+                                    if (topic.AllowViewingProfiles)
                                     {
-                                        <div class="topic-pager">
-                                            @await Html.ForumTopicSmallPagerAsync(topic)
-                                        </div>
+                                        @Html.RouteLink(topic.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = topic.CustomerId }, new { @class = "font-semibold text-slate-700 hover:text-military-green" })
                                     }
-                                    <div class="topic-starter mt-1 text-xs text-slate-500">
-                                        @if (topic.CustomerId > 0)
-                                        {
-                                            <label>@T("Forum.Author"):</label>
-                                            if (topic.AllowViewingProfiles)
-                                            {
-                                                @Html.RouteLink(topic.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { Id = topic.CustomerId }, new { @class = "font-semibold text-slate-700 hover:text-military-green" })
-                                            }
-                                            else
-                                            {
-                                                @topic.CustomerName
-                                            }
-                                        }
-                                    </div>
-                                </td>
-                                <td class="replies px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
-                                    @topic.NumReplies
-                                </td>
-                                <td class="views px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
-                                    @topic.Views
-                                </td>
+                                    else
+                                    {
+                                        <span class="font-semibold text-slate-700">@topic.CustomerName</span>
+                                    }
+                                }
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <span class="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">@topic.NumReplies @T("Forum.Replies")</span>
+                                <span class="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">@topic.Views @T("Forum.Views")</span>
                                 @if (Model.AllowPostVoting)
                                 {
-                                    <td class="votes px-3 py-3 text-center text-sm font-semibold text-slate-700 align-top">
-                                        @topic.Votes
-                                    </td>
+                                    <span class="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">@topic.Votes @T("Forum.Votes")</span>
                                 }
-                                <td class="latest-post px-4 py-3 align-top">
-                                    @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new { forumPostId = topic.LastPostId, showTopic = false })
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-500 sm:w-64">
+                            <p class="mb-1 font-bold uppercase tracking-[0.12em] text-slate-400">@T("Forum.LatestPost")</p>
+                            @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new { forumPostId = topic.LastPostId, showTopic = false })
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+
     @if (!string.IsNullOrEmpty(await pager.RenderHtmlContentAsync()))
     {
-        <div class="pager lower">
+        <div class="pager lower rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
             @pager
         </div>
     }
+
     @if (Model.ViewAllLinkEnabled)
     {
-        <div class="view-all border-t border-slate-100 p-4 text-right">
+        <div class="view-all rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm">
             @Html.RouteLink(T("Forum.ActiveDiscussions.ViewAll").Text, NopRouteNames.Standard.ACTIVE_DISCUSSIONS, null, new { @class = "inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
         </div>
     }

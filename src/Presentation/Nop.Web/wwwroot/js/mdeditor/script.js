@@ -7,11 +7,34 @@ function initializeMarkdownEditor(textareaId, iconsPath) {
   const markdownInput = document.getElementById(textareaId);
   const htmlOutput = document.getElementById('html-output');
   const toolbar = document.getElementById('editor-toolbar');
-  const editorContainer = markdownInput.closest('.markdown-editor-container');
 
-  if (!markdownInput || !htmlOutput || !toolbar || !editorContainer) {
+  if (!markdownInput || !htmlOutput || !toolbar) {
     console.error("Error: Required DOM elements not found (textarea, output, toolbar, or container).");
     return;
+  }
+
+  const editorContainer = markdownInput.closest('.markdown-editor-container');
+  if (!editorContainer) {
+    console.error("Error: Required DOM elements not found (textarea, output, toolbar, or container).");
+    return;
+  }
+
+  function updatePreview() {
+    const markdownText = markdownInput.value;
+    htmlOutput.innerHTML = marked.parse(markdownText, { gfm: true, breaks: true });
+  }
+
+  if (editorContainer.dataset.markdownEditorInitialized === 'true') {
+    updatePreview();
+    return { updatePreview, destroy: editorContainer._markdownDestroy || function () { } };
+  }
+
+  editorContainer.dataset.markdownEditorInitialized = 'true';
+  const eventHandlers = [];
+
+  function addTrackedEventListener(element, eventName, handler) {
+    element.addEventListener(eventName, handler);
+    eventHandlers.push({ element, eventName, handler });
   }
 
   toolbar.style.display = 'flex';
@@ -21,7 +44,7 @@ function initializeMarkdownEditor(textareaId, iconsPath) {
   const previewPanel = document.getElementById('preview-panel');
 
   if (writePanel && previewPanel) {
-    markdownInput.addEventListener('scroll', () => {
+    addTrackedEventListener(markdownInput, 'scroll', function () {
       const ratio = markdownInput.scrollTop / (markdownInput.scrollHeight - markdownInput.clientHeight);
       previewPanel.scrollTop = ratio * (previewPanel.scrollHeight - previewPanel.clientHeight);
     });
@@ -43,15 +66,7 @@ function initializeMarkdownEditor(textareaId, iconsPath) {
     saveEditorHeight();
   });
   resizeObserver.observe(editorContainer);
-
-  // Preview update function
-  function updatePreview() {
-    const markdownText = markdownInput.value;
-    // Use marked.parse() for conversion
-    // Add GFM (GitHub Flavored Markdown) option for better compatibility
-    // and breaks option to treat newlines as <br>
-    htmlOutput.innerHTML = marked.parse(markdownText, { gfm: true, breaks: true });
-  }
+  editorContainer._markdownResizeObserver = resizeObserver;
 
   // Helper to insert text into textarea
   /**
@@ -155,13 +170,24 @@ function initializeMarkdownEditor(textareaId, iconsPath) {
     img.onerror = () => { console.warn(`Failed to load icon: ${img.src}`); img.alt = `[${buttonConfig.title}]`; };
 
     button.appendChild(img);
-    button.addEventListener('click', buttonConfig.action);
+    addTrackedEventListener(button, 'click', buttonConfig.action);
     toolbar.appendChild(button);
   });
 
   // Add 'input' event listener to the textarea
   // Update preview on input, even if the Preview tab is not active
-  markdownInput.addEventListener('input', updatePreview);
+  addTrackedEventListener(markdownInput, 'input', updatePreview);
+
+  editorContainer._markdownDestroy = function () {
+    resizeObserver.disconnect();
+    eventHandlers.forEach(({ element, eventName, handler }) => {
+      element.removeEventListener(eventName, handler);
+    });
+    eventHandlers.length = 0;
+    delete editorContainer.dataset.markdownEditorInitialized;
+    editorContainer._markdownResizeObserver = null;
+    editorContainer._markdownDestroy = null;
+  };
 
   // Update preview on initialization
   updatePreview();
@@ -169,7 +195,7 @@ function initializeMarkdownEditor(textareaId, iconsPath) {
   console.log("Markdown editor initialized."); 
 
   // Return the update function reference for potential use by tabs (though not strictly needed by current setupTabs)
-  return { updatePreview };
+  return { updatePreview, destroy: editorContainer._markdownDestroy };
 }
 
 function clickTab(button, tabButtons, tabPanels, markdownInput) {
@@ -209,19 +235,37 @@ function setupTabs(containerId, textareaId) {
     return;
   }
 
+  if (container.dataset.markdownTabsInitialized === 'true') {
+    return;
+  }
+
+  container.dataset.markdownTabsInitialized = 'true';
+  const tabEventHandlers = [];
+
   const markdownInput = document.getElementById(textareaId);
   const tabButtons = container.querySelectorAll('.editor-tabs .tab-button');
   const tabPanels = container.querySelectorAll('.editor-content .tab-panel');
 
   tabButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
+    var tabClickHandler = (e) => {
       // Prevent the default form submission
       e.preventDefault();
       e.stopPropagation();
 
       clickTab(button, tabButtons, tabPanels, markdownInput);
-    });
+    };
+    button.addEventListener('click', tabClickHandler);
+    tabEventHandlers.push({ button, tabClickHandler });
   });
+
+  container._markdownTabsDestroy = function () {
+    tabEventHandlers.forEach(({ button, tabClickHandler }) => {
+      button.removeEventListener('click', tabClickHandler);
+    });
+    tabEventHandlers.length = 0;
+    delete container.dataset.markdownTabsInitialized;
+    container._markdownTabsDestroy = null;
+  };
 
   // Set focus to input field on initial load if Write tab is active
   const writePanel = document.getElementById('write-panel');

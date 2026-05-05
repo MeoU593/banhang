@@ -124,17 +124,9 @@ public partial class CommonController : BaseAdminController
     [HttpPost, ActionName("Maintenance")]
     [FormValueRequired("delete-guests")]
     [CheckPermission(StandardPermission.System.MANAGE_MAINTENANCE)]
-    public virtual async Task<IActionResult> MaintenanceDeleteGuests(MaintenanceModel model)
+    public virtual IActionResult MaintenanceDeleteGuests(MaintenanceModel model)
     {
-        var startDateValue = model.DeleteGuests.StartDate == null ? null
-            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteGuests.StartDate.Value, await _dateTimeHelper.GetCurrentTimeZoneAsync());
-
-        var endDateValue = model.DeleteGuests.EndDate == null ? null
-            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteGuests.EndDate.Value, await _dateTimeHelper.GetCurrentTimeZoneAsync()).AddDays(1);
-
-        model.DeleteGuests.NumberOfDeletedCustomers = await _customerService.DeleteGuestCustomersAsync(startDateValue, endDateValue, model.DeleteGuests.OnlyWithoutShoppingCart);
-
-        return View(model);
+        return NotFound();
     }
 
     [HttpPost, ActionName("Maintenance")]
@@ -158,12 +150,9 @@ public partial class CommonController : BaseAdminController
     [HttpPost, ActionName("Maintenance")]
     [FormValueRequired("delete-abondoned-carts")]
     [CheckPermission(StandardPermission.System.MANAGE_MAINTENANCE)]
-    public virtual async Task<IActionResult> MaintenanceDeleteAbandonedCarts(MaintenanceModel model)
+    public virtual IActionResult MaintenanceDeleteAbandonedCarts(MaintenanceModel model)
     {
-        var olderThanDateValue = _dateTimeHelper.ConvertToUtcTime(model.DeleteAbandonedCarts.OlderThan, await _dateTimeHelper.GetCurrentTimeZoneAsync());
-
-        model.DeleteAbandonedCarts.NumberOfDeletedItems = await _shoppingCartService.DeleteExpiredShoppingCartItemsAsync(olderThanDateValue);
-        return View(model);
+        return NotFound();
     }
 
     [HttpPost, ActionName("Maintenance")]

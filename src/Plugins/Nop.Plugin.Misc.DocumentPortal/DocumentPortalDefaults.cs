@@ -13,11 +13,11 @@ public static class DocumentPortalDefaults
         public const string LIST = "DocumentPortal.List";
         public const string SEARCH = "DocumentPortal.Search";
         public const string DETAIL = "DocumentPortal.Detail";
+        public const string PREVIEW = "DocumentPortal.Preview";
         public const string DOWNLOAD = "DocumentPortal.Download";
         public const string UPLOAD = "DocumentPortal.Upload";
         public const string DELETE = "DocumentPortal.Delete";
-
-        public const string VENDOR_LIST = "DocumentPortal.Vendor.List";
-        public const string VENDOR_DELETE = "DocumentPortal.Vendor.Delete";
+        public const string EDIT_OWN = "DocumentPortal.EditOwn";
+        public const string DELETE_OWN = "DocumentPortal.DeleteOwn";
     }
 }

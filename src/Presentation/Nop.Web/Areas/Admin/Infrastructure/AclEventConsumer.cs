@@ -47,7 +47,7 @@ public partial class AclEventConsumer : IConsumer<ModelPreparedEvent<BaseNopMode
     protected readonly IProductService _productService;
     protected readonly ITopicService _topicService;
 
-    private static readonly Dictionary<string, IList<int>> _tempData = new(comparer: StringComparer.InvariantCultureIgnoreCase);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, IList<int>> _tempData = new(StringComparer.InvariantCultureIgnoreCase);
 
     #endregion
 
@@ -89,11 +89,10 @@ public partial class AclEventConsumer : IConsumer<ModelPreparedEvent<BaseNopMode
     /// <returns>A task that represents the asynchronous operation</returns>
     protected virtual async Task SaveStoredDataAsync<TEntity>(string key, TEntity entity) where TEntity : BaseEntity, IAclSupported
     {
-        if (!_tempData.ContainsKey(key))
+        if (!_tempData.TryRemove(key, out var selectedCustomerRoleIds))
             return;
 
-        await _aclService.SaveAclAsync(entity, _tempData[key]);
-        _tempData.Remove(key);
+        await _aclService.SaveAclAsync(entity, selectedCustomerRoleIds);
     }
 
     #endregion

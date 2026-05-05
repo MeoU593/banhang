@@ -8,6 +8,11 @@ var mainMenu = {
     };
 
     menuDropdowns.forEach((e) => {
+      if (e.dataset.menuInitialized === 'true') {
+        return;
+      }
+
+      e.dataset.menuInitialized = 'true';
       e.addEventListener("click", toggleClass.bind(e));
     })
   }

@@ -34,10 +34,7 @@ using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Seo;
-using Nop.Services.Shipping;
-using Nop.Services.Shipping.Pickup;
 using Nop.Services.Stores;
-using Nop.Services.Tax;
 using Nop.Services.Topics;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Blogs;
@@ -84,17 +81,14 @@ public partial class CommonModelFactory : ICommonModelFactory
     protected readonly INopUrlHelper _nopUrlHelper;
     protected readonly IOrderService _orderService;
     protected readonly IPaymentPluginManager _paymentPluginManager;
-    protected readonly IPickupPluginManager _pickupPluginManager;
     protected readonly IPluginService _pluginService;
     protected readonly IProductService _productService;
     protected readonly IReturnRequestService _returnRequestService;
     protected readonly ISearchTermService _searchTermService;
     protected readonly IServiceCollection _serviceCollection;
-    protected readonly IShippingPluginManager _shippingPluginManager;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreService _storeService;
-    protected readonly ITaxPluginManager _taxPluginManager;
     protected readonly IThumbService _thumbService;
     protected readonly ITopicService _topicService;
     protected readonly IUrlHelperFactory _urlHelperFactory;
@@ -135,17 +129,14 @@ public partial class CommonModelFactory : ICommonModelFactory
         INopUrlHelper nopUrlHelper,
         IOrderService orderService,
         IPaymentPluginManager paymentPluginManager,
-        IPickupPluginManager pickupPluginManager,
         IPluginService pluginService,
         IProductService productService,
         IReturnRequestService returnRequestService,
         ISearchTermService searchTermService,
         IServiceCollection serviceCollection,
-        IShippingPluginManager shippingPluginManager,
         IStaticCacheManager staticCacheManager,
         IStoreContext storeContext,
         IStoreService storeService,
-        ITaxPluginManager taxPluginManager,
         IThumbService thumbService,
         ITopicService topicService,
         IUrlHelperFactory urlHelperFactory,
@@ -182,17 +173,14 @@ public partial class CommonModelFactory : ICommonModelFactory
         _nopUrlHelper = nopUrlHelper;
         _orderService = orderService;
         _paymentPluginManager = paymentPluginManager;
-        _pickupPluginManager = pickupPluginManager;
         _pluginService = pluginService;
         _productService = productService;
         _returnRequestService = returnRequestService;
         _searchTermService = searchTermService;
         _serviceCollection = serviceCollection;
-        _shippingPluginManager = shippingPluginManager;
         _staticCacheManager = staticCacheManager;
         _storeContext = storeContext;
         _storeService = storeService;
-        _taxPluginManager = taxPluginManager;
         _thumbService = thumbService;
         _topicService = topicService;
         _urlHelperFactory = urlHelperFactory;
@@ -710,18 +698,6 @@ public partial class CommonModelFactory : ICommonModelFactory
                     isEnabled = _paymentPluginManager.IsPluginActive(paymentMethod);
                     break;
 
-                case IShippingRateComputationMethod shippingRateComputationMethod:
-                    isEnabled = _shippingPluginManager.IsPluginActive(shippingRateComputationMethod);
-                    break;
-
-                case IPickupPointProvider pickupPointProvider:
-                    isEnabled = _pickupPluginManager.IsPluginActive(pickupPointProvider);
-                    break;
-
-                case ITaxProvider taxProvider:
-                    isEnabled = _taxPluginManager.IsPluginActive(taxProvider);
-                    break;
-
                 case IExternalAuthenticationMethod externalAuthenticationMethod:
                     isEnabled = _authenticationPluginManager.IsPluginActive(externalAuthenticationMethod);
                     break;
@@ -926,21 +902,6 @@ public partial class CommonModelFactory : ICommonModelFactory
 
         //recommendations
         await PrepareRecommendationsModelAsync(models);
-
-        //primary exchange rate currency
-        await PrepareExchangeRateCurrencyWarningModelAsync(models);
-
-        //primary store currency
-        await PreparePrimaryStoreCurrencyWarningModelAsync(models);
-
-        //base measure weight
-        await PrepareBaseWeightWarningModelAsync(models);
-
-        //base dimension weight
-        await PrepareBaseDimensionWarningModelAsync(models);
-
-        //payment methods
-        await PreparePaymentMethodsWarningModelAsync(models);
 
         //performance settings
         await PreparePerformanceSettingsWarningModelAsync(models);

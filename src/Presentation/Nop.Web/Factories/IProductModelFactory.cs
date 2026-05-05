@@ -80,18 +80,6 @@ public partial interface IProductModelFactory
     Task<CustomerProductReviewsModel> PrepareCustomerProductReviewsModelAsync(int? page);
 
     /// <summary>
-    /// Prepare the product email a friend model
-    /// </summary>
-    /// <param name="model">Product email a friend model</param>
-    /// <param name="product">Product</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the product email a friend model
-    /// </returns>
-    Task<ProductEmailAFriendModel> PrepareProductEmailAFriendModelAsync(ProductEmailAFriendModel model, Product product, bool excludeProperties);
-
-    /// <summary>
     /// Prepare the product specification model
     /// </summary>
     /// <param name="product">Product</param>

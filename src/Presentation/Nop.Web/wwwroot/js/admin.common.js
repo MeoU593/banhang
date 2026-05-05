@@ -76,7 +76,7 @@ function checkOverriddenStoreValue(obj, selector) {
 }
 
 function bindBootstrapTabSelectEvent(tabsId, inputId) {
-    $('#' + tabsId + ' > div ul li a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+    $('#' + tabsId + ' > div ul li a[data-toggle="pill"]').off('shown.bs.tab.persistTab').on('shown.bs.tab.persistTab', function (e) {
         var tabName = $(e.target).attr("data-tab-name");
         $("#" + inputId).val(tabName);
     });
@@ -122,6 +122,10 @@ function addAntiForgeryToken(data) {
 };
 
 function saveUserPreferences(url, name, value) {
+    if (!name) {
+        return;
+    }
+
     var postData = {
         name: name,
         value: value
@@ -200,8 +204,9 @@ function initNestedSetting(parentSettingName, parentSettingId, nestedSettingId) 
     }
 
     //$(document).on('click', 'input[name="' + parentSettingName + '"]', toggleNestedSetting(parentSettingName, parentFormGroupId));
-    $('input[name="' + parentSettingName + '"]').click(
-        { parentSettingName: parentSettingName, parentFormGroupId: parentFormGroupId }, parentSettingClick);
+    $('input[name="' + parentSettingName + '"]')
+        .off('click.nestedSetting')
+        .on('click.nestedSetting', { parentSettingName: parentSettingName, parentFormGroupId: parentFormGroupId }, parentSettingClick);
     toggleNestedSetting(parentSettingName, parentFormGroupId);
 }
 
@@ -213,7 +218,7 @@ function initNestedSetting(parentSettingName, parentSettingId, nestedSettingId) 
         var position = 1000;
         var speed = 900;
 
-        $(document).scroll(function () {
+        $(document).off('scroll.backTop').on('scroll.backTop', function () {
             var pos = $(window).scrollTop();
 
             if (pos >= position) {
@@ -223,7 +228,7 @@ function initNestedSetting(parentSettingName, parentSettingId, nestedSettingId) 
             }
         });
 
-        backBtn.click(function () {
+        backBtn.off('click.backTop').on('click.backTop', function () {
             $("html, body").animate({ scrollTop: 0 }, 900);
         });
     }
@@ -238,10 +243,10 @@ $(document).ajaxStart(function () {
 
 //no-tabs solution
 $(function() {
-  $(".card.card-secondary >.card-header").click(CardToggle);
+  $(".card.card-secondary >.card-header").off('click.cardToggle').on('click.cardToggle', CardToggle);
 
   //expanded
-  $('.card.card-secondary').on('expanded.lte.cardwidget', function () {
+  $('.card.card-secondary').off('expanded.lte.cardwidget.saveBlock').on('expanded.lte.cardwidget.saveBlock', function () {
     WrapAndSaveBlockData($(this), false)
     
     if ($(this).find('table.dataTable').length > 0) {
@@ -252,7 +257,7 @@ $(function() {
   });
 
   //collapsed
-  $('.card.card-secondary').on('collapsed.lte.cardwidget', function () {
+  $('.card.card-secondary').off('collapsed.lte.cardwidget.saveBlock').on('collapsed.lte.cardwidget.saveBlock', function () {
     WrapAndSaveBlockData($(this), true)
   });
 });
@@ -269,7 +274,7 @@ function WrapAndSaveBlockData(card, collapsed) {
 
 //collapse search block
 $(function() {
-  $(".row.search-row").click(ToggleSearchBlockAndSavePreferences);
+  $(".row.search-row").off('click.searchBlock').on('click.searchBlock', ToggleSearchBlockAndSavePreferences);
 });
 
 function ToggleSearchBlockAndSavePreferences() {
@@ -318,7 +323,7 @@ function showAlert(alertId, text)
 //scrolling and hidden DataTables issue workaround
 //More info - https://datatables.net/examples/api/tabs_and_scrolling.html
 $(function() {
-  $('button[data-card-widget="collapse"]').on('click', function (e) {
+  $('button[data-card-widget="collapse"]').off('click.dataTableRender').on('click.dataTableRender', function (e) {
     //hack with waiting animation. 
     //when page is loaded, a box that should be collapsed have style 'display: none;'.that's why a table is not updated
     setTimeout(function () {
@@ -327,22 +332,22 @@ $(function() {
   });
 
   // when tab item click
-  $('.nav-tabs .nav-item').on('click', function (e) {
+  $('.nav-tabs .nav-item').off('click.dataTableRender').on('click.dataTableRender', function (e) {
     setTimeout(function () {
       ensureDataTablesRendered();
     }, 1);
   });
 
-  $('ul li a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  $('ul li a[data-toggle="tab"]').off('shown.bs.tab.dataTableRender').on('shown.bs.tab.dataTableRender', function (e) {
     ensureDataTablesRendered();
   });
 
-  $('#advanced-settings-mode').on('click', function (e) {
+  $('#advanced-settings-mode').off('click.dataTableRender').on('click.dataTableRender', function (e) {
     ensureDataTablesRendered();
   });
 
   //when sidebar-toggle click
-  $('#nopSideBarPusher').on('click', function (e) {
+  $('#nopSideBarPusher').off('click.dataTableRender').on('click.dataTableRender', function (e) {
     reloadAllDataTables();
   });
 });
@@ -353,12 +358,12 @@ $(function() {
  */
 function prepareTableCheckboxes(masterCheckbox, childCheckbox) {
   //Handling the event of clicking on the master checkbox
-  $(masterCheckbox).click(function () {
+  $(masterCheckbox).off('click.tableCheckboxes').on('click.tableCheckboxes', function () {
     $(childCheckbox).prop('checked', $(this).prop('checked'));
   });
 
   //Handling the event of clicking on a child checkbox
-  $(childCheckbox).change(function () {
+  $(childCheckbox).off('change.tableCheckboxes').on('change.tableCheckboxes', function () {
     $(masterCheckbox).prop('checked', $(childCheckbox + ':not(:checked)').length === 0 ? true : false);
   });
 

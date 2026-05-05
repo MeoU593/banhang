@@ -9,5 +9,4 @@ public class DocumentPortalSettings : ISettings
     public bool ShowRelatedDocuments { get; set; } = true;
     public bool ShowDownloadCount { get; set; } = true;
     public bool AutoGenerateSlug { get; set; } = true;
-    public bool RequireLoginForPrivateDocuments { get; set; } = true;
 }

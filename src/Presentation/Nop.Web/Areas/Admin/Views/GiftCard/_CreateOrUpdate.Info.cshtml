@@ -19,7 +19,7 @@
                 <nop-label asp-for="PurchasedWithOrderNumber"/>
             </div>
             <div class="col-md-9">
-                <a asp-controller="Order" asp-action="Edit" asp-route-id="@Model.PurchasedWithOrderId.Value">@Model.PurchasedWithOrderNumber - @T("Admin.Common.View")</a>
+                <div class="form-text-row">@Model.PurchasedWithOrderNumber</div>
             </div>
         </div>
     }

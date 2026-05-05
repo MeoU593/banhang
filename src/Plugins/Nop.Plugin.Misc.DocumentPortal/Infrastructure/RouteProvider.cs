@@ -23,9 +23,29 @@ public class RouteProvider : BaseRouteProvider, IRouteProvider
             defaults: new { controller = "Document", action = "Delete" });
 
         endpointRouteBuilder.MapControllerRoute(
+            name: DocumentPortalDefaults.Routes.EDIT_OWN,
+            pattern: "tai-lieu/cua-toi/sua/{id:int}",
+            defaults: new { controller = "Document", action = "EditOwn" });
+
+        endpointRouteBuilder.MapControllerRoute(
+            name: DocumentPortalDefaults.Routes.DELETE_OWN,
+            pattern: "tai-lieu/cua-toi/xoa/{id:int}",
+            defaults: new { controller = "Document", action = "DeleteOwn" });
+
+        endpointRouteBuilder.MapControllerRoute(
             name: DocumentPortalDefaults.Routes.DOWNLOAD,
             pattern: "tai-lieu/tai/{id:int}",
             defaults: new { controller = "Document", action = "Download" });
+
+        endpointRouteBuilder.MapControllerRoute(
+            name: DocumentPortalDefaults.Routes.PREVIEW,
+            pattern: "tai-lieu/xem/{id:int}",
+            defaults: new { controller = "Document", action = "Preview" });
+
+        endpointRouteBuilder.MapControllerRoute(
+            name: "DocumentPortal.CommentAdd",
+            pattern: "tai-lieu/binh-luan/{id:int}",
+            defaults: new { controller = "Document", action = "CommentAdd" });
 
         endpointRouteBuilder.MapControllerRoute(
             name: DocumentPortalDefaults.Routes.SEARCH,
@@ -53,15 +73,20 @@ public class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: "Admin/DocumentPortalAdmin/Settings",
             defaults: new { controller = "DocumentPortalAdmin", action = "Settings", area = AreaNames.ADMIN });
 
-        // Vendor routes
         endpointRouteBuilder.MapControllerRoute(
-            name: DocumentPortalDefaults.Routes.VENDOR_LIST,
-            pattern: "Admin/DocumentPortalVendor/List",
-            defaults: new { controller = "DocumentPortalVendor", action = "List", area = AreaNames.ADMIN });
+            name: "DocumentPortalCategoryAdmin.List",
+            pattern: "Admin/DocumentCategoryAdmin/List",
+            defaults: new { controller = "DocumentCategoryAdmin", action = "List", area = AreaNames.ADMIN });
 
         endpointRouteBuilder.MapControllerRoute(
-            name: DocumentPortalDefaults.Routes.VENDOR_DELETE,
-            pattern: "Admin/DocumentPortalVendor/Delete/{id:int}",
-            defaults: new { controller = "DocumentPortalVendor", action = "Delete", area = AreaNames.ADMIN });
+            name: "DocumentPortalTypeAdmin.List",
+            pattern: "Admin/DocumentTypeAdmin/List",
+            defaults: new { controller = "DocumentTypeAdmin", action = "List", area = AreaNames.ADMIN });
+
+        endpointRouteBuilder.MapControllerRoute(
+            name: "DocumentPortalIssuerAdmin.List",
+            pattern: "Admin/DocumentIssuerAdmin/List",
+            defaults: new { controller = "DocumentIssuerAdmin", action = "List", area = AreaNames.ADMIN });
+
     }
 }

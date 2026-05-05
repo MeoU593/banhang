@@ -60,6 +60,10 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"{lang}/customer/info",
             defaults: new { controller = "Customer", action = "Info" });
 
+        endpointRouteBuilder.MapControllerRoute(name: "CustomerEditAccount",
+            pattern: $"{lang}/customer/edit",
+            defaults: new { controller = "Customer", action = "Info" });
+
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CUSTOMER_ADDRESSES,
             pattern: $"{lang}/customer/addresses",
             defaults: new { controller = "Customer", action = "Addresses" });
@@ -74,22 +78,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"customer/removeexternalassociation",
             defaults: new { controller = "Customer", action = "RemoveExternalAssociation" });
 
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CUSTOMER_ORDERS,
-            pattern: $"{lang}/order/history/{{limit?}}",
-            defaults: new { controller = "Order", action = "CustomerOrders" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CUSTOMER_ORDERS_PAGED,
-            pattern: $"{lang}/order/history/{{limit?}}/page/{{pageNumber:min(0)}}",
-            defaults: new { controller = "Order", action = "CustomerOrders" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CUSTOMER_RECURRING_PAYMENTS,
-            pattern: $"{lang}/customer/recurringpayments",
-            defaults: new { controller = "Order", action = "CustomerRecurringPayments" });
-
-        //contact us
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CONTACT_US,
-            pattern: $"{lang}/contactus",
-            defaults: new { controller = "Common", action = "ContactUs" });
 
         //product search
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.SEARCH,
@@ -115,11 +103,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHANGE_LANGUAGE,
             pattern: $"{lang}/changelanguage/{{langid:min(0)}}",
             defaults: new { controller = "Common", action = "SetLanguage" });
-
-        //change tax
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHANGE_TAX_TYPE,
-            pattern: $"{lang}/changetaxtype/{{customertaxtype:min(0)}}",
-            defaults: new { controller = "Common", action = "SetTaxType" });
 
         //set store theme
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.SET_STORE_THEME,
@@ -162,6 +145,10 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"{lang}/boards",
             defaults: new { controller = "Boards", action = "Index" });
 
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.BOARDS_PAGED,
+            pattern: $"{lang}/boards/page/{{pageNumber:int}}",
+            defaults: new { controller = "Boards", action = "Index" });
+
         //compare products
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.COMPARE_PRODUCTS,
             pattern: $"{lang}/compareproducts/",
@@ -186,6 +173,14 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"{lang}/vendor/all/",
             defaults: new { controller = "Catalog", action = "VendorAll" });
 
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.UNITS,
+            pattern: $"{lang}/don-vi",
+            defaults: new { controller = "Catalog", action = "VendorAll" });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.UNIT_DETAILS,
+            pattern: $"{lang}/don-vi/{{vendorId:min(0)}}",
+            defaults: new { controller = "Catalog", action = "Vendor" });
+
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.VENDOR_REVIEWS,
             pattern: $"{lang}/vendor/{{vendorId:min(0)}}/reviews",
             defaults: new { controller = "Catalog", action = "VendorReviews" });
@@ -194,11 +189,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.ADD_PRODUCT_TO_COMPARE,
             pattern: $"compareproducts/add/{{productId:min(0)}}",
             defaults: new { controller = "Product", action = "AddProductToCompareList" });
-
-        //product email a friend
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRODUCT_EMAIL_FRIEND,
-            pattern: $"{lang}/productemailafriend/{{productId:min(0)}}",
-            defaults: new { controller = "Product", action = "ProductEmailAFriend" });
 
         //reviews
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CUSTOMER_PRODUCT_REVIEWS,
@@ -227,61 +217,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD,
             pattern: $"download/getfileupload/{{downloadId}}",
             defaults: new { controller = "Download", action = "GetFileUpload" });
-
-        //checkout pages
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT,
-            pattern: $"{lang}/checkout/",
-            defaults: new { controller = "Checkout", action = "Index" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_ONE_PAGE,
-            pattern: $"{lang}/onepagecheckout/",
-            defaults: new { controller = "Checkout", action = "OnePageCheckout" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_SHIPPING_ADDRESS,
-            pattern: $"{lang}/checkout/shippingaddress",
-            defaults: new { controller = "Checkout", action = "ShippingAddress" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_SELECT_SHIPPING_ADDRESS,
-            pattern: $"{lang}/checkout/selectshippingaddress",
-            defaults: new { controller = "Checkout", action = "SelectShippingAddress" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_BILLING_ADDRESS,
-            pattern: $"{lang}/checkout/billingaddress",
-            defaults: new { controller = "Checkout", action = "BillingAddress" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_SELECT_BILLING_ADDRESS,
-            pattern: $"{lang}/checkout/selectbillingaddress",
-            defaults: new { controller = "Checkout", action = "SelectBillingAddress" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_SHIPPING_METHOD,
-            pattern: $"{lang}/checkout/shippingmethod",
-            defaults: new { controller = "Checkout", action = "ShippingMethod" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_PAYMENT_METHOD,
-            pattern: $"{lang}/checkout/paymentmethod",
-            defaults: new { controller = "Checkout", action = "PaymentMethod" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_PAYMENT_INFO,
-            pattern: $"{lang}/checkout/paymentinfo",
-            defaults: new { controller = "Checkout", action = "PaymentInfo" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_CONFIRM,
-            pattern: $"{lang}/checkout/confirm",
-            defaults: new { controller = "Checkout", action = "Confirm" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CHECKOUT_COMPLETED,
-            pattern: $"{lang}/checkout/completed/{{orderId:int?}}",
-            defaults: new { controller = "Checkout", action = "Completed" });
-
-        //subscribe newsletters (AJAX)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.SUBSCRIBE_NEWSLETTER,
-            pattern: $"subscribenewsletter",
-            defaults: new { controller = "Newsletter", action = "SubscribeNewsletter" });
-
-        //login page for checkout as guest
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.LOGIN_CHECKOUT_AS_GUEST,
-            pattern: $"{lang}/login/checkoutasguest",
-            defaults: new { controller = "Customer", action = "Login", checkoutAsGuest = true });
 
         //register result page
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.REGISTER_RESULT,
@@ -328,10 +263,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             defaults: new { controller = "Product", action = "SetProductReviewHelpfulness" });
 
         //customer account links
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CUSTOMER_RETURN_REQUESTS,
-            pattern: $"{lang}/returnrequest/history",
-            defaults: new { controller = "ReturnRequest", action = "CustomerReturnRequests" });
-
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CUSTOMER_DOWNLOADABLE_PRODUCTS,
             pattern: $"{lang}/customer/downloadableproducts",
             defaults: new { controller = "Customer", action = "DownloadableProducts" });
@@ -381,58 +312,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"{lang}/profile/{{id:min(0)}}/page/{{pageNumber:min(0)}}",
             defaults: new { controller = "Profile", action = "Index" });
 
-        //orders
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.ORDER_DETAILS,
-            pattern: $"{lang}/orderdetails/{{orderId:min(0)}}",
-            defaults: new { controller = "Order", action = "Details" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.SHIPMENT_DETAILS,
-            pattern: $"{lang}/orderdetails/shipment/{{shipmentId}}",
-            defaults: new { controller = "Order", action = "ShipmentDetails" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.RETURN_REQUEST,
-            pattern: $"{lang}/returnrequest/{{orderId:min(0)}}",
-            defaults: new { controller = "ReturnRequest", action = "ReturnRequest" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.RE_ORDER,
-            pattern: $"{lang}/reorder/{{orderId:min(0)}}",
-            defaults: new { controller = "Order", action = "ReOrder" });
-
-        //pdf invoice (file result)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.GET_ORDER_PDF_INVOICE,
-            pattern: $"orderdetails/pdf/{{orderId}}",
-            defaults: new { controller = "Order", action = "GetPdfInvoice" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRINT_ORDER_DETAILS,
-            pattern: $"{lang}/orderdetails/print/{{orderId}}",
-            defaults: new { controller = "Order", action = "PrintOrderDetails" });
-
-        //cancel order
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CANCEL_ORDER,
-            pattern: $"{lang}/orderdetails/cancelorder/{{orderId}}",
-            defaults: new { controller = "Order", action = "CancelOrder" });
-
-        //order downloads (file result)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.GET_DOWNLOAD,
-            pattern: $"download/getdownload/{{orderItemId:guid}}/{{agree?}}",
-            defaults: new { controller = "Download", action = "GetDownload" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.GET_LICENSE,
-            pattern: $"download/getlicense/{{orderItemId:guid}}/",
-            defaults: new { controller = "Download", action = "GetLicense" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.DOWNLOAD_USER_AGREEMENT,
-            pattern: $"customer/useragreement/{{orderItemId:guid}}",
-            defaults: new { controller = "Customer", action = "UserAgreement" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.GET_ORDER_NOTE_FILE,
-            pattern: $"download/ordernotefile/{{ordernoteid:min(0)}}",
-            defaults: new { controller = "Download", action = "GetOrderNoteFile" });
-
-        //contact vendor
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.CONTACT_VENDOR,
-            pattern: $"{lang}/contactvendor/{{vendorId}}",
-            defaults: new { controller = "Common", action = "ContactVendor" });
 
         //apply for vendor account
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.APPLY_VENDOR_ACCOUNT,
@@ -526,26 +405,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.GET_PRODUCT_COMBINATIONS,
             pattern: $"product/combinations",
             defaults: new { controller = "Product", action = "GetProductCombinations" });
-
-        //product attributes with "upload file" type (AJAX)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.UPLOAD_FILE_PRODUCT_ATTRIBUTE,
-            pattern: $"uploadfileproductattribute/{{attributeId:min(0)}}",
-            defaults: new { controller = "ShoppingCart", action = "UploadFileProductAttribute" });
-
-        //checkout attributes with "upload file" type (AJAX)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.UPLOAD_FILE_CHECKOUT_ATTRIBUTE,
-            pattern: $"uploadfilecheckoutattribute/{{attributeId:min(0)}}",
-            defaults: new { controller = "ShoppingCart", action = "UploadFileCheckoutAttribute" });
-
-        //attribute change (AJAX)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.PRODUCT_DETAILS_ATTRIBUTE_CHANGE,
-            pattern: $"shoppingcart/productdetails_attributechange/{{productId:min(0)}}/{{validateAttributeConditions}}/{{loadPicture}}",
-            defaults: new { controller = "ShoppingCart", action = "ProductDetails_AttributeChange" });
-
-        //return request with "upload file" support (AJAX)
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.UPLOAD_FILE_RETURN_REQUEST,
-            pattern: $"uploadfilereturnrequest",
-            defaults: new { controller = "ReturnRequest", action = "UploadFileReturnRequest" });
 
         //forums
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.ACTIVE_DISCUSSIONS,
@@ -669,11 +528,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.DELETE_PM,
             pattern: $"{lang}/deletepm/{{privateMessageId:min(0)}}",
             defaults: new { controller = "PrivateMessages", action = "DeletePM" });
-
-        //activate newsletters
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.NEWSLETTER_ACTIVATION,
-            pattern: $"{lang}/newsletter/subscriptionactivation/{{token:guid}}/{{active}}",
-            defaults: new { controller = "Newsletter", action = "SubscriptionActivation" });
 
         //robots.txt (file result)
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.ROBOTS_TXT,

@@ -39,13 +39,34 @@ public partial interface IBlogService
     /// <param name="showHidden">A value indicating whether to show hidden records</param>
     /// <param name="title">Filter by blog post title</param>
     /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
+    /// <param name="vendorIds">Vendor identifiers; null/empty to load all records</param>
+    /// <param name="keywords">Filter by keywords (title/body/overview/tags/author); null to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the blog posts
     /// </returns>
     Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
         DateTime? dateFrom = null, DateTime? dateTo = null,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null);
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null);
+
+    /// <summary>
+    /// Gets popular blog posts ordered by public views
+    /// </summary>
+    /// <param name="storeId">The store identifier; pass 0 to load all records</param>
+    /// <param name="languageId">Language identifier; 0 if you want to get all records</param>
+    /// <param name="pageSize">Number of records to return</param>
+    /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
+    /// <param name="excludeBlogPostId">Blog post identifier to exclude; 0 to ignore</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task<IList<BlogPost>> GetPopularBlogPostsAsync(int storeId = 0, int languageId = 0,
+        int pageSize = 5, int? postTypeId = null, int excludeBlogPostId = 0);
+
+    /// <summary>
+    /// Increments the blog post public view count
+    /// </summary>
+    /// <param name="blogPost">Blog post</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task IncrementBlogPostViewCountAsync(BlogPost blogPost);
 
     /// <summary>
     /// Gets all blog posts
@@ -62,7 +83,7 @@ public partial interface IBlogService
     /// </returns>
     Task<IPagedList<BlogPost>> GetAllBlogPostsByTagAsync(int storeId = 0,
         int languageId = 0, string tag = "",
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, IList<int> vendorIds = null);
 
     /// <summary>
     /// Gets all blog post tags
@@ -134,12 +155,13 @@ public partial interface IBlogService
     /// <param name="fromUtc">Item creation from; null to load all records</param>
     /// <param name="toUtc">Item creation to; null to load all records</param>
     /// <param name="commentText">Search comment text; null to load all records</param>
+    /// <param name="vendorIds">Vendor identifiers of related blog posts; null/empty to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the comments
     /// </returns>
     Task<IList<BlogComment>> GetAllCommentsAsync(int customerId = 0, int storeId = 0, int? blogPostId = null,
-        bool? approved = null, DateTime? fromUtc = null, DateTime? toUtc = null, string commentText = null);
+        bool? approved = null, DateTime? fromUtc = null, DateTime? toUtc = null, string commentText = null, IList<int> vendorIds = null);
 
     /// <summary>
     /// Gets a blog comment

@@ -12,5 +12,6 @@ global using Nop.Services.Localization;
 global using Nop.Services.Security;
 global using Nop.Web.Areas.Admin.Controllers;
 global using Nop.Web.Framework;
+global using Nop.Services.Plugins;
 global using Nop.Web.Framework.Controllers;
 global using Nop.Web.Framework.Mvc.Filters;

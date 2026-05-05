@@ -146,6 +146,7 @@ public partial class NopStartup : INopStartup
         services.AddScoped<IProductAttributeFormatter, ProductAttributeFormatter>();
         services.AddScoped<IProductAttributeParser, ProductAttributeParser>();
         services.AddScoped<IProductAttributeService, ProductAttributeService>();
+        services.AddScoped<IProductFavoriteService, ProductFavoriteService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IProductReviewService, ProductReviewService>();
         services.AddScoped<ICopyProductService, CopyProductService>();
@@ -188,7 +189,7 @@ public partial class NopStartup : INopStartup
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<IEmailAccountService, EmailAccountService>();
-        services.AddScoped<IWorkflowMessageService, WorkflowMessageService>();
+        //services.AddScoped<IWorkflowMessageService, WorkflowMessageService>();
         services.AddScoped<IMessageTokenProvider, MessageTokenProvider>();
         services.AddScoped<ITokenizer, Tokenizer>();
         services.AddScoped<ISmtpBuilder, SmtpBuilder>();

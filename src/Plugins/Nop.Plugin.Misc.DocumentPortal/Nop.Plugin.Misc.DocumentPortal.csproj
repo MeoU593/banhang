@@ -5,7 +5,7 @@
     <Copyright>Copyright © Nop Solutions, Ltd</Copyright>
     <Company>Nop Solutions, Ltd</Company>
     <Authors>Nop Solutions, Ltd</Authors>
-    <OutputPath>$(SolutionDir)\Presentation\Nop.Web\Plugins\Misc.DocumentPortal</OutputPath>
+    <OutputPath>..\..\Presentation\Nop.Web\Plugins\Misc.DocumentPortal</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -21,12 +21,17 @@
     <None Remove="Views\Admin\Edit.cshtml" />
     <None Remove="Views\Admin\_CreateOrUpdate.cshtml" />
     <None Remove="Views\Admin\Configure.cshtml" />
+    <None Remove="Views\Admin\Category\List.cshtml" />
+    <None Remove="Views\Admin\Category\CreateOrEdit.cshtml" />
+    <None Remove="Views\Admin\Type\List.cshtml" />
+    <None Remove="Views\Admin\Type\CreateOrEdit.cshtml" />
+    <None Remove="Views\Admin\Issuer\List.cshtml" />
+    <None Remove="Views\Admin\Issuer\CreateOrEdit.cshtml" />
     <None Remove="Views\Public\_ViewImports.cshtml" />
     <None Remove="Views\Public\_ViewStart.cshtml" />
     <None Remove="Views\Public\List.cshtml" />
     <None Remove="Views\Public\Detail.cshtml" />
     <None Remove="Views\Public\Upload.cshtml" />
-    <None Remove="Views\Vendor\List.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +59,24 @@
     <Content Include="Views\Admin\Configure.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Views\Admin\Category\List.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Admin\Category\CreateOrEdit.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Admin\Type\List.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Admin\Type\CreateOrEdit.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Admin\Issuer\List.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Admin\Issuer\CreateOrEdit.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Views\Public\_ViewImports.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -69,14 +92,11 @@
     <Content Include="Views\Public\Upload.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Views\Vendor\List.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Presentation\Nop.Web\Nop.Web.csproj" />
-    <ClearPluginAssemblies Include="$(SolutionDir)\Build\ClearPluginAssemblies.proj" />
+    <ProjectReference Include="..\..\Presentation\Nop.Web\Nop.Web.csproj" />
+    <ClearPluginAssemblies Include="..\..\Build\ClearPluginAssemblies.proj" />
   </ItemGroup>
 
   <Target Name="NopTarget" AfterTargets="Build">

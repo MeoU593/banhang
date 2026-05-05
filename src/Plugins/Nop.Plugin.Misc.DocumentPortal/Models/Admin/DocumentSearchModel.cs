@@ -24,8 +24,16 @@ public record DocumentSearchModel : BaseSearchModel
     [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.List.SearchPublished")]
     public int SearchPublishedId { get; set; }
 
+    [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.List.SearchOwnerVendor")]
+    public int SearchOwnerVendorId { get; set; }
+
+    [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.List.SearchAccessScope")]
+    public int SearchAccessScopeId { get; set; }
+
     public IList<SelectListItem> AvailableCategories { get; set; } = new List<SelectListItem>();
     public IList<SelectListItem> AvailableTypes { get; set; } = new List<SelectListItem>();
     public IList<SelectListItem> AvailableIssuers { get; set; } = new List<SelectListItem>();
     public IList<SelectListItem> AvailablePublishedOptions { get; set; } = new List<SelectListItem>();
+    public IList<SelectListItem> AvailableOwnerVendors { get; set; } = new List<SelectListItem>();
+    public IList<SelectListItem> AvailableAccessScopes { get; set; } = new List<SelectListItem>();
 }

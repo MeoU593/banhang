@@ -17,10 +17,8 @@ using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Messages;
 using Nop.Services.Plugins;
-using Nop.Services.Shipping;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
-using Nop.Services.Tax;
 using Nop.Services.Topics;
 using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Cache;
@@ -49,17 +47,14 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
     protected readonly ILocalizationService _localizationService;
     protected readonly IManufacturerService _manufacturerService;
     protected readonly IManufacturerTemplateService _manufacturerTemplateService;
-    protected readonly INewsLetterSubscriptionTypeService _newsLetterSubscriptionTypeService;
     protected readonly IPluginService _pluginService;
     protected readonly IProductTemplateService _productTemplateService;
     protected readonly ISpecificationAttributeService _specificationAttributeService;
     protected readonly IStateProvinceService _stateProvinceService;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreService _storeService;
-    protected readonly ITaxCategoryService _taxCategoryService;
     protected readonly ITopicTemplateService _topicTemplateService;
     protected readonly IVendorService _vendorService;
-    protected readonly IWarehouseService _warehouseService;
     protected readonly TranslationSettings _translationSettings;
 
     #endregion
@@ -79,17 +74,14 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
         ILocalizationService localizationService,
         IManufacturerService manufacturerService,
         IManufacturerTemplateService manufacturerTemplateService,
-        INewsLetterSubscriptionTypeService newsLetterSubscriptionTypeService,
         IPluginService pluginService,
         IProductTemplateService productTemplateService,
         ISpecificationAttributeService specificationAttributeService,
         IStateProvinceService stateProvinceService,
         IStaticCacheManager staticCacheManager,
         IStoreService storeService,
-        ITaxCategoryService taxCategoryService,
         ITopicTemplateService topicTemplateService,
         IVendorService vendorService,
-        IWarehouseService warehouseService,
         TranslationSettings translationSettings)
     {
         _categoryService = categoryService;
@@ -105,17 +97,14 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
         _localizationService = localizationService;
         _manufacturerService = manufacturerService;
         _manufacturerTemplateService = manufacturerTemplateService;
-        _newsLetterSubscriptionTypeService = newsLetterSubscriptionTypeService;
         _pluginService = pluginService;
         _productTemplateService = productTemplateService;
         _specificationAttributeService = specificationAttributeService;
         _stateProvinceService = stateProvinceService;
         _staticCacheManager = staticCacheManager;
         _storeService = storeService;
-        _taxCategoryService = taxCategoryService;
         _topicTemplateService = topicTemplateService;
         _vendorService = vendorService;
-        _warehouseService = warehouseService;
         _translationSettings = translationSettings;
     }
 
@@ -434,26 +423,6 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
     }
 
     /// <summary>
-    /// Prepare available newsletter subscription types
-    /// </summary>
-    /// <param name="items">Newsletter subscription type items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task PrepareSubscriptionTypesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null)
-    {
-        ArgumentNullException.ThrowIfNull(items);
-
-        //prepare available newsletter subscription types
-        var availableSubscriptionTypes = await _newsLetterSubscriptionTypeService.GetAllNewsLetterSubscriptionTypesAsync();
-        foreach (var subscriptionType in availableSubscriptionTypes)
-            items.Add(new SelectListItem { Value = subscriptionType.Id.ToString(), Text = subscriptionType.Name });
-
-        //insert special item for the default value
-        await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);
-    }
-
-    /// <summary>
     /// Prepare available email accounts
     /// </summary>
     /// <param name="items">Email account items</param>
@@ -471,27 +440,6 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
 
         //insert special item for the default value
         await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);
-    }
-
-    /// <summary>
-    /// Prepare available tax categories
-    /// </summary>
-    /// <param name="items">Tax category items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task PrepareTaxCategoriesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null)
-    {
-        ArgumentNullException.ThrowIfNull(items);
-
-        //prepare available tax categories
-        var availableTaxCategories = await _taxCategoryService.GetAllTaxCategoriesAsync();
-        foreach (var taxCategory in availableTaxCategories)
-            items.Add(new SelectListItem { Value = taxCategory.Id.ToString(), Text = taxCategory.Name });
-
-        //insert special item for the default value
-        await PrepareDefaultItemAsync(items, withSpecialDefaultItem,
-            defaultItemText ?? await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Tax.TaxCategories.None"));
     }
 
     /// <summary>
@@ -832,46 +780,6 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
         var availableTemplates = await _topicTemplateService.GetAllTopicTemplatesAsync();
         foreach (var template in availableTemplates)
             items.Add(new SelectListItem { Value = template.Id.ToString(), Text = template.Name });
-
-        //insert special item for the default value
-        await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);
-    }
-
-    /// <summary>
-    /// Prepare available warehouses
-    /// </summary>
-    /// <param name="items">Warehouse items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task PrepareWarehousesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null)
-    {
-        ArgumentNullException.ThrowIfNull(items);
-
-        //prepare available warehouses
-        var availableWarehouses = await _warehouseService.GetAllWarehousesAsync();
-        foreach (var warehouse in availableWarehouses)
-            items.Add(new SelectListItem { Value = warehouse.Id.ToString(), Text = warehouse.Name });
-
-        //insert special item for the default value
-        await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);
-    }
-
-    /// <summary>
-    /// Prepare available delivery dates
-    /// </summary>
-    /// <param name="items">Delivery date items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    public virtual async Task PrepareDeliveryDatesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null)
-    {
-        ArgumentNullException.ThrowIfNull(items);
-
-        //prepare available delivery dates
-        var availableDeliveryDates = await _dateRangeService.GetAllDeliveryDatesAsync();
-        foreach (var date in availableDeliveryDates)
-            items.Add(new SelectListItem { Value = date.Id.ToString(), Text = date.Name });
 
         //insert special item for the default value
         await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);

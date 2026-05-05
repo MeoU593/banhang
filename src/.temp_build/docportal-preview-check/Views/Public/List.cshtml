@@ -1,0 +1,227 @@
+@model Nop.Plugin.Misc.DocumentPortal.Models.Public.DocumentListPageModel
+@using Nop.Plugin.Misc.DocumentPortal
+
+@{
+    Layout = "_ColumnsOne";
+    var dateFromQuery = Model.Search.DateFrom?.ToString("yyyy-MM-dd") ?? string.Empty;
+    var dateToQuery = Model.Search.DateTo?.ToString("yyyy-MM-dd") ?? string.Empty;
+}
+
+<div class="page document-portal-page py-2">
+    <div class="page-body space-y-6">
+
+        <section class="mb-2 overflow-hidden rounded-2xl border p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+            <div class="space-y-1.5">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#f6dc9a]">Kho tài liệu</p>
+                <h1 class="text-[10px] font-black leading-tight tracking-tight text-white sm:text-[11px]">Hệ thống văn bản pháp quy hậu cần</h1>
+                <p class="text-xs leading-5 text-slate-200 sm:text-sm">Tra cứu, lưu trữ và quản lý tập trung các văn bản hậu cần.</p>
+            </div>
+        </section>
+
+        <div class="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm">
+            <form method="get" action="/tai-lieu/tim-kiem" class="flex max-w-2xl gap-2">
+                <div class="relative flex-1">
+                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-on-surface-variant material-symbols-outlined text-[18px]">search</span>
+                    <input type="text" name="q" value="@Model.Search.Q"
+                           placeholder="Nhập tiêu đề, mã số, từ khóa..."
+                           class="h-10 w-full rounded-lg border border-outline-variant bg-surface-container-low text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10 focus:outline-none" style="padding-left:2.25rem!important" />
+                </div>
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white transition hover:bg-military-green/90">
+                    <span class="material-symbols-outlined" style="font-size:16px">search</span>
+                    Tìm kiếm
+                </button>
+            </form>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[260px_1fr]">
+
+            <aside class="space-y-4">
+                <div class="rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm">
+                    <h3 class="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant">Bộ lọc nâng cao</h3>
+                    <form method="get" action="/tai-lieu/tim-kiem" class="space-y-3">
+                        @if (!string.IsNullOrWhiteSpace(Model.Search.Q))
+                        {
+                            <input type="hidden" name="q" value="@Model.Search.Q" />
+                        }
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Danh mục</label>
+                            <select name="categoryId" asp-items="Model.AvailableCategories" class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10"></select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Loại tài liệu</label>
+                            <select name="typeId" asp-items="Model.AvailableTypes" class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10"></select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Cơ quan ban hành</label>
+                            <select name="issuerId" asp-items="Model.AvailableIssuers" class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10"></select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Ngày ban hành từ</label>
+                            <input type="date" name="dateFrom" value="@dateFromQuery"
+                                   class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10" />
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Ngày ban hành đến</label>
+                            <input type="date" name="dateTo" value="@dateToQuery"
+                                   class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-on-surface focus:border-military-green focus:ring-2 focus:ring-military-green/10" />
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-slate-800 py-2 text-sm font-bold text-white transition hover:bg-slate-700 flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                            Áp dụng
+                        </button>
+                        @if (Model.Search.CategoryId.HasValue || Model.Search.TypeId.HasValue || Model.Search.IssuerId.HasValue || Model.Search.DateFrom.HasValue || Model.Search.DateTo.HasValue || !string.IsNullOrWhiteSpace(Model.Search.Q))
+                        {
+                            <a href="/tai-lieu" class="block text-center text-xs text-on-surface-variant hover:text-military-green transition">Xóa bộ lọc</a>
+                        }
+                    </form>
+                </div>
+
+                @if (Model.IsAuthenticated)
+                {
+                    <a href="/tai-lieu/upload"
+                       class="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-military-green/30 bg-military-green/5 px-4 py-4 text-sm font-semibold text-military-green transition hover:border-military-green/60 hover:bg-military-green/10">
+                        <span class="material-symbols-outlined" style="font-size:20px">upload_file</span>
+                        Gửi tài liệu mới
+                    </a>
+                }
+            </aside>
+
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm text-on-surface-variant">
+                        Tìm thấy <strong class="text-on-surface font-bold">@Model.TotalCount</strong> tài liệu
+                        @if (!string.IsNullOrWhiteSpace(Model.Search.Q))
+                        {
+                            <span> cho "<em>@Model.Search.Q</em>"</span>
+                        }
+                    </p>
+                </div>
+
+                @if (!Model.Documents.Any())
+                {
+                    <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant py-16 text-center">
+                        <span class="material-symbols-outlined mb-3 text-5xl text-on-surface-variant">folder_off</span>
+                        <p class="text-sm font-semibold text-on-surface-variant">Không tìm thấy tài liệu nào</p>
+                        <a href="/tai-lieu" class="mt-3 text-xs text-military-green hover:underline">Xem tất cả tài liệu</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var doc in Model.Documents)
+                        {
+                            <article class="group overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-5 shadow-sm transition hover:shadow-md">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-military-green/10">
+                                        <span class="material-symbols-outlined text-military-green" style="font-size:20px">description</span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 space-y-1.5">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            @if (!string.IsNullOrWhiteSpace(doc.Code))
+                                            {
+                                                <span class="rounded bg-surface-container px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">@doc.Code</span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(doc.TypeName))
+                                            {
+                                                <span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">@doc.TypeName</span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(doc.CategoryName))
+                                            {
+                                                <span class="rounded bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">@doc.CategoryName</span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(doc.AccessScopeName))
+                                            {
+                                                <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">@doc.AccessScopeName</span>
+                                            }
+                                        </div>
+                                        <h2 class="text-sm font-bold text-on-surface transition group-hover:text-military-green">
+                                            <a href="/tai-lieu/@doc.Slug">@doc.Title</a>
+                                        </h2>
+                                        @if (!string.IsNullOrWhiteSpace(doc.Summary))
+                                        {
+                                            <p class="line-clamp-2 text-xs leading-5 text-on-surface-variant">@doc.Summary</p>
+                                        }
+                                        <div class="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant">
+                                            @if (doc.IssuedDate.HasValue)
+                                            {
+                                                <span class="flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-military-green" style="font-size:13px">calendar_today</span>
+                                                    @doc.IssuedDate.Value.ToString("dd/MM/yyyy")
+                                                </span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(doc.IssuerName))
+                                            {
+                                                <span class="flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-military-green" style="font-size:13px">account_balance</span>
+                                                    @doc.IssuerName
+                                                </span>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(doc.OwnerVendorName))
+                                            {
+                                                <span class="flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-military-green" style="font-size:13px">corporate_fare</span>
+                                                    @doc.OwnerVendorName
+                                                </span>
+                                            }
+                                            <span class="flex items-center gap-1">
+                                                <span class="material-symbols-outlined" style="font-size:13px">download</span>
+                                                @doc.DownloadCount lượt tải
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-shrink-0 items-center gap-2">
+                                        <a href="/tai-lieu/@doc.Slug"
+                                           class="inline-flex items-center gap-1 rounded-lg bg-surface-container px-3 py-1.5 text-xs font-bold text-on-surface-variant transition hover:bg-military-green hover:text-white">
+                                            <span class="material-symbols-outlined" style="font-size:14px">open_in_new</span>
+                                            Xem
+                                        </a>
+                                        @if (doc.AllowDownload)
+                                        {
+                                            <a href="/tai-lieu/tai/@doc.Id"
+                                               class="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-slate-700">
+                                                <span class="material-symbols-outlined" style="font-size:14px">download</span>
+                                                Tải
+                                            </a>
+                                        }
+                                        @if (doc.CanDelete)
+                                        {
+                                            <form method="post" action="/tai-lieu/xoa/@doc.Id" onsubmit="return confirm('Xóa tài liệu này?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                                                    Xóa
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="flex justify-center gap-2 pt-4">
+                            @for (int p = 1; p <= Model.TotalPages; p++)
+                            {
+                                var pageClass = p == Model.Search.Page
+                                    ? "rounded-lg bg-military-green px-4 py-2 text-sm font-bold text-white"
+                                    : "rounded-lg border border-outline-variant/40 bg-surface-container-lowest px-4 py-2 text-sm font-medium text-on-surface-variant hover:border-military-green hover:text-military-green transition";
+                                <a href="?q=@Model.Search.Q&categoryId=@Model.Search.CategoryId&typeId=@Model.Search.TypeId&issuerId=@Model.Search.IssuerId&dateFrom=@dateFromQuery&dateTo=@dateToQuery&page=@p"
+                                   class="@pageClass">@p</a>
+                            }
+                        </div>
+                    }
+                }
+
+                @if (TempData["UploadSuccess"] != null)
+                {
+                    <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
+                        <span class="material-symbols-outlined mr-1 align-middle" style="font-size:16px">check_circle</span>
+                        @TempData["UploadSuccess"]
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

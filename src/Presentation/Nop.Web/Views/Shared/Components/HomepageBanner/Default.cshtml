@@ -1,0 +1,117 @@
+@{
+    var homepageUrl = Url.RouteUrl(NopRouteNames.General.HOMEPAGE);
+}
+
+<style>
+    .homepage-command-banner {
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(214, 185, 90, 0.3);
+        color: #f6dc9a;
+        background-color: rgba(45, 58, 34, 0.6);
+        background-image:
+            linear-gradient(90deg, rgba(15, 23, 42, 0.38) 0%, rgba(45, 58, 34, 0.72) 25%, rgba(45, 58, 34, 0.78) 50%, rgba(45, 58, 34, 0.72) 75%, rgba(15, 23, 42, 0.38) 100%),
+            repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0, rgba(255, 255, 255, 0.04) 1px, transparent 1px, transparent 14px);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
+
+    .homepage-command-banner__image {
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 36%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.52;
+        filter: saturate(0.95) contrast(1.03);
+    }
+
+    .homepage-command-banner__image--left {
+        left: 0;
+        object-position: 60% center;
+        mask-image: linear-gradient(90deg, #000 0%, #000 58%, transparent 100%);
+        -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 58%, transparent 100%);
+    }
+
+    .homepage-command-banner__image--right {
+        right: 0;
+        object-position: 44% center;
+        mask-image: linear-gradient(270deg, #000 0%, #000 58%, transparent 100%);
+        -webkit-mask-image: linear-gradient(270deg, #000 0%, #000 58%, transparent 100%);
+    }
+
+    .homepage-command-banner__content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        min-height: 132px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 16px 32px;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .homepage-command-banner__title-line {
+        font-size: var(--public-font-hero-title);
+        font-weight: 900;
+        text-transform: uppercase;
+        line-height: 1.08;
+        letter-spacing: 0.02em;
+        color: #f6dc9a;
+        text-shadow: 0 2px 10px rgba(15, 23, 42, 0.72);
+        white-space: nowrap;
+    }
+
+    .homepage-command-banner__title-line--sub {
+        color: #ffd166;
+        font-size: var(--public-font-hero-title);
+    }
+
+    @@media (max-width: 1279px) {
+        .homepage-command-banner__content {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    }
+
+    @@media (max-width: 1023px) {
+        .homepage-command-banner__image {
+            width: 36%;
+            opacity: 0.36;
+        }
+
+        .homepage-command-banner__title-line {
+            font-size: var(--public-font-hero-title);
+            white-space: normal;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .homepage-command-banner__image {
+            display: none;
+        }
+
+        .homepage-command-banner__content {
+            min-height: 104px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+    }
+</style>
+
+<div class="homepage-command-banner">
+    <img class="homepage-command-banner__image homepage-command-banner__image--left" src="/images/banner/tank-left-crop.jpeg" alt="Xe tăng" loading="lazy" />
+    <img class="homepage-command-banner__image homepage-command-banner__image--right" src="/images/banner/parade-right-crop.jpeg" alt="Duyệt đội ngũ" loading="lazy" />
+
+    <a href="@homepageUrl" class="homepage-command-banner__content" aria-label="Trang chủ">
+        <div class="homepage-command-banner__title">
+            <div class="homepage-command-banner__title-line">Cổng thông tin Hậu cần - Quân nhu</div>
+            <div class="homepage-command-banner__title-line homepage-command-banner__title-line--sub">BINH CHỦNG TĂNG THIẾT GIÁP</div>
+        </div>
+    </a>
+</div>

@@ -16,7 +16,6 @@ public partial record ShipmentSearchModel : BaseSearchModel
     {
         AvailableCountries = new List<SelectListItem>();
         AvailableStates = new List<SelectListItem>();
-        AvailableWarehouses = new List<SelectListItem>();
         ShipmentItemSearchModel = new ShipmentItemSearchModel();
     }
 
@@ -59,11 +58,6 @@ public partial record ShipmentSearchModel : BaseSearchModel
 
     [NopResourceDisplayName("Admin.Orders.Shipments.List.LoadNotDelivered")]
     public bool LoadNotDelivered { get; set; }
-
-    [NopResourceDisplayName("Admin.Orders.Shipments.List.Warehouse")]
-    public int WarehouseId { get; set; }
-
-    public IList<SelectListItem> AvailableWarehouses { get; set; }
 
     public ShipmentItemSearchModel ShipmentItemSearchModel { get; set; }
 

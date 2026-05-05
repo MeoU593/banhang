@@ -19,41 +19,21 @@
 <div class="page login-page min-h-[100dvh] bg-slate-100">
     @await Html.PartialAsync("_ExternalAuthentication.Errors")
     <div class="page-body grid min-h-[100dvh] lg:grid-cols-2">
-        <section class="relative hidden overflow-hidden bg-[linear-gradient(135deg,#1B2E20_0%,#1A365D_100%)] lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
-            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.35) 1px, transparent 0); background-size: 24px 24px;"></div>
-            <div class="relative max-w-xl space-y-8 text-white">
-                <div class="inline-flex h-16 w-16 items-center justify-center rounded-[24px] border border-white/10 bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
-                    <span class="material-symbols-outlined text-[34px] text-military-gold">shield</span>
-                </div>
-                <div class="space-y-4">
-                    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-military-gold">Hệ thống điều phối</p>
-                    <h1 class="text-4xl font-black tracking-tight whitespace-nowrap">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginTitle) ? "Cổng thông tin Hậu cần - Quân nhu" : dutyMessageSettings.LoginTitle)</h1>
-                    <p class="text-lg text-slate-200">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginSubtitle) ? "Bộ Tư lệnh Tăng Thiết Giáp" : dutyMessageSettings.LoginSubtitle)</p>
-                    <p class="max-w-lg text-base leading-8 text-slate-300">@(string.IsNullOrWhiteSpace(dutyMessageSettings.LoginDescription) ? "Quản lý kho bãi, danh mục vật tư và luồng văn bản nghiệp vụ trên một giao diện thống nhất, ưu tiên tốc độ xử lý và tính sẵn sàng." : dutyMessageSettings.LoginDescription)</p>
-                </div>
-            </div>
-
-            @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Message))
-            {
-                <div class="relative max-w-xl rounded-[28px] border border-white/10 bg-white/10 p-6 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur">
-                    <p class="text-sm uppercase tracking-[0.28em] text-military-gold">Thông điệp trực ban</p>
-                    <blockquote class="mt-4 text-xl font-semibold leading-9 text-white">"@dutyMessageSettings.Message"</blockquote>
-                    @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.Author))
-                    {
-                        <p class="mt-4 text-sm text-slate-300">@dutyMessageSettings.Author</p>
-                    }
-                </div>
-            }
-        </section>
+        @await Html.PartialAsync("_AuthLeftPanel")
 
         <section class="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-10 sm:px-6 lg:px-10">
             <div class="w-full max-w-md space-y-6">
+                <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 backdrop-blur lg:hidden">
+                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-700">Bộ Tư lệnh Tăng Thiết Giáp</p>
+                    <p class="text-[11px] text-slate-500">Cổng thông tin Hậu cần - Quân nhu</p>
+                </div>
+
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LoginTop, additionalData = Model })
 
-                <div class="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_28px_70px_-38px_rgba(15,23,42,0.38)] sm:p-8">
+                <div class="rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_18px_44px_-30px_rgba(15,23,42,0.32)] sm:p-8">
                     <div class="space-y-2">
-                        <p class="text-sm font-semibold uppercase tracking-[0.28em] text-military-red">Truy cập bảo mật</p>
-                        <h2 class="text-3xl font-black tracking-tight text-slate-900">Đăng nhập hệ thống</h2>
+                        <p class="auth-red-text text-sm font-semibold uppercase tracking-[0.28em] text-military-red">Truy cập bảo mật</p>
+                        <h2 class="public-page-title font-black tracking-tight text-slate-900">Đăng nhập hệ thống</h2>
                         <p class="text-sm leading-6 text-slate-500">Sử dụng tài khoản nghiệp vụ được cấp để truy cập cổng hậu cần - quân nhu.</p>
                     </div>
 
@@ -80,12 +60,12 @@
                             z-index: 1;
                             display: block !important;
                             width: 100% !important;
-                            height: 48px !important;
-                            padding: 0 1rem 0 2.5rem !important;
+                            height: 40px !important;
+                            padding: 0 0.875rem 0 2.25rem !important;
                             border: 1px solid #e2e8f0 !important;
-                            border-radius: 16px !important;
+                            border-radius: 10px !important;
                             background: #f8fafc !important;
-                            font-size: 14px !important;
+                            font-size: var(--public-font-control) !important;
                             color: #334155 !important;
                             outline: none !important;
                             box-shadow: none !important;
@@ -93,8 +73,9 @@
                             -webkit-appearance: none !important;
                         }
                         .login-field:focus {
-                            border-color: #94a3b8 !important;
+                            border-color: rgba(45,58,34,0.5) !important;
                             background: #ffffff !important;
+                            box-shadow: 0 0 0 3px rgba(45,58,34,0.10) !important;
                         }
                         /* Chặn Chrome autofill phủ màu lên icon */
                         .login-field:-webkit-autofill,
@@ -173,12 +154,12 @@
                                 <input asp-for="RememberMe" class="h-4 w-4 rounded border-slate-300 text-military-red focus:ring-military-red" />
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
-                            <a asp-route="@NopRouteNames.Standard.PASSWORD_RECOVERY" class="font-semibold text-military-red transition hover:text-rose-700">Quên mật khẩu?</a>
+                            <a asp-route="@NopRouteNames.Standard.PASSWORD_RECOVERY" class="auth-red-text font-semibold text-military-red transition hover:text-rose-700">Quên mật khẩu?</a>
                         </div>
 
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                             Chưa có tài khoản?
-                            <a href="@registerUrl" class="font-semibold text-military-red transition hover:text-rose-700">Đăng ký ngay</a>
+                            <a href="@registerUrl" class="auth-red-text font-semibold text-military-red transition hover:text-rose-700">Đăng ký ngay</a>
                         </div>
 
                         @if (Model.DisplayCaptcha)
@@ -188,7 +169,7 @@
                             </div>
                         }
 
-                        <button type="submit" class="flex h-12 w-full items-center justify-center rounded-2xl bg-military-red px-4 text-sm font-bold uppercase tracking-[0.18em] text-white shadow-[0_22px_48px_-28px_rgba(185,28,28,0.85)] transition hover:-translate-y-[1px] active:scale-[0.98]">ĐĂNG NHẬP HỆ THỐNG</button>
+                        <button type="submit" class="auth-red-action flex h-10 w-full items-center justify-center rounded-xl bg-military-red px-4 text-sm font-bold uppercase tracking-[0.18em] text-[#d4af37] shadow-[0_16px_36px_-20px_rgba(178,34,34,0.7)] transition hover:-translate-y-[1px] active:scale-[0.98]">ĐĂNG NHẬP HỆ THỐNG</button>
                     </form>
 
                     <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 space-y-0.5">

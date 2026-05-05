@@ -61,6 +61,11 @@ public partial class Product : BaseEntity, ILocalizedEntity, ISlugSupported, IAc
     public int VendorId { get; set; }
 
     /// <summary>
+    /// Gets or sets the customer identifier of the product creator/uploader
+    /// </summary>
+    public int CreatedByCustomerId { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to show the product on home page
     /// </summary>
     public bool ShowOnHomepage { get; set; }

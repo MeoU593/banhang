@@ -21,11 +21,13 @@
 <script asp-location="Footer">
     $(function() {
         var $msEls = $('[data-manufacturer-id]');
-        $msEls.on('change', function () {
-            CatalogProducts.getProducts();
-        });
+        $msEls
+            .off('change.filterManufacturer')
+            .on('change.filterManufacturer', function () {
+                CatalogProducts.getProducts();
+            });
 
-        $(CatalogProducts).on('before', function (e) {
+        $(CatalogProducts).off('before.filterManufacturer').on('before.filterManufacturer', function (e) {
             var selectedMs = $.map($msEls, function (el) {
                 var $mEl = $(el);
                 if ($mEl.is(':checked')) return $mEl.data('manufacturer-id')

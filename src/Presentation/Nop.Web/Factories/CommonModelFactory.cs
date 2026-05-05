@@ -287,23 +287,6 @@ public partial class CommonModelFactory : ICommonModelFactory
     }
 
     /// <summary>
-    /// Prepare the tax type selector model
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ax type selector model
-    /// </returns>
-    public virtual async Task<TaxTypeSelectorModel> PrepareTaxTypeSelectorModelAsync()
-    {
-        var model = new TaxTypeSelectorModel
-        {
-            CurrentTaxType = await _workContext.GetTaxDisplayTypeAsync()
-        };
-
-        return model;
-    }
-
-    /// <summary>
     /// Prepare the header links model
     /// </summary>
     /// <returns>
@@ -403,63 +386,6 @@ public partial class CommonModelFactory : ICommonModelFactory
             DisplayTaxShippingInfoFooter = _catalogSettings.DisplayTaxShippingInfoFooter,
             IsHomePage = await IsHomePageAsync()
         };
-    }
-
-    /// <summary>
-    /// Prepare the contact us model
-    /// </summary>
-    /// <param name="model">Contact us model</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the contact us model
-    /// </returns>
-    public virtual async Task<ContactUsModel> PrepareContactUsModelAsync(ContactUsModel model, bool excludeProperties)
-    {
-        ArgumentNullException.ThrowIfNull(model);
-
-        if (!excludeProperties)
-        {
-            var customer = await _workContext.GetCurrentCustomerAsync();
-            model.Email = customer.Email;
-            model.FullName = await _customerService.GetCustomerFullNameAsync(customer);
-        }
-
-        model.SubjectEnabled = _commonSettings.SubjectFieldOnContactUsForm;
-        model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnContactUsPage;
-
-        return model;
-    }
-
-    /// <summary>
-    /// Prepare the contact vendor model
-    /// </summary>
-    /// <param name="model">Contact vendor model</param>
-    /// <param name="vendor">Vendor</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the contact vendor model
-    /// </returns>
-    public virtual async Task<ContactVendorModel> PrepareContactVendorModelAsync(ContactVendorModel model, Vendor vendor, bool excludeProperties)
-    {
-        ArgumentNullException.ThrowIfNull(model);
-
-        ArgumentNullException.ThrowIfNull(vendor);
-
-        if (!excludeProperties)
-        {
-            var customer = await _workContext.GetCurrentCustomerAsync();
-            model.Email = customer.Email;
-            model.FullName = await _customerService.GetCustomerFullNameAsync(customer);
-        }
-
-        model.SubjectEnabled = _commonSettings.SubjectFieldOnContactUsForm;
-        model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnContactUsPage;
-        model.VendorId = vendor.Id;
-        model.VendorName = await _localizationService.GetLocalizedAsync(vendor, x => x.Name);
-
-        return model;
     }
 
     /// <summary>

@@ -10,8 +10,8 @@ public class UnitReportBuilder : NopEntityBuilder<UnitReport>
     {
         table
             .WithColumn(nameof(UnitReport.ReportPeriodId)).AsInt32().NotNullable()
-            .WithColumn(nameof(UnitReport.OrganizationUnitId)).AsInt32().NotNullable()
-            .WithColumn(nameof(UnitReport.ParentOrganizationUnitId)).AsInt32().Nullable()
+            .WithColumn(nameof(UnitReport.VendorId)).AsInt32().NotNullable()
+            .WithColumn(nameof(UnitReport.ParentVendorId)).AsInt32().Nullable()
             .WithColumn(nameof(UnitReport.StatusId)).AsInt32().NotNullable()
             .WithColumn(nameof(UnitReport.CurrentVersion)).AsInt32().NotNullable().WithDefaultValue(1)
             .WithColumn(nameof(UnitReport.SubmittedOnUtc)).AsDateTime2().Nullable()

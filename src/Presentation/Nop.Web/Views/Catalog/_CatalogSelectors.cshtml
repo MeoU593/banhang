@@ -5,23 +5,17 @@
 @using Nop.Services.Catalog
 @using Nop.Services.Seo
 @using Nop.Services.Vendors
-@using Nop.Core.Domain.Vendors
 
 @inject ICategoryService categoryService
 @inject IVendorService vendorService
 @inject IUrlRecordService urlRecordService
 
-@if (Model.Products.Count <= 0 &&
-     !Model.PriceRangeFilter.Enabled &&
-     !Model.SpecificationFilter.Enabled &&
-     !Model.ManufacturerFilter.Enabled)
-{
-    return;
-}
-
 @{
     var lockCategorySelector = ViewData["LockCategorySelector"] as bool? ?? false;
     var currentCategoryName = (ViewData["CurrentCategoryName"] as string ?? string.Empty).Trim();
+    var currentCategoryId = ViewData["CurrentCategoryId"] as int? ?? 0;
+    var allCategoriesUrl = Url.Action("CategoryAll", "Catalog");
+    var resetCategoryUrl = ViewData["ResetCategoryUrl"] as string ?? (lockCategorySelector ? allCategoriesUrl : string.Empty);
 
     var categorySelectItems = new List<SelectListItem>();
     var categorySeoUrls = new Dictionary<int, string>();
@@ -48,17 +42,27 @@
         .Select(v => new SelectListItem { Text = v.Name, Value = v.Id.ToString() })
         .ToList();
 
-    var manufacturerSeoUrls = new Dictionary<int, string>();
-    foreach (var vendor in allVendors)
+    var selectedManufacturerIds = new HashSet<int>();
+    var selectedManufacturersQuery = Context.Request.Query["ms"].ToString();
+    if (!string.IsNullOrWhiteSpace(selectedManufacturersQuery))
     {
-        var seName = await urlRecordService.GetSeNameAsync(vendor);
-        if (!string.IsNullOrWhiteSpace(seName))
+        foreach (var value in selectedManufacturersQuery.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            var manufacturerUrl = await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = seName });
-            manufacturerSeoUrls[vendor.Id] = manufacturerUrl;
+            if (int.TryParse(value, out var manufacturerId) && manufacturerId > 0)
+                selectedManufacturerIds.Add(manufacturerId);
         }
     }
 
+    if (!selectedManufacturerIds.Any() && Model.ManufacturerFilter?.Manufacturers?.Any() == true)
+    {
+        foreach (var manufacturer in Model.ManufacturerFilter.Manufacturers.Where(item => item.Selected))
+        {
+            if (int.TryParse(manufacturer.Value, out var manufacturerId) && manufacturerId > 0)
+                selectedManufacturerIds.Add(manufacturerId);
+        }
+    }
+
+    var gridColumnsClass = Model.AllowProductSorting ? "md:grid-cols-7" : "md:grid-cols-6";
 }
 
 <style>
@@ -74,26 +78,45 @@
         margin-bottom: 6px;
         display: block;
         color: #64748b;
-        font-size: 10px;
+        font-size: var(--public-font-label);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.14em;
         padding: 0 4px;
     }
 
+    .product-selectors-refined > .selector-field {
+        display: block;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .product-selectors-refined span {
+        vertical-align: initial;
+        font-size: inherit;
+    }
+
     .product-selectors-refined .selector-panel,
     .product-selectors-refined .selector-search,
     .product-selectors-refined select {
+        appearance: none;
+        -webkit-appearance: none;
+        box-sizing: border-box;
         width: 100%;
+        height: 44px;
         min-height: 44px;
         border: 1px solid #dbe3ef;
         border-radius: 10px;
         background: #edf4ff;
         padding: 0 12px;
         color: #141c24;
-        font-size: 13px;
+        font-size: var(--public-font-control);
         font-weight: 600;
+        line-height: 44px;
         outline: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     }
 
@@ -110,10 +133,11 @@
     .product-selectors-refined .selector-search-wrap,
     .product-selectors-refined .selector-select-wrap {
         position: relative;
+        min-width: 0;
     }
 
     .product-selectors-refined .selector-search {
-        padding-left: 38px;
+        padding-left: 42px;
     }
 
     .product-selectors-refined .selector-search-icon,
@@ -125,25 +149,30 @@
         transform: translateY(-50%);
         color: #64748b;
         font-size: 18px;
+        line-height: 1;
     }
 
     .product-selectors-refined .selector-select-wrap select {
-        padding-left: 38px;
+        margin: 0;
+        padding-left: 42px;
+        padding-right: 12px;
     }
 
     .product-selectors-refined .selector-search:focus,
     .product-selectors-refined select:focus {
-        border-color: #2e0001;
+        border-color: #2f5d31;
         background: #ffffff;
-        box-shadow: 0 0 0 3px rgba(46, 0, 1, 0.08);
+        box-shadow: 0 0 0 3px rgba(47, 93, 49, 0.12);
     }
 
     .product-selectors-refined .selector-reset {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 5px;
+        box-sizing: border-box;
         width: 100%;
+        height: 44px;
         min-height: 44px;
         border: 1px solid #dbe3ef;
         border-radius: 10px;
@@ -151,7 +180,14 @@
         color: #475569;
         font-size: 13px;
         font-weight: 700;
+        padding: 0 10px;
+        white-space: nowrap;
         transition: all 0.2s ease;
+    }
+
+    .product-selectors-refined .selector-reset .material-symbols-outlined {
+        font-size: 18px;
+        line-height: 1;
     }
 
     .product-selectors-refined .selector-reset:hover {
@@ -159,9 +195,41 @@
         background: #f1f5f9;
         color: #141c24;
     }
+
+    .product-selectors-refined .selector-favorites {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        box-sizing: border-box;
+        width: 100%;
+        height: 44px;
+        min-height: 44px;
+        border: 1px solid #fecdd3;
+        border-radius: 10px;
+        background: #fff1f2;
+        color: #b22222;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 0 10px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .product-selectors-refined .selector-favorites .material-symbols-outlined {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .product-selectors-refined .selector-favorites:hover,
+    .product-selectors-refined .selector-favorites.is-active {
+        border-color: #b22222;
+        background: #b22222;
+        color: #d4af37;
+    }
 </style>
 
-<div class="product-selectors product-selectors-refined grid grid-cols-1 gap-4 md:grid-cols-5 md:items-end" id="category-toolbar">
+<div class="product-selectors-refined grid grid-cols-1 gap-4 @gridColumnsClass md:items-end" id="category-toolbar">
     <div class="selector-field">
         <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
         <div class="selector-search-wrap">
@@ -181,12 +249,19 @@
             <div class="selector-select-wrap">
                 <span class="material-symbols-outlined selector-select-icon">category</span>
                 <select id="products-category-select" aria-label="Danh mục">
-                    <option value="">Tất cả danh mục</option>
+                    <option value="" data-url="@allCategoriesUrl">Tất cả danh mục</option>
                     @foreach (var cat in categorySelectItems)
                     {
                         var catId = int.Parse(cat.Value, CultureInfo.InvariantCulture);
                         var catUrl = categorySeoUrls.GetValueOrDefault(catId, "#");
-                        <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
+                        if (catId == currentCategoryId)
+                        {
+                            <option value="@cat.Value" data-url="@catUrl" selected>@cat.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@cat.Value" data-url="@catUrl">@cat.Text</option>
+                        }
                     }
                 </select>
             </div>
@@ -202,8 +277,14 @@
                 @foreach (var manufacturer in manufacturerSelectItems)
                 {
                     var manufacturerId = int.Parse(manufacturer.Value, CultureInfo.InvariantCulture);
-                    var manufacturerUrl = manufacturerSeoUrls.GetValueOrDefault(manufacturerId, "#");
-                    <option value="@manufacturer.Value" data-url="@manufacturerUrl">@manufacturer.Text</option>
+                    if (selectedManufacturerIds.Contains(manufacturerId))
+                    {
+                        <option value="@manufacturer.Value" selected>@manufacturer.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@manufacturer.Value">@manufacturer.Text</option>
+                    }
                 }
             </select>
         </div>
@@ -225,32 +306,44 @@
     {
         <div class="product-sorting selector-field">
             <label class="selector-label" for="products-orderby">Sắp xếp</label>
-            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-[#1152d4] focus:bg-white rounded-lg" })
+            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-military-red focus:bg-white focus:ring-2 focus:ring-military-red/10" })
         </div>
         <script asp-location="Footer">
             $(function() {
                 var $orderByEl = $('#products-orderby');
-                $orderByEl.on('change', function () {
-                    CatalogProducts.getProducts();
-                });
+                $orderByEl
+                    .off('change.catalogSelectorsOrderBy')
+                    .on('change.catalogSelectorsOrderBy', function () {
+                        CatalogProducts.getProducts();
+                    });
 
-                $(CatalogProducts).on('before', function (e) {
+                $(CatalogProducts).off('before.catalogSelectorsOrderBy').on('before.catalogSelectorsOrderBy', function (e) {
                     e.payload.urlBuilder
                         .addParameter('orderby', $orderByEl.val());
                 });
             });
         </script>
     }
-    else
-    {
-        <div class="selector-field">
-            <label class="selector-label" for="products-reset-filters">Bộ lọc</label>
-            <button type="button" class="selector-reset" id="products-reset-filters" aria-label="Làm mới bộ lọc">
-                <span class="material-symbols-outlined text-[18px]">restart_alt</span>
-                <span>Làm mới bộ lọc</span>
-            </button>
-        </div>
-    }
+
+    <div class="selector-field">
+        <label class="selector-label" for="products-favorites-filter">Yêu thích</label>
+        <button type="button"
+                class="selector-favorites @(Model.CanFilterByFavorites && Model.FavoritesOnly ? "is-active" : string.Empty)"
+                id="products-favorites-filter"
+                aria-label="Danh sách yêu thích"
+                aria-pressed="@(Model.CanFilterByFavorites && Model.FavoritesOnly ? "true" : "false")">
+            <span class="material-symbols-outlined">@(Model.CanFilterByFavorites && Model.FavoritesOnly ? "favorite" : "favorite_border")</span>
+            <span>Yêu thích</span>
+        </button>
+    </div>
+
+    <div class="selector-field">
+        <label class="selector-label" for="products-reset-filters">Bộ lọc</label>
+        <button type="button" class="selector-reset" id="products-reset-filters" aria-label="Làm mới bộ lọc">
+            <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+            <span>Làm mới bộ lọc</span>
+        </button>
+    </div>
 </div>
 
 <script asp-location="Footer">
@@ -260,51 +353,111 @@
         var $manufacturerSelect = $('#products-manufacturer-select');
         var $statusFilter = $('#products-status-filter');
         var $resetFiltersButton = $('#products-reset-filters');
+        var $favoritesButton = $('#products-favorites-filter');
+        var resetCategoryUrl = '@resetCategoryUrl';
+
+        function normalizeForSearch(value) {
+            var normalized = (value || '').toString().toLowerCase();
+            if (!normalized) {
+                return '';
+            }
+
+            normalized = normalized.replace(/đ/g, 'd');
+
+            if (normalized.normalize) {
+                normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            }
+
+            return normalized.trim();
+        }
 
         function applyLocalFilters() {
-            var searchTerm = ($quickSearch.val() || '').toString().toLowerCase().trim();
+            var searchTerm = normalizeForSearch($quickSearch.val());
             var statusTerm = ($statusFilter.val() || '').toString().trim();
+            var visibleCount = 0;
 
             $('.products-wrapper .item-box').each(function() {
                 var $card = $(this).find('[data-product-search]').first();
-                var haystack = ($card.data('product-search') || '').toString().toLowerCase();
+                var haystack = normalizeForSearch($card.data('product-search'));
                 var cardStatus = ($card.data('product-status') || '').toString();
                 var matchSearch = searchTerm.length === 0 || haystack.indexOf(searchTerm) > -1;
                 var matchStatus = statusTerm.length === 0 || cardStatus === statusTerm;
+                var shouldShow = matchSearch && matchStatus;
 
-                $(this).toggle(matchSearch && matchStatus);
+                $(this).toggle(shouldShow);
+                if (shouldShow) {
+                    visibleCount++;
+                }
             });
+
+            $('#catalog-local-empty').toggleClass('hidden', visibleCount > 0);
         }
 
         @if (!lockCategorySelector)
         {
             <text>
-            $categorySelect.on('change', function() {
-                var url = $(this).find(':selected').data('url');
-                if (url && url !== '#') {
-                    window.location.href = url;
-                }
-            });
+            $categorySelect
+                .off('change.catalogSelectors')
+                .on('change.catalogSelectors', function() {
+                    var url = $(this).find(':selected').data('url');
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                });
             </text>
             }
         
-        $manufacturerSelect.on('change', function() {
-            var url = $(this).find(':selected').data('url');
-            if (url && url !== '#') {
-                window.location.href = url;
+        $manufacturerSelect
+            .off('change.catalogSelectors')
+            .on('change.catalogSelectors', function() {
+                CatalogProducts.getProducts();
+            });
+
+        $favoritesButton
+            .off('click.catalogSelectors')
+            .on('click.catalogSelectors', function() {
+                var isActive = !$favoritesButton.hasClass('is-active');
+                $favoritesButton.toggleClass('is-active', isActive);
+                $favoritesButton.attr('aria-pressed', isActive ? 'true' : 'false');
+                $favoritesButton.find('.material-symbols-outlined').text(isActive ? 'favorite' : 'favorite_border');
+                $('#filter-favorites-only').prop('checked', isActive);
+                CatalogProducts.getProducts();
+            });
+
+        $(CatalogProducts).off('before.catalogSelectors').on('before.catalogSelectors', function (e) {
+            var selectedManufacturerId = ($manufacturerSelect.val() || '').toString();
+            if (selectedManufacturerId.length > 0) {
+                e.payload.urlBuilder.addParameter('ms', selectedManufacturerId);
+            }
+
+            if ($favoritesButton.length && $favoritesButton.hasClass('is-active')) {
+                e.payload.urlBuilder.addParameter('favoritesOnly', true);
             }
         });
 
-        $quickSearch.on('input', applyLocalFilters);
-        $statusFilter.on('change', applyLocalFilters);
+        $quickSearch.off('input.catalogSelectors').on('input.catalogSelectors', applyLocalFilters);
+        $statusFilter.off('change.catalogSelectors').on('change.catalogSelectors', applyLocalFilters);
         if ($resetFiltersButton.length) {
-            $resetFiltersButton.on('click', function() {
+            $resetFiltersButton.off('click.catalogSelectors').on('click.catalogSelectors', function() {
+                if (resetCategoryUrl) {
+                    window.location.href = resetCategoryUrl;
+                    return;
+                }
+
                 $quickSearch.val('');
                 $statusFilter.val('');
+                $manufacturerSelect.val('');
+                $favoritesButton.removeClass('is-active').attr('aria-pressed', 'false');
+                $favoritesButton.find('.material-symbols-outlined').text('favorite_border');
+                $('#filter-favorites-only').prop('checked', false);
+                if ($categorySelect.length) {
+                    $categorySelect.val('');
+                }
                 applyLocalFilters();
+                CatalogProducts.getProducts();
             });
         }
 
-        $(CatalogProducts).on('loaded', applyLocalFilters);
+        $(CatalogProducts).off('loaded.catalogSelectors').on('loaded.catalogSelectors', applyLocalFilters);
     });
 </script>

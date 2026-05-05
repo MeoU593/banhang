@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Localization;
@@ -10,7 +11,6 @@ using Nop.Services.Blogs;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
-using Nop.Services.Messages;
 using Nop.Services.Seo;
 using Nop.Services.Security;
 using Nop.Services.Stores;
@@ -26,6 +26,8 @@ namespace Nop.Web.Controllers;
 [AutoValidateAntiforgeryToken]
 public partial class BlogController : BasePublicController
 {
+    protected const string BlogPostViewCookiePrefix = "nop.blog.viewed.";
+
     #region Fields
 
     protected readonly BlogSettings _blogSettings;
@@ -43,7 +45,6 @@ public partial class BlogController : BasePublicController
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly LocalizationSettings _localizationSettings;
 
     #endregion
@@ -65,7 +66,6 @@ public partial class BlogController : BasePublicController
         IUrlRecordService urlRecordService,
         IWebHelper webHelper,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings)
     {
         _blogSettings = blogSettings;
@@ -83,7 +83,6 @@ public partial class BlogController : BasePublicController
         _urlRecordService = urlRecordService;
         _webHelper = webHelper;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _localizationSettings = localizationSettings;
     }
 
@@ -196,10 +195,24 @@ public partial class BlogController : BasePublicController
         if (hasAdminAccess)
             DisplayEditLink(Url.Action("BlogPostEdit", "Blog", new { id = blogPost.Id, area = AreaNames.ADMIN }));
 
+        var viewCookieName = $"{BlogPostViewCookiePrefix}{blogPost.Id}";
+        if (!hasAdminAccess && !HttpContext.Request.Cookies.ContainsKey(viewCookieName))
+        {
+            await _blogService.IncrementBlogPostViewCountAsync(blogPost);
+            HttpContext.Response.Cookies.Append(viewCookieName, "1", new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddHours(6),
+                HttpOnly = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = HttpContext.Request.IsHttps
+            });
+        }
+
         var model = new BlogPostModel();
         await _blogModelFactory.PrepareBlogPostModelAsync(model, blogPost, true);
 
-        return View(model);
+        return View("BlogPost", model);
     }
 
     [HttpPost]
@@ -217,6 +230,10 @@ public partial class BlogController : BasePublicController
         if (await _customerService.IsGuestAsync(customer) && !_blogSettings.AllowNotRegisteredUsersToLeaveComments)
             ModelState.AddModelError("", await _localizationService.GetResourceAsync("Blog.Comments.OnlyRegisteredUsersLeaveComments"));
 
+        var commentText = model.AddNewComment.CommentText?.Trim();
+        if (string.IsNullOrWhiteSpace(commentText))
+            ModelState.AddModelError("", "Nội dung bình luận không được để trống.");
+
         //validate CAPTCHA
         if (_captchaSettings.Enabled && _captchaSettings.ShowOnBlogCommentPage && !captchaValid)
             ModelState.AddModelError("", await _localizationService.GetResourceAsync("Common.WrongCaptchaMessage"));
@@ -224,21 +241,28 @@ public partial class BlogController : BasePublicController
         if (ModelState.IsValid)
         {
             var store = await _storeContext.GetCurrentStoreAsync();
+            var replyToCommentId = 0;
+            if (model.AddNewComment.ReplyToCommentId > 0)
+            {
+                var repliedComment = await _blogService.GetBlogCommentByIdAsync(model.AddNewComment.ReplyToCommentId);
+                if (repliedComment != null && repliedComment.BlogPostId == blogPost.Id && repliedComment.IsApproved)
+                    replyToCommentId = repliedComment.Id;
+            }
+
+            if (replyToCommentId > 0)
+                commentText = $"[replyto:{replyToCommentId}]\n{commentText}";
+
             var comment = new BlogComment
             {
                 BlogPostId = blogPost.Id,
                 CustomerId = customer.Id,
-                CommentText = model.AddNewComment.CommentText,
+                CommentText = commentText,
                 IsApproved = !_blogSettings.BlogCommentsMustBeApproved,
                 StoreId = store.Id,
                 CreatedOnUtc = DateTime.UtcNow,
             };
 
             await _blogService.InsertBlogCommentAsync(comment);
-
-            //notify a store owner
-            if (_blogSettings.NotifyAboutNewBlogComments)
-                await _workflowMessageService.SendBlogCommentStoreOwnerNotificationMessageAsync(comment, _localizationSettings.DefaultAdminLanguageId);
 
             //activity log
             await _customerActivityService.InsertActivityAsync("PublicStore.AddBlogComment",
@@ -258,13 +282,13 @@ public partial class BlogController : BasePublicController
             var blogPostSeName = await _urlRecordService.GetSeNameAsync(blogPost, blogPost.LanguageId, ensureTwoPublishedLanguages: false);
             var blogPostUrl = Url.RouteUrl(routeName, new { SeName = blogPostSeName })
                               ?? await _nopUrlHelper.RouteGenericUrlAsync(blogPost, languageId: blogPost.LanguageId, ensureTwoPublishedLanguages: false);
-            return LocalRedirect(blogPostUrl);
+            return LocalRedirect($"{blogPostUrl}#comment{comment.Id}");
         }
 
         //If we got this far, something failed, redisplay form
         RouteData.Values["action"] = "BlogPost";
         await _blogModelFactory.PrepareBlogPostModelAsync(model, blogPost, true);
-        return View(model);
+        return View("BlogPost", model);
     }
 
     #endregion

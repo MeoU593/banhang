@@ -10,39 +10,51 @@
 
 <div class="alert alert-info">
     <strong>Kỳ báo cáo:</strong> @Model.ReportPeriodName<br />
-    <strong>Đơn vị:</strong> @Model.OrganizationUnitName<br />
+    <strong>Đơn vị:</strong> @Model.VendorName<br />
     <strong>Trạng thái:</strong> @Model.Status
 </div>
 
 <div class="card card-default">
     <div class="card-body">
-    <form method="post" asp-action="Import" enctype="multipart/form-data" class="mb-3">
-        <input asp-for="Id" type="hidden" />
-        <div class="form-row align-items-end">
-            <div class="col-md-5 mb-2">
-                <label asp-for="ImportFile">Tệp nhập liệu</label>
-                <input asp-for="ImportFile" type="file" class="form-control" />
+    @if (Model.CanImport)
+    {
+        <form method="post" asp-action="Import" enctype="multipart/form-data" class="mb-3">
+            <input asp-for="Id" type="hidden" />
+            <div class="form-row align-items-end">
+                <div class="col-md-5 mb-2">
+                    <label asp-for="ImportFile">Tệp nhập liệu</label>
+                    <input asp-for="ImportFile" type="file" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button type="submit" class="btn btn-outline-secondary">Nhập từ Excel</button>
+                </div>
             </div>
-            <div class="col-md-3 mb-2">
-                <button type="submit" class="btn btn-outline-secondary">Nhập từ Excel</button>
-            </div>
-        </div>
-    </form>
+        </form>
+    }
 
-    <form method="post" asp-action="Aggregate" class="d-inline">
-        <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-outline-secondary">Tổng hợp từ đơn vị con</button>
-    </form>
+    @if (Model.CanAggregate)
+    {
+        <form method="post" asp-action="Aggregate" class="d-inline">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-outline-secondary">Tổng hợp từ đơn vị con</button>
+        </form>
+    }
 
-    <form method="post" asp-action="Submit" class="d-inline">
-        <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-primary">Gửi báo cáo</button>
-    </form>
+    @if (Model.CanSubmit)
+    {
+        <form method="post" asp-action="Submit" class="d-inline">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary">Gửi báo cáo</button>
+        </form>
+    }
 
-    <form method="post" asp-action="Lock" class="d-inline">
-        <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-danger">Khóa</button>
-    </form>
+    @if (Model.CanLock)
+    {
+        <form method="post" asp-action="Lock" class="d-inline">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-danger">Khóa</button>
+        </form>
+    }
     </div>
 </div>
 
@@ -77,29 +89,35 @@
                 </td>
                 <td>@Model.Values[i].IndicatorName</td>
                 <td>@Model.Values[i].UnitOfMeasure</td>
-                <td><input asp-for="Values[i].SelfValueNumber" class="form-control" /></td>
+                <td><input asp-for="Values[i].SelfValueNumber" class="form-control" readonly="@(Model.CanSave ? null : "readonly")" /></td>
                 <td>@Model.Values[i].ChildAggregateValueNumber</td>
-                <td><input asp-for="Values[i].AdjustmentValueNumber" class="form-control" /></td>
+                <td><input asp-for="Values[i].AdjustmentValueNumber" class="form-control" readonly="@(Model.CanSave ? null : "readonly")" /></td>
                 <td>@Model.Values[i].FinalValueNumber</td>
-                <td><input asp-for="Values[i].Note" class="form-control" /></td>
+                <td><input asp-for="Values[i].Note" class="form-control" readonly="@(Model.CanSave ? null : "readonly")" /></td>
             </tr>
         }
         </tbody>
     </table>
     <div class="p-3">
-        <button type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+        @if (Model.CanSave)
+        {
+            <button type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+        }
         <a asp-action="Index" asp-route-reportPeriodId="@Model.ReportPeriodId" class="btn btn-secondary">Quay lại</a>
     </div>
 </form>
 </div>
 </div>
 
-<hr />
-<form method="post" asp-action="Return">
-    <input type="hidden" name="id" value="@Model.Id" />
-    <div class="form-group">
-        <label asp-for="ReturnReason">Lý do trả lại</label>
-        <textarea asp-for="ReturnReason" class="form-control" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-warning">Trả về đơn vị cấp dưới</button>
-</form>
+@if (Model.CanReturn)
+{
+    <hr />
+    <form method="post" asp-action="Return">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="form-group">
+            <label asp-for="ReturnReason">Lý do trả lại</label>
+            <textarea asp-for="ReturnReason" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-warning">Trả về đơn vị cấp dưới</button>
+    </form>
+}

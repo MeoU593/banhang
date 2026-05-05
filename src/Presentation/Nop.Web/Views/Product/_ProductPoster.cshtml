@@ -1,0 +1,84 @@
+@model object
+@using System.Reflection
+
+@{
+    object GetPropertyValue(object source, string propertyName)
+    {
+        if (source is null || string.IsNullOrWhiteSpace(propertyName))
+            return null;
+
+        var property = source.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        return property?.GetValue(source);
+    }
+
+    bool HasProperty(object source, string propertyName)
+    {
+        if (source is null || string.IsNullOrWhiteSpace(propertyName))
+            return false;
+
+        return source.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public) != null;
+    }
+
+    string GetStringValue(object source, string propertyName)
+        => GetPropertyValue(source, propertyName)?.ToString();
+
+    var posterModel = GetPropertyValue(Model, "ProductPoster");
+    if (posterModel is null && HasProperty(Model, "PhoneNumber") && HasProperty(Model, "HasData"))
+        posterModel = Model;
+
+    var hasData = false;
+    var hasDataValue = GetPropertyValue(posterModel, "HasData");
+    if (hasDataValue is bool boolHasData)
+        hasData = boolHasData;
+    else
+        hasData = !string.IsNullOrWhiteSpace(GetStringValue(posterModel, "Name"));
+
+    var name = GetStringValue(posterModel, "Name");
+    var phoneNumber = GetStringValue(posterModel, "PhoneNumber");
+    var email = GetStringValue(posterModel, "Email");
+    var rank = GetStringValue(posterModel, "Rank");
+    var positionTitle = GetStringValue(posterModel, "PositionTitle");
+}
+
+@if (hasData)
+{
+    <div class="product-poster">
+        <span class="label">Người đăng sản phẩm:</span>
+        <details class="poster-details">
+            <summary>
+                <span class="poster-name">@name</span>
+                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">contact_page</span>
+            </summary>
+            <div class="poster-card">
+                @if (!string.IsNullOrWhiteSpace(phoneNumber))
+                {
+                    <div class="poster-field">
+                        <span class="poster-field-label">Số điện thoại</span>
+                        <a href="tel:@phoneNumber">@phoneNumber</a>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(email))
+                {
+                    <div class="poster-field">
+                        <span class="poster-field-label">Gmail</span>
+                        <a href="mailto:@email">@email</a>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(rank))
+                {
+                    <div class="poster-field">
+                        <span class="poster-field-label">Cấp bậc</span>
+                        <span>@rank</span>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(positionTitle))
+                {
+                    <div class="poster-field">
+                        <span class="poster-field-label">Chức vụ</span>
+                        <span>@positionTitle</span>
+                    </div>
+                }
+            </div>
+        </details>
+    </div>
+}

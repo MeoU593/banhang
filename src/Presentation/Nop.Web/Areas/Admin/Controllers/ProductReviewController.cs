@@ -29,7 +29,6 @@ public partial class ProductReviewController : BaseAdminController
     protected readonly IProductReviewService _productReviewService;
     protected readonly IProductService _productService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
 
     #endregion Fields
 
@@ -45,8 +44,7 @@ public partial class ProductReviewController : BaseAdminController
         IProductReviewModelFactory productReviewModelFactory,
         IProductReviewService productReviewService,
         IProductService productService,
-        IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService)
+        IWorkContext workContext)
     {
         _catalogSettings = catalogSettings;
         _customerActivityService = customerActivityService;
@@ -59,7 +57,6 @@ public partial class ProductReviewController : BaseAdminController
         _productReviewService = productReviewService;
         _productService = productService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
     }
 
     #endregion
@@ -143,12 +140,12 @@ public partial class ProductReviewController : BaseAdminController
                 !string.IsNullOrEmpty(productReview.ReplyText) &&
                 _catalogSettings.NotifyCustomerAboutProductReviewReply && !productReview.CustomerNotifiedOfReply)
             {
-                var customer = await _customerService.GetCustomerByIdAsync(productReview.CustomerId);
-                var customerLanguageId = customer?.LanguageId ?? 0;
-
-                var queuedEmailIds = await _workflowMessageService.SendProductReviewReplyCustomerNotificationMessageAsync(productReview, customerLanguageId);
-                if (queuedEmailIds.Any())
-                    productReview.CustomerNotifiedOfReply = true;
+                //var customer = await _customerService.GetCustomerByIdAsync(productReview.CustomerId);
+                //var customerLanguageId = customer?.LanguageId ?? 0;
+                //
+                //var queuedEmailIds = await _workflowMessageService.SendProductReviewReplyCustomerNotificationMessageAsync(productReview, customerLanguageId);
+                //if (queuedEmailIds.Any())
+                //    productReview.CustomerNotifiedOfReply = true;
             }
 
             await _productReviewService.UpdateProductReviewAsync(productReview);

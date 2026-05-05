@@ -780,6 +780,8 @@ public partial class ProductService : IProductService
     /// <param name="manufacturerIds">Manufacturer identifiers</param>
     /// <param name="storeId">Store identifier; 0 to load all records</param>
     /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
+    /// <param name="vendorIds">Vendor identifiers; null/empty to ignore this filter</param>
+    /// <param name="productIds">Product identifiers; null/empty to ignore this filter</param>
     /// <param name="warehouseId">Warehouse identifier; 0 to load all records</param>
     /// <param name="productType">Product type; 0 to load all records</param>
     /// <param name="visibleIndividuallyOnly">A values indicating whether to load only products marked as "visible individually"; "false" to load all records; "true" to load "visible individually" only</param>
@@ -812,6 +814,7 @@ public partial class ProductService : IProductService
         IList<int> manufacturerIds = null,
         int storeId = 0,
         int vendorId = 0,
+        IList<int> productIds = null,
         int warehouseId = 0,
         ProductType? productType = null,
         bool visibleIndividuallyOnly = false,
@@ -828,7 +831,8 @@ public partial class ProductService : IProductService
         IList<SpecificationAttributeOption> filteredSpecOptions = null,
         ProductSortingEnum orderBy = ProductSortingEnum.Position,
         bool showHidden = false,
-        bool? overridePublished = null)
+        bool? overridePublished = null,
+        IList<int> vendorIds = null)
     {
         //some databases don't support int.MaxValue
         if (pageSize == int.MaxValue)
@@ -855,11 +859,31 @@ public partial class ProductService : IProductService
             productsQuery = await _aclService.ApplyAcl(productsQuery, customer);
         }
 
+        vendorIds = vendorIds?
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        productIds = productIds?
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        var hasVendorScope = vendorIds?.Any() ?? false;
+
+        if (productIds is not null)
+        {
+            if (!productIds.Any())
+                return new PagedList<Product>(new List<Product>(), pageIndex, pageSize);
+
+            productsQuery = productsQuery.Where(p => productIds.Contains(p.Id));
+        }
+
         productsQuery =
             from p in productsQuery
             where !p.Deleted &&
                   (!visibleIndividuallyOnly || p.VisibleIndividually) &&
-                  (vendorId == 0 || p.VendorId == vendorId) &&
+                  (hasVendorScope ? vendorIds.Contains(p.VendorId) : (vendorId == 0 || p.VendorId == vendorId)) &&
                   (
                       warehouseId == 0 ||
                       (
@@ -978,10 +1002,10 @@ public partial class ProductService : IProductService
                 var vendors = await _vendorService.GetAllVendorsAsync(name: keywords, showHidden: showHidden);
                 if (vendors.Any())
                 {
-                    var vendorIds = vendors.Select(v => v.Id).ToList();
+                    var matchedVendorIds = vendors.Select(v => v.Id).ToList();
                     productsByKeywords = productsByKeywords.Union(
                         from p in _productRepository.Table
-                        where vendorIds.Contains(p.VendorId)
+                        where matchedVendorIds.Contains(p.VendorId)
                         select p.Id);
                 }
 
@@ -1775,19 +1799,19 @@ public partial class ProductService : IProductService
 
             await ApplyLowStockActivityAsync(product, totalStock);
 
-            //send email notification
-            if (quantityToChange < 0 && totalStock < product.NotifyAdminForQuantityBelow)
-            {
-                //do not inject IWorkflowMessageService via constructor because it'll cause circular references
-                var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
-                await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(product, _localizationSettings.DefaultAdminLanguageId);
-
-                if (product.VendorId != 0)
-                {
-                    var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
-                    await workflowMessageService.SendQuantityBelowVendorNotificationAsync(product, vendor, _localizationSettings.DefaultAdminLanguageId);
-                }
-            }
+            ////send email notification
+            //if (quantityToChange < 0 && totalStock < product.NotifyAdminForQuantityBelow)
+            //{
+            //    //do not inject IWorkflowMessageService via constructor because it'll cause circular references
+            //    var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
+            //    await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(product, _localizationSettings.DefaultAdminLanguageId);
+            //
+            //    if (product.VendorId != 0)
+            //    {
+            //        var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
+            //        await workflowMessageService.SendQuantityBelowVendorNotificationAsync(product, vendor, _localizationSettings.DefaultAdminLanguageId);
+            //    }
+            //}
         }
 
         if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStockByAttributes)
@@ -1810,19 +1834,19 @@ public partial class ProductService : IProductService
                     await ApplyLowStockActivityAsync(product, totalStockByAllCombinations);
                 }
 
-                //send email notification
-                if (quantityToChange < 0 && combination.StockQuantity < combination.NotifyAdminForQuantityBelow)
-                {
-                    //do not inject IWorkflowMessageService via constructor because it'll cause circular references
-                    var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
-                    await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(combination, _localizationSettings.DefaultAdminLanguageId);
-
-                    if (product.VendorId != 0)
-                    {
-                        var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
-                        await workflowMessageService.SendQuantityBelowVendorNotificationAsync(combination, vendor, _localizationSettings.DefaultAdminLanguageId);
-                    }
-                }
+                ////send email notification
+                //if (quantityToChange < 0 && combination.StockQuantity < combination.NotifyAdminForQuantityBelow)
+                //{
+                //    //do not inject IWorkflowMessageService via constructor because it'll cause circular references
+                //    var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
+                //    await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(combination, _localizationSettings.DefaultAdminLanguageId);
+                //
+                //    if (product.VendorId != 0)
+                //    {
+                //        var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
+                //        await workflowMessageService.SendQuantityBelowVendorNotificationAsync(combination, vendor, _localizationSettings.DefaultAdminLanguageId);
+                //    }
+                //}
             }
         }
 

@@ -1,14 +1,11 @@
-﻿@inject Nop.Services.Html.IHtmlFormatter htmlFormatter
+@inject Nop.Services.Html.IHtmlFormatter htmlFormatter
 @model BlogPostModel
 @{
-    Layout = "_ColumnsTwo";
+    Layout = "_ColumnsOne";
 
-    //title
     NopHtml.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Title);
-    //meta
     NopHtml.AddMetaDescriptionParts(Model.MetaDescription);
     NopHtml.AddMetaKeywordParts(Model.MetaKeywords);
-    //page class
     NopHtml.AppendPageCssClassParts("html-blogpost-page");
 
     var isDocument = Model.PostTypeId == 1;
@@ -16,155 +13,480 @@
     var typeArchiveUrl = isDocument
         ? Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS)
         : Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS);
-    var typeBadgeClass = isDocument
-        ? "bg-amber-50 text-amber-700 border border-amber-200"
-        : "bg-red-50 text-red-700 border border-red-100";
+    var author = string.IsNullOrWhiteSpace(Model.AuthorName)
+        ? (isDocument ? "Ban hành nội bộ" : "Ban biên tập")
+        : Model.AuthorName;
+
+    var pdfUrl = Model.PdfDownloadGuid.HasValue
+        ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = Model.PdfDownloadGuid.Value })
+        : null;
+    var docUrl = Model.DocDownloadGuid.HasValue
+        ? Url.RouteUrl(NopRouteNames.Standard.DOWNLOAD_GET_FILE_UPLOAD, new { downloadId = Model.DocDownloadGuid.Value })
+        : null;
+    var isAuthenticated = Context.User.Identity?.IsAuthenticated ?? false;
+    var blogCommentsById = Model.Comments.ToDictionary(comment => comment.Id);
+    var blogGroupedReplies = Model.Comments
+        .Where(comment => comment.ReplyToCommentId > 0 && blogCommentsById.ContainsKey(comment.ReplyToCommentId))
+        .GroupBy(comment => comment.ReplyToCommentId)
+        .ToDictionary(group => group.Key, group => group.OrderBy(comment => comment.CreatedOn).ToList());
+    var topLevelBlogComments = Model.Comments
+        .Where(comment => comment.ReplyToCommentId <= 0 || !blogCommentsById.ContainsKey(comment.ReplyToCommentId))
+        .OrderBy(comment => comment.CreatedOn)
+        .ToList();
 }
-@section left {
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogBefore, additionalData = Model })
-    @await Component.InvokeAsync(typeof(BlogMonthsViewComponent))
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnAfterBlogArchive, additionalData = Model })
-    @await Component.InvokeAsync(typeof(BlogTagsViewComponent))
-    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBlogAfter, additionalData = Model })
-}
+
+<style>
+    .blogpost-page .blog-detail-main-image {
+        max-width: 88%;
+        margin: 1.5rem auto;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .blogpost-page .blogpost-content img {
+        display: block;
+        max-width: 88%;
+        height: auto;
+        margin: 1.25rem auto;
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 640px) {
+        .blogpost-page .blog-detail-main-image,
+        .blogpost-page .blogpost-content img {
+            max-width: 100%;
+        }
+    }
+</style>
+
 <div class="page blogpost-page">
-    <div class="max-w-4xl">
+    <div class="page-body w-full space-y-6">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageTop, additionalData = Model })
 
-        <nav class="mb-6 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-on-surface-variant">
-            <a href="/" class="hover:text-military-green transition-colors">Trang chủ</a>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <a href="@typeArchiveUrl" class="hover:text-military-green transition-colors">@typeLabel</a>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="text-on-surface font-bold line-clamp-1">@Model.Title</span>
-        </nav>
-
-        <div class="page-body space-y-5">
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBeforeBody, additionalData = Model })
-
-            <article class="post-body rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-8 shadow-sm">
-                <span class="mb-4 inline-flex rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider @typeBadgeClass">@typeLabel</span>
-                <h1 class="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-on-surface">@Model.Title</h1>
-                <div class="mb-6 flex flex-wrap items-center gap-4 border-b border-outline-variant/20 pb-5 text-sm text-on-surface-variant">
-                    <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px] text-military-green">calendar_today</span>
-                        <time datetime="@Model.CreatedOn.ToString("yyyy-MM-dd")">@Model.CreatedOn.ToString("dd/MM/yyyy")</time>
-                    </div>
+        <section class="overflow-hidden rounded-2xl border p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)]" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+            <div class="flex flex-wrap items-start justify-between gap-5">
+                <div class="space-y-2">
+                    <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+                        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+                        <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                        <a href="@Url.RouteUrl(NopRouteNames.General.BLOG)" class="transition hover:text-white">Tin tức &amp; văn bản</a>
+                        <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                        <a href="@typeArchiveUrl" class="transition hover:text-white">@typeLabel</a>
+                        <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                        <span class="line-clamp-1 text-white">@Model.Title</span>
+                    </nav>
+                    <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-container">@typeLabel</span>
+                    <h2 class="public-hero-title max-w-4xl font-black tracking-tight text-white">@Model.Title</h2>
+                    <p class="text-sm text-slate-200">@Model.CreatedOn.ToString("dd/MM/yyyy HH:mm") • @author</p>
                 </div>
-                <div class="prose prose-slate max-w-none leading-relaxed text-on-surface">
-                    @Html.Raw(Model.Body)
-                </div>
-            </article>
+                <a href="@(typeArchiveUrl ?? Url.RouteUrl(NopRouteNames.General.BLOG) ?? "#")" class="inline-flex h-10 items-center justify-center rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20">Quay về danh sách</a>
+            </div>
+        </section>
 
-            @if (Model.Tags.Count > 0)
-            {
-                <div role="navigation" class="tags rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4 shadow-sm">
-                    <h3 class="tags-title mb-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">@T("Blog.Tags")</h3>
-                    <ul class="flex flex-wrap items-center gap-2">
-                        @for (var i = 0; i < Model.Tags.Count; i++)
-                        {
-                            var tag = Model.Tags[i];
-                            <li><a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag = tag })" class="inline-flex items-center rounded-full border border-outline-variant/40 bg-surface-container px-3 py-1 text-xs font-semibold text-on-surface-variant transition hover:border-military-green hover:text-military-green">@tag</a></li>
-                        }
-                    </ul>
-                </div>
-            }
+        <div class="grid grid-cols-1 gap-8 xl:grid-cols-12">
+            <div class="space-y-6 xl:col-span-8">
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBeforeBody, additionalData = Model })
 
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBeforeComments, additionalData = Model })
-            @if (Model.AllowComments)
-            {
-                <div class="fieldset new-comment rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm" id="comments">
-                    <h2 class="title mb-4 text-xl font-bold text-on-surface">@T("Blog.Comments.LeaveYourComment")</h2>
-                    <div class="notifications mb-4">
-                        <div asp-validation-summary="ModelOnly" class="message-error rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
-                        @{
-                            var result = TempData["nop.blog.addcomment.result"] as string;
-                        }
-                        @if (!string.IsNullOrEmpty(result))
-                        {
-                            <div class="result rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">@result</div>
-                        }
-                    </div>
-
-                    <form asp-controller="Blog" asp-action="BlogCommentAdd" asp-route-blogpostid="@Model.Id" method="post" class="space-y-4">
-                        <div class="form-fields">
-                            <div class="inputs">
-                                <label asp-for="AddNewComment.CommentText" asp-postfix=":" class="mb-1.5 block text-sm font-semibold text-on-surface"></label>
-                                <textarea asp-for="AddNewComment.CommentText" class="enter-comment-text min-h-[120px] w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2.5 text-sm text-on-surface outline-none transition focus:border-military-green focus:ring-2 focus:ring-military-green/10" asp-disabled="@Model.PreventNotRegisteredUsersToLeaveComments"></textarea>
-                                <nop-required />
-                                <span asp-validation-for="AddNewComment.CommentText"></span>
+                @if (isDocument)
+                {
+                    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="border-b border-slate-100 p-6 md:p-8">
+                            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <span class="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-700">Văn bản</span>
+                                <a href="@typeArchiveUrl" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Danh sách văn bản</a>
                             </div>
-                            @if (Model.AddNewComment.DisplayCaptcha)
+                            <h1 class="public-page-title font-extrabold tracking-tight text-slate-900">@Model.Title</h1>
+                            <div class="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 text-sm md:grid-cols-3">
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Ngày đăng</p>
+                                    <p class="mt-1 font-semibold text-slate-900">@Model.CreatedOn.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Người đăng</p>
+                                    <p class="mt-1 font-semibold text-slate-900">@author</p>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Loại bài viết</p>
+                                    <p class="mt-1 font-semibold text-slate-900">@typeLabel</p>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(Model.BodyOverview))
                             {
-                                <nop-captcha action-name="BlogCommentAdd" />
+                                <div class="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                                    @Html.Raw(Model.BodyOverview)
+                                </div>
                             }
                         </div>
-                        @if (!Model.PreventNotRegisteredUsersToLeaveComments)
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ThumbnailImageUrl))
                         {
-                            <div class="buttons">
-                                <button type="submit" name="add-comment" class="button-1 blog-post-add-comment-button inline-flex h-10 items-center justify-center rounded-lg bg-military-green px-5 text-sm font-semibold text-white transition hover:bg-military-green/90">@T("Blog.Comments.SubmitButton")</button>
+                            <div class="blog-detail-main-image aspect-[16/7] bg-slate-100">
+                                <img src="@Model.ThumbnailImageUrl" alt="@Model.Title" class="h-full w-full object-cover" />
                             </div>
                         }
-                        else
-                        {
-                            <div class="message-error rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@T("Blog.Comments.OnlyRegisteredUsersLeaveComments")</div>
-                        }
-                    </form>
-                </div>
 
-                if (Model.Comments.Count > 0)
-                {
-                    <div class="comment-list rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm">
-                        <h2 class="title mb-4 text-xl font-bold text-on-surface">@T("Blog.Comments")</h2>
-                        <div class="comments space-y-4">
-                            @foreach (var comment in Model.Comments)
+                        <div class="blogpost-content prose prose-slate max-w-none p-6 leading-relaxed text-slate-700 md:p-8">
+                            @Html.Raw(Model.Body)
+                        </div>
+                    </article>
+
+                    @if (!string.IsNullOrWhiteSpace(pdfUrl) || !string.IsNullOrWhiteSpace(docUrl))
+                    {
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            @if (!string.IsNullOrWhiteSpace(pdfUrl))
                             {
-                                <div class="comment blog-comment rounded-lg border border-outline-variant/20 bg-surface-container p-4">
-                                    <div class="comment-info mb-2 flex flex-wrap items-center gap-3">
-                                        <div class="user-info flex items-center gap-3">
-                                            @if (!string.IsNullOrEmpty(comment.CustomerAvatarUrl))
-                                            {
-                                                <div class="avatar">
-                                                    @if (comment.AllowViewingProfiles)
-                                                    {
-                                                        <a href="@Url.RouteUrl(NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = comment.CustomerId })" class="avatar-img-link">
-                                                            <img src="@(comment.CustomerAvatarUrl)" class="avatar-img h-9 w-9 rounded-full object-cover" alt="avatar" />
-                                                        </a>
-                                                    }
-                                                    else
-                                                    {
-                                                        <img src="@(comment.CustomerAvatarUrl)" class="avatar-img h-9 w-9 rounded-full object-cover" alt="avatar" />
-                                                    }
-                                                </div>
-                                            }
-                                            @if (comment.AllowViewingProfiles)
-                                            {
-                                                <a href="@Url.RouteUrl(NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = comment.CustomerId })" class="username text-sm font-bold text-on-surface hover:text-military-green">@(comment.CustomerName)</a>
-                                            }
-                                            else
-                                            {
-                                                <span class="username text-sm font-bold text-on-surface">@(comment.CustomerName)</span>
-                                            }
+                                <a href="@pdfUrl" target="_blank" rel="noopener" class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-red-300 hover:shadow-md">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                                            <span class="material-symbols-outlined">picture_as_pdf</span>
                                         </div>
-                                        <div class="comment-time text-xs text-on-surface-variant">
-                                            @comment.CreatedOn.ToString("g")
+                                        <div>
+                                            <h3 class="public-list-title font-bold text-slate-900">Tải bản PDF</h3>
+                                            <p class="text-xs text-slate-500">Tài liệu định dạng PDF</p>
                                         </div>
                                     </div>
-                                    <div class="comment-content">
-                                        <div class="comment-body text-sm leading-6 text-on-surface-variant">
-                                            @Html.Raw(htmlFormatter.FormatText(comment.CommentText, false, true, false, false, false, false))
+                                    <span class="material-symbols-outlined text-slate-300 transition group-hover:text-red-600">download</span>
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(docUrl))
+                            {
+                                <a href="@docUrl" target="_blank" rel="noopener" class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                            <span class="material-symbols-outlined">description</span>
+                                        </div>
+                                        <div>
+                                            <h3 class="public-list-title font-bold text-slate-900">Tải bản DOC</h3>
+                                            <p class="text-xs text-slate-500">Tài liệu định dạng DOC/DOCX</p>
                                         </div>
                                     </div>
-                                    @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageInsideComment, additionalData = comment })
+                                    <span class="material-symbols-outlined text-slate-300 transition group-hover:text-blue-600">download</span>
+                                </a>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="border-b border-slate-100 p-6 md:p-8">
+                            <span class="mb-4 inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-700">Tin tức</span>
+                            <h1 class="public-page-title font-extrabold tracking-tight text-slate-900">@Model.Title</h1>
+                            <div class="mt-6 flex flex-wrap items-center gap-5 text-sm text-slate-600">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px] text-red-700">calendar_today</span>
+                                    <time datetime="@Model.CreatedOn.ToString("yyyy-MM-dd")">@Model.CreatedOn.ToString("dd/MM/yyyy HH:mm")</time>
                                 </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px] text-red-700">person</span>
+                                    <span class="font-semibold text-slate-900">@author</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ThumbnailImageUrl))
+                        {
+                            <div class="blog-detail-main-image aspect-[16/8] bg-slate-100">
+                                <img src="@Model.ThumbnailImageUrl" alt="@Model.Title" class="h-full w-full object-cover" />
+                            </div>
+                        }
+
+                        <div class="space-y-6 p-6 md:p-8">
+                            @if (!string.IsNullOrWhiteSpace(Model.BodyOverview))
+                            {
+                                <div class="rounded-lg border-l-4 border-red-700 bg-slate-50 px-4 py-3 text-base italic leading-7 text-slate-700">
+                                    @Html.Raw(Model.BodyOverview)
+                                </div>
+                            }
+
+                            <div class="blogpost-content prose prose-slate max-w-none leading-relaxed text-slate-700">
+                                @Html.Raw(Model.Body)
+                            </div>
+                        </div>
+                    </article>
+                }
+
+                @if (Model.Tags.Count > 0)
+                {
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <h3 class="public-label-text mb-3 font-bold uppercase tracking-wider text-slate-500">@T("Blog.Tags")</h3>
+                        <ul class="flex flex-wrap items-center gap-1.5">
+                            @for (var i = 0; i < Model.Tags.Count; i++)
+                            {
+                                var tag = Model.Tags[i];
+                                <li><a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag })" class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 transition hover:border-military-green hover:text-military-green">@tag</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBeforeComments, additionalData = Model })
+
+                @if (Model.AllowComments)
+                {
+                    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="comments">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+                            <h2 class="public-card-title font-bold text-slate-900">Bình luận (@Model.NumberOfComments)</h2>
+                            <div class="flex flex-wrap items-center justify-end gap-2">
+                                <span class="text-xs font-semibold uppercase text-slate-500">Cũ nhất</span>
+                                @if (!Model.PreventNotRegisteredUsersToLeaveComments)
+                                {
+                                    <a href="#blog-comment-form" class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Viết bình luận</a>
+                                }
+                                else
+                                {
+                                    @Html.RouteLink("Đăng nhập để bình luận", NopRouteNames.General.LOGIN, null, new { @class = "inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
+                                }
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 bg-slate-50/40 p-4 sm:p-5">
+                            <div asp-validation-summary="ModelOnly" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                            @{
+                                var result = TempData["nop.blog.addcomment.result"] as string;
+                            }
+                            @if (!string.IsNullOrEmpty(result))
+                            {
+                                <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">@result</div>
+                            }
+
+                            @if (!Model.PreventNotRegisteredUsersToLeaveComments)
+                            {
+                                <form id="blog-comment-form" asp-controller="Blog" asp-action="BlogCommentAdd" asp-route-blogpostid="@Model.Id" method="post" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                    <input type="hidden" asp-for="AddNewComment.ReplyToCommentId" value="0" />
+                                    <label asp-for="AddNewComment.CommentText" asp-postfix=":" class="mb-2 block text-sm font-semibold text-slate-700"></label>
+                                    <textarea asp-for="AddNewComment.CommentText" rows="4" required placeholder="Nhập bình luận của bạn..."
+                                              class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></textarea>
+                                    <nop-required />
+                                    <span asp-validation-for="AddNewComment.CommentText"></span>
+
+                                    @if (Model.AddNewComment.DisplayCaptcha)
+                                    {
+                                        <nop-captcha action-name="BlogCommentAdd" />
+                                    }
+
+                                    <div class="mt-3 flex justify-end">
+                                        <button type="submit" name="add-comment" class="inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Gửi bình luận</button>
+                                    </div>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@T("Blog.Comments.OnlyRegisteredUsersLeaveComments")</div>
+                            }
+
+                            @if (!topLevelBlogComments.Any())
+                            {
+                                <p class="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Chưa có bình luận nào.</p>
+                            }
+                            else
+                            {
+                                @foreach (var comment in topLevelBlogComments)
+                                {
+                                    await Html.RenderPartialAsync("_BlogComment", comment, new ViewDataDictionary(ViewData)
+                                    {
+                                        ["BlogPostId"] = Model.Id,
+                                        ["AllowCommenting"] = !Model.PreventNotRegisteredUsersToLeaveComments,
+                                        ["CanReply"] = !Model.PreventNotRegisteredUsersToLeaveComments
+                                    });
+
+                                    if (blogGroupedReplies.TryGetValue(comment.Id, out var childReplies))
+                                    {
+                                        <div class="ml-6 border-l border-slate-200 pl-3 sm:ml-10 sm:pl-4">
+                                            <div class="space-y-3">
+                                                @foreach (var reply in childReplies)
+                                                {
+                                                    await Html.RenderPartialAsync("_BlogComment", reply, new ViewDataDictionary(ViewData)
+                                                    {
+                                                        ["BlogPostId"] = Model.Id,
+                                                        ["AllowCommenting"] = !Model.PreventNotRegisteredUsersToLeaveComments,
+                                                        ["CanReply"] = !Model.PreventNotRegisteredUsersToLeaveComments
+                                                    });
+
+                                                    if (blogGroupedReplies.TryGetValue(reply.Id, out var nestedReplies))
+                                                    {
+                                                        <div class="ml-4 border-l border-slate-200 pl-3 sm:ml-6">
+                                                            <div class="space-y-3">
+                                                                @foreach (var nestedReply in nestedReplies)
+                                                                {
+                                                                    await Html.RenderPartialAsync("_BlogComment", nestedReply, new ViewDataDictionary(ViewData)
+                                                                    {
+                                                                        ["BlogPostId"] = Model.Id,
+                                                                        ["AllowCommenting"] = !Model.PreventNotRegisteredUsersToLeaveComments,
+                                                                        ["CanReply"] = false
+                                                                    });
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </div>
+                    </section>
+                }
+
+                @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageAfterComments, additionalData = Model })
+            </div>
+
+            <aside class="space-y-5 xl:col-span-4">
+                @if (isDocument && (!string.IsNullOrWhiteSpace(pdfUrl) || !string.IsNullOrWhiteSpace(docUrl)))
+                {
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="public-meta-text mb-4 font-bold uppercase tracking-wider text-slate-700">Tệp đính kèm</h3>
+                        <div class="space-y-2">
+                            @if (!string.IsNullOrWhiteSpace(pdfUrl))
+                            {
+                                <a href="@pdfUrl" target="_blank" rel="noopener" class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:text-red-600">
+                                    <span class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
+                                        PDF
+                                    </span>
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(docUrl))
+                            {
+                                <a href="@docUrl" target="_blank" rel="noopener" class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600">
+                                    <span class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[18px] text-blue-600">description</span>
+                                        DOC/DOCX
+                                    </span>
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                </a>
                             }
                         </div>
                     </div>
                 }
-            }
 
-            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageAfterComments, additionalData = Model })
+                @if (Model.LatestNewsPosts.Any())
+                {
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <h3 class="public-meta-text font-bold uppercase tracking-wider text-slate-700">Tin tức mới nhất</h3>
+                            <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS)" class="text-xs font-semibold text-military-green hover:underline">Xem tất cả</a>
+                        </div>
+                        <div class="space-y-3">
+                            @foreach (var item in Model.LatestNewsPosts)
+                            {
+                                var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS_POST, new { SeName = item.SeName }) ?? "#";
+                                <a href="@postUrl" class="group flex gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2.5 transition hover:border-military-green hover:bg-white hover:shadow-sm">
+                                    <div class="h-16 w-20 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                                        @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
+                                        {
+                                            <img src="@item.ThumbnailImageUrl" alt="@item.Title" class="h-full w-full object-cover" />
+                                        }
+                                        else
+                                        {
+                                            <div class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase text-slate-400">Tin</div>
+                                        }
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="line-clamp-2 text-sm font-bold leading-5 text-slate-900 group-hover:text-military-green">@item.Title</div>
+                                        <div class="mt-1 text-[11px] text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (Model.PopularNewsPosts.Any())
+                {
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <h3 class="public-meta-text font-bold uppercase tracking-wider text-slate-700">Tin tức phổ biến nhất</h3>
+                            <span class="material-symbols-outlined text-[18px] text-military-green">trending_up</span>
+                        </div>
+                        <div class="space-y-3">
+                            @foreach (var item in Model.PopularNewsPosts)
+                            {
+                                var postUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS_POST, new { SeName = item.SeName }) ?? "#";
+                                <a href="@postUrl" class="group flex gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2.5 transition hover:border-military-green hover:bg-white hover:shadow-sm">
+                                    <div class="h-16 w-20 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                                        @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
+                                        {
+                                            <img src="@item.ThumbnailImageUrl" alt="@item.Title" class="h-full w-full object-cover" />
+                                        }
+                                        else
+                                        {
+                                            <div class="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase text-slate-400">Tin</div>
+                                        }
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="line-clamp-2 text-sm font-bold leading-5 text-slate-900 group-hover:text-military-green">@item.Title</div>
+                                        <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+                                            <span>@item.CreatedOn.ToString("dd/MM/yyyy")</span>
+                                            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                                            <span>@item.ViewCount lượt xem</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <h3 class="public-meta-text mb-3 font-bold uppercase tracking-wider text-slate-700">Tags</h3>
+                    @await Component.InvokeAsync(typeof(BlogTagsViewComponent))
+                </div>
+            </aside>
         </div>
+
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BlogPostPageBottom, additionalData = Model })
     </div>
 </div>
+
+<script asp-location="Footer">
+    document.addEventListener('DOMContentLoaded', function () {
+        var replyButtons = document.querySelectorAll('[data-blog-reply-target]');
+        var cancelButtons = document.querySelectorAll('[data-blog-reply-cancel]');
+
+        var hideAllReplyForms = function () {
+            document.querySelectorAll('[id^="blog-reply-form-"]').forEach(function (form) {
+                form.style.display = 'none';
+            });
+        };
+
+        replyButtons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                var targetId = button.getAttribute('data-blog-reply-target');
+                var targetForm = document.getElementById(targetId);
+                if (!targetForm) {
+                    return;
+                }
+
+                var willShow = targetForm.style.display === 'none' || targetForm.style.display === '';
+                hideAllReplyForms();
+
+                if (willShow) {
+                    targetForm.style.display = 'block';
+                    var textarea = targetForm.querySelector('textarea[name="AddNewComment.CommentText"]');
+                    if (textarea) {
+                        textarea.focus();
+                    }
+                    targetForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
+
+        cancelButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var targetId = button.getAttribute('data-blog-reply-cancel');
+                var targetForm = document.getElementById(targetId);
+                if (targetForm) {
+                    targetForm.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>

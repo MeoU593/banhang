@@ -28,6 +28,33 @@ public class StorageService : IStorageService
         return absolute.Replace(_fileProvider.MapPath("~/"), string.Empty).Replace('\\', '/');
     }
 
+    public Task DeleteAsync(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return Task.CompletedTask;
+
+        var absolute = GetAbsolutePath(relativePath);
+        if (File.Exists(absolute))
+            File.Delete(absolute);
+
+        return Task.CompletedTask;
+    }
+
+    public Task CleanupOldFilesAsync(string relativeFolder, TimeSpan maxAge)
+    {
+        var folder = EnsureFolder(relativeFolder);
+        var cutoffUtc = DateTime.UtcNow.Subtract(maxAge);
+
+        foreach (var filePath in Directory.EnumerateFiles(folder))
+        {
+            var lastWriteUtc = File.GetLastWriteTimeUtc(filePath);
+            if (lastWriteUtc < cutoffUtc)
+                File.Delete(filePath);
+        }
+
+        return Task.CompletedTask;
+    }
+
     public string GetAbsolutePath(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath))

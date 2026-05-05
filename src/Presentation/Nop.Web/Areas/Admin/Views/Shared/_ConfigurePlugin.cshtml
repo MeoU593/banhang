@@ -5,9 +5,6 @@
 @using Nop.Services.Cms
 @using Nop.Services.Payments
 @using Nop.Services.Plugins
-@using Nop.Services.Shipping
-@using Nop.Services.Shipping.Pickup
-@using Nop.Services.Tax
 @inject IPluginService pluginService
 @{
     var plugin = pluginService.FindPluginByTypeInAssembly((ViewContext.ActionDescriptor as ControllerActionDescriptor).ControllerTypeInfo);
@@ -29,33 +26,6 @@
         backToLocale = "Admin.Configuration.Payment.Methods.BackToList";
         listActionMethodName = "PaymentMethods";
         listControllerName = "Payment";
-    }
-    else if (plugin is IShippingRateComputationMethod)
-    {
-        //shipping rate computation method
-        activeMenuSystemName = "Shipping providers";
-        configureLocale = "Admin.Configuration.Shipping.Providers.Configure";
-        backToLocale = "Admin.Configuration.Shipping.Providers.BackToList";
-        listActionMethodName = "Providers";
-        listControllerName = "Shipping";
-    }
-    else if (plugin is IPickupPointProvider)
-    {
-        //pickup point provider
-        activeMenuSystemName = "Pickup points";
-        configureLocale = "Admin.Configuration.Shipping.PickupPointProviders.Configure";
-        backToLocale = "Admin.Configuration.Shipping.PickupPointProviders.BackToList";
-        listActionMethodName = "PickupPointProviders";
-        listControllerName = "Shipping";
-    }
-    else if (plugin is ITaxProvider)
-    {
-        //tax provider
-        activeMenuSystemName = "Tax providers";
-        configureLocale = "Admin.Configuration.Tax.Providers.Configure";
-        backToLocale = "Admin.Configuration.Tax.Providers.BackToList";
-        listActionMethodName = "List";
-        listControllerName = "Tax";
     }
     else if (plugin is IExternalAuthenticationMethod)
     {

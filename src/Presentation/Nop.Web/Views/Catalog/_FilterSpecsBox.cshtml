@@ -37,11 +37,13 @@
 <script asp-location="Footer">
     $(function() {
         var $optionEls = $('[data-option-id]');
-        $optionEls.on('change', function () {
-            CatalogProducts.getProducts();
-        });
+        $optionEls
+            .off('change.filterSpecs')
+            .on('change.filterSpecs', function () {
+                CatalogProducts.getProducts();
+            });
 
-        $(CatalogProducts).on('before', function (e) {
+        $(CatalogProducts).off('before.filterSpecs').on('before.filterSpecs', function (e) {
             var selectedOptions = $.map($optionEls, function (el) {
                 var $optionEl = $(el);
                 if ($optionEl.is(':checked')) return $optionEl.data('option-id');

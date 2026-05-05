@@ -69,13 +69,15 @@
         checkFilterSelections();
 
         // Add change event listener to all filter selects
-        $('.filter-level-select').on('change', function() {
-            checkFilterSelections();
-        });
+        $('.filter-level-select')
+            .off('change.filterLevelValueSearch')
+            .on('change.filterLevelValueSearch', function() {
+                checkFilterSelections();
+            });
         
     });
 
-    $("#filter-level-values-search").on("click", function () {
+    $("#filter-level-values-search").off("click.filterLevelValueSearch").on("click.filterLevelValueSearch", function () {
         var form = $(this).closest('form');
         var formData = new FormData(form[0]);
         

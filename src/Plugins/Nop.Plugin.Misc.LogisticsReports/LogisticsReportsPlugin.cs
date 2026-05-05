@@ -26,9 +26,6 @@ public class LogisticsReportsPlugin : BasePlugin
         await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
         {
             ["Plugins.Misc.LogisticsReports.Menu.Root"] = "Báo cáo Logistics",
-            ["Plugins.Misc.LogisticsReports.Menu.Dashboard"] = "Bảng điều khiển",
-            ["Plugins.Misc.LogisticsReports.Menu.CustomerOrganizations"] = "Người dùng - Đơn vị",
-            ["Plugins.Misc.LogisticsReports.Menu.Organizations"] = "Đơn vị",
             ["Plugins.Misc.LogisticsReports.Menu.Templates"] = "Mẫu báo cáo",
             ["Plugins.Misc.LogisticsReports.Menu.Periods"] = "Kỳ báo cáo",
             ["Plugins.Misc.LogisticsReports.Menu.UnitReports"] = "Báo cáo đơn vị",
@@ -41,7 +38,6 @@ public class LogisticsReportsPlugin : BasePlugin
             ["Plugins.Misc.LogisticsReports.Notifications.ImportCompleted"] = "Import thành công {0} dòng dữ liệu.",
             ["Plugins.Misc.LogisticsReports.Notifications.UnitReportsGenerated"] = "Đã tạo {0} báo cáo đơn vị.",
             ["Plugins.Misc.LogisticsReports.Dashboard.Title"] = "Bảng điều khiển báo cáo logistics",
-            ["Plugins.Misc.LogisticsReports.Dashboard.TotalOrganizations"] = "Đơn vị",
             ["Plugins.Misc.LogisticsReports.Dashboard.TotalTemplates"] = "Mẫu báo cáo",
             ["Plugins.Misc.LogisticsReports.Dashboard.TotalPeriods"] = "Kỳ báo cáo",
             ["Plugins.Misc.LogisticsReports.Dashboard.TotalUnitReports"] = "Báo cáo đơn vị",
@@ -57,7 +53,6 @@ public class LogisticsReportsPlugin : BasePlugin
     {
         var systems = new[]
         {
-            Infrastructure.LogisticsReportsPermissionConfigManager.ManageOrganizationUnits,
             Infrastructure.LogisticsReportsPermissionConfigManager.ManageReportTemplates,
             Infrastructure.LogisticsReportsPermissionConfigManager.ManageReportPeriods,
             Infrastructure.LogisticsReportsPermissionConfigManager.InputOwnUnitReports,

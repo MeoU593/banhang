@@ -8,15 +8,10 @@
 }
 
 @{
-    const string hideDeleteGuestsBlockAttributeName = "MaintenancePage.HideDeleteGuestsBlock";
     var customer = await workContext.GetCurrentCustomerAsync();
-    var hideDeleteGuestsBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideDeleteGuestsBlockAttributeName);
 
     const string hideDeleteFilesBlockAttributeName = "MaintenancePage.HideDeleteFilesBlock";
     var hideDeleteFilesBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideDeleteFilesBlockAttributeName);
-
-    const string hideDeleteCartsBlockAttributeName = "MaintenancePage.HideDeleteCartsBlock";
-    var hideDeleteCartsBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideDeleteCartsBlockAttributeName);
 
     const string hideReindexBlockAttributeName = "MaintenancePage.HideReindexBlock";
     var hideReindexBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideReindexBlockAttributeName);
@@ -56,11 +51,7 @@
 
                 <nop-cards id="maintenance-cards">
                     <div class="row">
-                        <nop-card class="col-md-6 col-xs-12 margin-t-5" asp-name="maintenance-delete-guests" asp-icon="fas fa-trash-alt" asp-title="@T("Admin.System.Maintenance.DeleteGuests")" asp-hide-block-attribute-name="@hideDeleteGuestsBlockAttributeName" asp-hide="@hideDeleteGuestsBlock" asp-advanced="false">@await Html.PartialAsync("_Maintenance.DeleteGuests", Model)</nop-card>
                         <nop-card class="col-md-6 col-xs-12 margin-t-5" asp-name="maintenance-delete-files" asp-icon="fas fa-trash-alt" asp-title="@T("Admin.System.Maintenance.DeleteExportedFiles")" asp-hide-block-attribute-name="@hideDeleteFilesBlockAttributeName" asp-hide="@hideDeleteFilesBlock" asp-advanced="false">@await Html.PartialAsync("_Maintenance.DeleteFiles", Model)</nop-card>
-                    </div>
-                    <div class="row">
-                        <nop-card class="col-md-6 col-xs-12 margin-t-5" asp-name="maintenance-delete-carts" asp-icon="fas fa-trash-alt" asp-title="@T("Admin.System.Maintenance.DeleteAbandonedCarts")" asp-hide-block-attribute-name="@hideDeleteCartsBlockAttributeName" asp-hide="@hideDeleteCartsBlock" asp-advanced="false">@await Html.PartialAsync("_Maintenance.DeleteAbandonedCarts", Model)</nop-card>
                         <nop-card class="col-md-6 col-xs-12 margin-t-5" asp-name="maintenance-reindex" asp-icon="fas fa-database" asp-title="@T("Admin.System.Maintenance.ReIndexTables")" asp-hide-block-attribute-name="@hideReindexBlockAttributeName" asp-hide="@hideReindexBlock" asp-advanced="false">@await Html.PartialAsync("_Maintenance.ReindexDatabaseTables", Model)</nop-card>
                     </div>
                     <div class="row">

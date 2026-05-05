@@ -1,6 +1,7 @@
 ﻿@model PublicInfoModel
 @{
     Layout = "";
+    var sliderId = $"nop-slider-{Guid.NewGuid():N}";
 }
 
 <link href="~/Plugins/Widgets.Swiper/Content/css/swiper-bundle.min.css" rel="stylesheet">
@@ -9,7 +10,7 @@
 
 @if (Model.Slides?.Any() == true)
 {
-    <div class="swiper nop-slider">
+    <div class="swiper nop-slider" id="@sliderId">
         <div class="swiper-wrapper">
             @foreach (var slide in Model.Slides)
             {
@@ -29,11 +30,21 @@
 }
 
 <script asp-location="Footer">
-    var swiper6 = new Swiper(".nop-slider", {
-      autoHeight: true,
-        grabCursor: true,
-        effect: "fade",
-        lazy: true,
+    (function() {
+        var sliderEl = document.getElementById("@sliderId");
+        if (!sliderEl) {
+            return;
+        }
+
+        if (sliderEl.swiper) {
+            sliderEl.swiper.destroy(true, true);
+        }
+
+        new Swiper(sliderEl, {
+            autoHeight: true,
+            grabCursor: true,
+            effect: "fade",
+            lazy: true,
         @if (Model.Autoplay)
         {
             <text>
@@ -46,7 +57,7 @@
         {
             <text>
             pagination: {
-                el: ".swiper-pagination",
+                el: "#@sliderId .swiper-pagination",
                 clickable: true,
             },
             </text>
@@ -55,10 +66,11 @@
         {
             <text>
             navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
+                nextEl: "#@sliderId .swiper-button-next",
+                prevEl: "#@sliderId .swiper-button-prev",
             },
             </text>
         }
-    });
+        });
+    }());
 </script>

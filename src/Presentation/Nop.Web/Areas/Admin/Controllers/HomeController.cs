@@ -62,22 +62,7 @@ public partial class HomeController : BaseAdminController
 
     public virtual async Task<IActionResult> Index()
     {
-        //display a warning to a store owner if there are some error
-        var customer = await _workContext.GetCurrentCustomerAsync();
-        var hideCard = await _genericAttributeService.GetAttributeAsync<bool>(customer, NopCustomerDefaults.HideConfigurationStepsAttribute);
-        var closeCard = await _genericAttributeService.GetAttributeAsync<bool>(customer, NopCustomerDefaults.CloseConfigurationStepsAttribute);
-
-        if ((hideCard || closeCard) && await _permissionService.AuthorizeAsync(StandardPermission.System.MANAGE_MAINTENANCE))
-        {
-            var warnings = await _commonModelFactory.PrepareSystemWarningModelsAsync();
-            if (warnings.Any(warning => warning.Level == SystemWarningLevel.Fail || warning.Level == SystemWarningLevel.Warning))
-            {
-                var locale = await _localizationService.GetResourceAsync("Admin.System.Warnings.Errors");
-                _notificationService.WarningNotification(string.Format(locale, Url.Action("Warnings", "Common")), false); //do not encode URLs
-            }
-        }
-
-        //progress of localization 
+        //progress of localization
         var currentLanguage = await _workContext.GetWorkingLanguageAsync();
         var progress = await _genericAttributeService.GetAttributeAsync<string>(currentLanguage, NopCommonDefaults.LanguagePackProgressAttribute);
         if (!string.IsNullOrEmpty(progress))
@@ -106,41 +91,6 @@ public partial class HomeController : BaseAdminController
     {
         var model = new DataTablesModel();
         model = await _homeModelFactory.PreparePopularSearchTermReportModelAsync(model);
-        return PartialView("Table", model);
-    }
-
-    public virtual async Task<IActionResult> GetBestsellersBriefReportByAmount()
-    {
-        var model = new DataTablesModel();
-        model = await _homeModelFactory.PrepareBestsellersBriefReportByAmountModelAsync(model);
-        return PartialView("Table", model);
-    }
-
-    public virtual async Task<IActionResult> GetBestsellersBriefReportByQuantity()
-    {
-        var model = new DataTablesModel();
-        model = await _homeModelFactory.PrepareBestsellersBriefReportByQuantityModelAsync(model);
-        return PartialView("Table", model);
-    }
-
-    public virtual async Task<IActionResult> GetLatestOrders()
-    {
-        var model = new DataTablesModel();
-        model = await _homeModelFactory.PrepareLatestOrdersModelAsync(model);
-        return PartialView("Table", model);
-    }
-
-    public virtual async Task<IActionResult> GetOrderIncomplete()
-    {
-        var model = new DataTablesModel();
-        model = await _homeModelFactory.PrepareOrderIncompleteModelAsync(model);
-        return PartialView("Table", model);
-    }
-
-    public virtual async Task<IActionResult> GetOrderAverage()
-    {
-        var model = new DataTablesModel();
-        model = await _homeModelFactory.PrepareOrderAverageModelAsync(model);
         return PartialView("Table", model);
     }
 

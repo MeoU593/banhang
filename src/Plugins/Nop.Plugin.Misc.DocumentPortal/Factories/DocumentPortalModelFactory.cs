@@ -1,28 +1,41 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.RegularExpressions;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Vendors;
 using Nop.Data;
 using Nop.Plugin.Misc.DocumentPortal.Domain;
 using Nop.Plugin.Misc.DocumentPortal.Services;
+using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Customers;
-using Nop.Services.Vendors;
+using Nop.Services.Helpers;
+using Nop.Services.Media;
+using Nop.Core;
 using Nop.Web.Framework.Models.Extensions;
 using AdminModels = Nop.Plugin.Misc.DocumentPortal.Models.Admin;
 using PublicModels = Nop.Plugin.Misc.DocumentPortal.Models.Public;
-using VendorModels = Nop.Plugin.Misc.DocumentPortal.Models.Vendor;
 
 namespace Nop.Plugin.Misc.DocumentPortal.Factories;
 
 public class DocumentPortalModelFactory : IDocumentPortalModelFactory
 {
+    private static readonly Regex ReplyToTokenRegex = new(@"^\[replyto:(\d+)\]\s*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     private readonly IDocumentPortalService _documentPortalService;
     private readonly IRepository<DocumentCategory> _documentCategoryRepository;
     private readonly IRepository<DocumentType> _documentTypeRepository;
     private readonly IRepository<DocumentIssuer> _documentIssuerRepository;
     private readonly IRepository<Vendor> _vendorRepository;
+    private readonly CustomerSettings _customerSettings;
+    private readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     private readonly ICustomerService _customerService;
+    private readonly IDateTimeHelper _dateTimeHelper;
+    private readonly IGenericAttributeService _genericAttributeService;
+    private readonly IPictureService _pictureService;
     private readonly ISettingService _settingService;
+    private readonly IWorkContext _workContext;
+    private readonly MediaSettings _mediaSettings;
 
     public DocumentPortalModelFactory(
         IDocumentPortalService documentPortalService,
@@ -30,16 +43,126 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
         IRepository<DocumentType> documentTypeRepository,
         IRepository<DocumentIssuer> documentIssuerRepository,
         IRepository<Vendor> vendorRepository,
+        CustomerSettings customerSettings,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
-        ISettingService settingService)
+        IDateTimeHelper dateTimeHelper,
+        IGenericAttributeService genericAttributeService,
+        IPictureService pictureService,
+        ISettingService settingService,
+        IWorkContext workContext,
+        MediaSettings mediaSettings)
     {
         _documentPortalService = documentPortalService;
         _documentCategoryRepository = documentCategoryRepository;
         _documentTypeRepository = documentTypeRepository;
         _documentIssuerRepository = documentIssuerRepository;
         _vendorRepository = vendorRepository;
+        _customerSettings = customerSettings;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
+        _dateTimeHelper = dateTimeHelper;
+        _genericAttributeService = genericAttributeService;
+        _pictureService = pictureService;
         _settingService = settingService;
+        _workContext = workContext;
+        _mediaSettings = mediaSettings;
+    }
+
+    private static string GetAccessScopeName(int accessScopeId)
+    {
+        return accessScopeId == (int)DocumentAccessScope.Public ? "Công khai" : "Nội bộ";
+    }
+
+    private static void PrepareAccessScopeOptions(IList<SelectListItem> items, int selectedValue = 0, bool includeDefault = false)
+    {
+        if (includeDefault)
+            items.Add(new SelectListItem { Value = "0", Text = "-- Chọn phạm vi --", Selected = selectedValue == 0 });
+
+        items.Add(new SelectListItem
+        {
+            Value = ((int)DocumentAccessScope.Public).ToString(),
+            Text = GetAccessScopeName((int)DocumentAccessScope.Public),
+            Selected = selectedValue == (int)DocumentAccessScope.Public
+        });
+        items.Add(new SelectListItem
+        {
+            Value = ((int)DocumentAccessScope.Internal).ToString(),
+            Text = GetAccessScopeName((int)DocumentAccessScope.Internal),
+            Selected = selectedValue == (int)DocumentAccessScope.Internal
+        });
+    }
+
+    private async Task PrepareOwnerVendorOptionsAsync(IList<SelectListItem> items, int? selectedValue, bool includeGlobal = true)
+    {
+        if (includeGlobal)
+            items.Add(new SelectListItem { Value = "", Text = "Tài liệu hệ thống/công khai", Selected = !selectedValue.HasValue });
+
+        var vendors = await _vendorRepository.Table
+            .Where(x => !x.Deleted && x.Active)
+            .OrderBy(x => x.DisplayOrder)
+            .ThenBy(x => x.Name)
+            .ToListAsync();
+
+        foreach (var vendor in vendors)
+            items.Add(new SelectListItem { Value = vendor.Id.ToString(), Text = vendor.Name, Selected = selectedValue == vendor.Id });
+    }
+
+    private async Task<string?> GetVendorNameAsync(int? vendorId)
+    {
+        if (!vendorId.HasValue || vendorId <= 0)
+            return null;
+
+        return await _vendorRepository.Table
+            .Where(x => x.Id == vendorId.Value)
+            .Select(x => x.Name)
+            .FirstOrDefaultAsync();
+    }
+
+    private static (int ReplyToCommentId, string DisplayText) ParseReplyData(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return (0, string.Empty);
+
+        var match = ReplyToTokenRegex.Match(text);
+        if (!match.Success)
+            return (0, text);
+
+        _ = int.TryParse(match.Groups[1].Value, out var replyToCommentId);
+        return (replyToCommentId, text[match.Length..].TrimStart());
+    }
+
+    private async Task<PublicModels.DocumentCommentModel> PrepareDocumentCommentModelAsync(DocumentComment comment)
+    {
+        var customer = await _customerService.GetCustomerByIdAsync(comment.CustomerId);
+        var customerIsGuest = customer == null || await _customerService.IsGuestAsync(customer);
+        var militaryProfile = customerIsGuest ? null : await _customerMilitaryProfileService.GetByCustomerIdAsync(comment.CustomerId);
+        var (replyToCommentId, displayCommentText) = ParseReplyData(comment.CommentText);
+
+        var model = new PublicModels.DocumentCommentModel
+        {
+            Id = comment.Id,
+            ReplyToCommentId = replyToCommentId,
+            CustomerId = comment.CustomerId,
+            CustomerName = await _customerService.FormatUsernameAsync(customer),
+            CommentText = displayCommentText,
+            Rank = militaryProfile?.Rank,
+            UnitName = militaryProfile?.UnitName,
+            PositionTitle = militaryProfile?.PositionTitle,
+            CreatedOn = await _dateTimeHelper.ConvertToUserTimeAsync(comment.CreatedOnUtc, DateTimeKind.Utc),
+            AllowViewingProfiles = _customerSettings.AllowViewingProfiles && !customerIsGuest
+        };
+
+        if (_customerSettings.AllowCustomersToUploadAvatars && customer != null)
+        {
+            model.CustomerAvatarUrl = await _pictureService.GetPictureUrlAsync(
+                await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute),
+                _mediaSettings.AvatarPictureSize,
+                _customerSettings.DefaultAvatarEnabled,
+                defaultPictureType: PictureType.Avatar);
+        }
+
+        return model;
     }
 
 
@@ -51,6 +174,11 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
         searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "0", Text = "Tất cả" });
         searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "1", Text = "Đã xuất bản" });
         searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "2", Text = "Chưa xuất bản" });
+
+        PrepareAccessScopeOptions(searchModel.AvailableAccessScopes);
+        searchModel.AvailableAccessScopes.Insert(0, new SelectListItem { Value = "0", Text = "Tất cả" });
+        await PrepareOwnerVendorOptionsAsync(searchModel.AvailableOwnerVendors, null);
+        searchModel.AvailableOwnerVendors.Insert(0, new SelectListItem { Value = "0", Text = "Tất cả" });
 
         searchModel.AvailableCategories.Add(new SelectListItem { Value = "0", Text = "Tất cả" });
         foreach (var item in await _documentCategoryRepository.Table.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name).ToListAsync())
@@ -71,15 +199,20 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+
         var data = await _documentPortalService.SearchAdminAsync(
             searchModel.SearchTitle,
             searchModel.SearchCode,
             searchModel.SearchCategoryId > 0 ? searchModel.SearchCategoryId : null,
             searchModel.SearchTypeId > 0 ? searchModel.SearchTypeId : null,
             searchModel.SearchIssuerId > 0 ? searchModel.SearchIssuerId : null,
+            searchModel.SearchOwnerVendorId > 0 ? searchModel.SearchOwnerVendorId : null,
+            searchModel.SearchAccessScopeId,
             searchModel.SearchPublishedId,
             searchModel.Page - 1,
-            searchModel.PageSize);
+            searchModel.PageSize,
+            currentCustomer);
 
         return new AdminModels.DocumentListModel().PrepareToGrid(searchModel, data, () =>
         {
@@ -93,6 +226,12 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
                 ViewCount = entity.ViewCount,
                 DownloadCount = entity.DownloadCount,
                 DisplayOrder = entity.DisplayOrder,
+                OwnerVendorId = entity.OwnerVendorId,
+                OwnerVendorName = GetVendorNameAsync(entity.OwnerVendorId).GetAwaiter().GetResult() ?? "Hệ thống",
+                AccessScopeId = entity.AccessScopeId == (int)DocumentAccessScope.Public
+                    ? (int)DocumentAccessScope.Public
+                    : (int)DocumentAccessScope.Internal,
+                AccessScopeName = GetAccessScopeName(entity.AccessScopeId),
                 CreatedOnUtc = entity.CreatedOnUtc,
                 UpdatedOnUtc = entity.UpdatedOnUtc
             });
@@ -119,6 +258,11 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
                 EffectiveDate = entity.EffectiveDate,
                 DownloadId = entity.DownloadId,
                 ThumbnailPictureId = entity.ThumbnailPictureId,
+                OwnerVendorId = entity.OwnerVendorId,
+                OwnerVendorName = await GetVendorNameAsync(entity.OwnerVendorId),
+                AccessScopeId = entity.AccessScopeId == (int)DocumentAccessScope.Public
+                    ? (int)DocumentAccessScope.Public
+                    : (int)DocumentAccessScope.Internal,
                 Published = entity.Published,
                 AllowDownload = entity.AllowDownload,
                 ShowOnHomepage = entity.ShowOnHomepage,
@@ -130,7 +274,17 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
             };
         }
 
-        model ??= new AdminModels.DocumentModel { Published = true, AllowDownload = true };
+        model ??= new AdminModels.DocumentModel
+        {
+            Published = true,
+            AllowDownload = true,
+            AccessScopeId = (int)DocumentAccessScope.Public
+        };
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        model.CanSelectOwnerVendor = currentCustomer.VendorId <= 0;
+        if (currentCustomer.VendorId > 0)
+            model.OwnerVendorId = currentCustomer.VendorId;
 
         model.AvailableCategories.Add(new SelectListItem { Value = "", Text = "-- Không chọn --" });
         foreach (var item in await _documentCategoryRepository.Table.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name).ToListAsync())
@@ -144,12 +298,8 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
         foreach (var item in await _documentIssuerRepository.Table.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name).ToListAsync())
             model.AvailableIssuers.Add(new SelectListItem { Value = item.Id.ToString(), Text = item.Name });
 
-        var allRoles = await _customerService.GetAllCustomerRolesAsync(true);
-        foreach (var role in allRoles)
-            model.AvailableCustomerRoles.Add(new SelectListItem { Value = role.Id.ToString(), Text = role.Name });
-
-        if (entity != null)
-            model.SelectedCustomerRoleIds = await _documentPortalService.GetRoleMappingIdsAsync(entity.Id);
+        await PrepareOwnerVendorOptionsAsync(model.AvailableOwnerVendors, model.OwnerVendorId, model.CanSelectOwnerVendor);
+        PrepareAccessScopeOptions(model.AvailableAccessScopes, model.AccessScopeId, includeDefault: true);
 
         return model;
     }
@@ -163,8 +313,7 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
             SearchInContent = settings.SearchInContent,
             ShowRelatedDocuments = settings.ShowRelatedDocuments,
             ShowDownloadCount = settings.ShowDownloadCount,
-            AutoGenerateSlug = settings.AutoGenerateSlug,
-            RequireLoginForPrivateDocuments = settings.RequireLoginForPrivateDocuments
+            AutoGenerateSlug = settings.AutoGenerateSlug
         };
     }
 
@@ -172,16 +321,21 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
     {
         var settings = await _settingService.LoadSettingAsync<DocumentPortalSettings>();
         var pageIndex = search.Page <= 0 ? 0 : search.Page - 1;
-        var pageSize = settings.DefaultPageSize;
+        var pageSize = settings.DefaultPageSize > 0 ? settings.DefaultPageSize : 20;
 
         var documents = await _documentPortalService.SearchAsync(
             search.Q,
             search.CategoryId,
             search.TypeId,
             search.IssuerId,
-            search.Year,
+            search.DateFrom,
+            search.DateTo,
             pageIndex,
-            pageSize);
+            pageSize,
+            customer: customer);
+
+        search.Page = documents.PageIndex + 1;
+        search.PageSize = documents.PageSize;
 
         var categories = await _documentPortalService.GetAllCategoriesAsync();
         var types = await _documentPortalService.GetAllTypesAsync();
@@ -206,8 +360,11 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
                 IssuerName = doc.IssuerId.HasValue && issuerDict.TryGetValue(doc.IssuerId.Value, out var iss) ? iss : null,
                 IssuedDate = doc.IssuedDate,
                 DownloadCount = doc.DownloadCount,
-                AllowDownload = doc.AllowDownload,
+                AllowDownload = doc.DownloadId.HasValue,
                 UploadedByCustomerId = doc.UploadedByCustomerId,
+                OwnerVendorId = doc.OwnerVendorId,
+                OwnerVendorName = await GetVendorNameAsync(doc.OwnerVendorId),
+                AccessScopeName = GetAccessScopeName(doc.AccessScopeId),
                 CanDelete = await _documentPortalService.CanDeleteAsync(doc, customer)
             });
         }
@@ -236,70 +393,6 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
         return model;
     }
 
-    public async Task<VendorModels.VendorDocumentSearchModel> PrepareVendorDocumentSearchModelAsync(
-        VendorModels.VendorDocumentSearchModel searchModel, Customer customer)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-
-        searchModel.SetGridPageSize();
-
-        var vendor = customer.VendorId > 0
-            ? await _vendorRepository.Table.FirstOrDefaultAsync(v => v.Id == customer.VendorId && !v.Deleted)
-            : null;
-
-        searchModel.VendorName = vendor?.Name ?? string.Empty;
-        searchModel.IsVendorManager = vendor?.PmCustomerId == customer.Id;
-
-        searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "0", Text = "Tất cả" });
-        searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "1", Text = "Đã xuất bản" });
-        searchModel.AvailablePublishedOptions.Add(new SelectListItem { Value = "2", Text = "Chưa xuất bản" });
-
-        searchModel.AvailableCategories.Add(new SelectListItem { Value = "0", Text = "Tất cả" });
-        foreach (var item in await _documentCategoryRepository.Table.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name).ToListAsync())
-            searchModel.AvailableCategories.Add(new SelectListItem { Value = item.Id.ToString(), Text = item.Name });
-
-        searchModel.AvailableTypes.Add(new SelectListItem { Value = "0", Text = "Tất cả" });
-        foreach (var item in await _documentTypeRepository.Table.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name).ToListAsync())
-            searchModel.AvailableTypes.Add(new SelectListItem { Value = item.Id.ToString(), Text = item.Name });
-
-        return searchModel;
-    }
-
-    public async Task<VendorModels.VendorDocumentListModel> PrepareVendorDocumentListModelAsync(
-        VendorModels.VendorDocumentSearchModel searchModel, Customer customer)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-
-        if (customer.VendorId <= 0)
-            return new VendorModels.VendorDocumentListModel();
-
-        var data = await _documentPortalService.SearchVendorAsync(
-            customer.VendorId,
-            searchModel.SearchKeywords,
-            searchModel.SearchCategoryId > 0 ? searchModel.SearchCategoryId : null,
-            searchModel.SearchTypeId > 0 ? searchModel.SearchTypeId : null,
-            searchModel.SearchPublishedId,
-            searchModel.Page - 1,
-            searchModel.PageSize);
-
-        return new VendorModels.VendorDocumentListModel().PrepareToGrid(searchModel, data, () =>
-        {
-            return data.Select(entity => new AdminModels.DocumentModel
-            {
-                Id = entity.Id,
-                Title = entity.Title,
-                Code = entity.Code,
-                Published = entity.Published,
-                IssuedDate = entity.IssuedDate,
-                ViewCount = entity.ViewCount,
-                DownloadCount = entity.DownloadCount,
-                DisplayOrder = entity.DisplayOrder,
-                CreatedOnUtc = entity.CreatedOnUtc,
-                UpdatedOnUtc = entity.UpdatedOnUtc
-            });
-        });
-    }
-
     public async Task<PublicModels.DocumentDetailModel> PreparePublicDetailModelAsync(Document entity, Customer customer)
     {
         var categoryName = entity.DocumentCategoryId.HasValue
@@ -312,8 +405,36 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
             ? await _documentIssuerRepository.Table.Where(x => x.Id == entity.IssuerId.Value).Select(x => x.Name).FirstOrDefaultAsync()
             : null;
 
-        var related = await _documentPortalService.GetRelatedDocumentsAsync(entity, 5);
-        var mappedRoles = await _documentPortalService.GetRoleMappingIdsAsync(entity.Id);
+        var related = await _documentPortalService.GetRelatedDocumentsAsync(entity, 20, customer);
+        var comments = await _documentPortalService.GetDocumentCommentsAsync(entity.Id, approved: true);
+        var commentModels = new List<PublicModels.DocumentCommentModel>();
+        foreach (var comment in comments)
+            commentModels.Add(await PrepareDocumentCommentModelAsync(comment));
+
+        var visibleRelated = new List<PublicModels.DocumentListItemModel>();
+        foreach (var item in related)
+        {
+            if (!await _documentPortalService.CanAccessDocumentAsync(item, customer))
+                continue;
+
+            visibleRelated.Add(new PublicModels.DocumentListItemModel
+            {
+                Id = item.Id,
+                Title = item.Title,
+                Slug = item.Slug,
+                Code = item.Code,
+                Summary = item.Summary,
+                IssuedDate = item.IssuedDate,
+                DownloadCount = item.DownloadCount,
+                OwnerVendorId = item.OwnerVendorId,
+                OwnerVendorName = await GetVendorNameAsync(item.OwnerVendorId),
+                AccessScopeName = GetAccessScopeName(item.AccessScopeId),
+                AllowDownload = item.DownloadId.HasValue
+            });
+
+            if (visibleRelated.Count >= 5)
+                break;
+        }
 
         return new PublicModels.DocumentDetailModel
         {
@@ -328,39 +449,87 @@ public class DocumentPortalModelFactory : IDocumentPortalModelFactory
             IssuerName = issuerName,
             IssuedDate = entity.IssuedDate,
             EffectiveDate = entity.EffectiveDate,
-            AllowDownload = entity.AllowDownload,
+            PreviewUrl = entity.DownloadId.HasValue ? $"/tai-lieu/xem/{entity.Id}" : null,
+            DownloadUrl = entity.DownloadId.HasValue ? $"/tai-lieu/tai/{entity.Id}" : null,
+            HasContent = !string.IsNullOrWhiteSpace(entity.Content),
+            HasDownload = entity.DownloadId.HasValue,
+            OwnerVendorId = entity.OwnerVendorId,
+            OwnerVendorName = await GetVendorNameAsync(entity.OwnerVendorId),
+            AccessScopeName = GetAccessScopeName(entity.AccessScopeId),
             ViewCount = entity.ViewCount,
             DownloadCount = entity.DownloadCount,
-            IsRestricted = mappedRoles.Any(),
             CanDelete = await _documentPortalService.CanDeleteAsync(entity, customer),
-            RelatedDocuments = related.Select(x => new PublicModels.DocumentListItemModel
-            {
-                Id = x.Id,
-                Title = x.Title,
-                Slug = x.Slug,
-                Code = x.Code,
-                Summary = x.Summary,
-                IssuedDate = x.IssuedDate,
-                DownloadCount = x.DownloadCount
-            }).ToList()
+            CanAddComments = !await _customerService.IsGuestAsync(customer),
+            NumberOfComments = commentModels.Count,
+            Comments = commentModels,
+            RelatedDocuments = visibleRelated
         };
     }
 
     public async Task<PublicModels.DocumentUploadModel> PrepareUploadModelAsync(PublicModels.DocumentUploadModel? model = null)
     {
         model ??= new PublicModels.DocumentUploadModel();
+        PrepareAccessScopeOptions(model.AvailableAccessScopes, model.AccessScopeId, includeDefault: true);
 
-        model.AvailableCategories.Add(new SelectListItem { Value = "", Text = "-- Chọn danh mục --" });
-        foreach (var cat in await _documentPortalService.GetAllCategoriesAsync())
-            model.AvailableCategories.Add(new SelectListItem { Value = cat.Id.ToString(), Text = cat.Name });
+        try
+        {
+            var categories = await _documentPortalService.GetAllCategoriesAsync();
+            model.AvailableCategories.Add(new SelectListItem { Value = "", Text = "-- Chọn danh mục --" });
+            if (categories != null)
+            {
+                foreach (var cat in categories)
+                    model.AvailableCategories.Add(new SelectListItem
+                    {
+                        Value = cat.Id.ToString(),
+                        Text = cat.Name ?? $"Danh mục {cat.Id}",
+                        Selected = model.DocumentCategoryId == cat.Id
+                    });
+            }
+        }
+        catch
+        {
+            model.AvailableCategories.Add(new SelectListItem { Value = "", Text = "-- Lỗi dữ liệu --" });
+        }
 
-        model.AvailableTypes.Add(new SelectListItem { Value = "", Text = "-- Chọn loại tài liệu --" });
-        foreach (var typ in await _documentPortalService.GetAllTypesAsync())
-            model.AvailableTypes.Add(new SelectListItem { Value = typ.Id.ToString(), Text = typ.Name });
+        try
+        {
+            var types = await _documentPortalService.GetAllTypesAsync();
+            model.AvailableTypes.Add(new SelectListItem { Value = "", Text = "-- Chọn loại tài liệu --" });
+            if (types != null)
+            {
+                foreach (var typ in types)
+                    model.AvailableTypes.Add(new SelectListItem
+                    {
+                        Value = typ.Id.ToString(),
+                        Text = typ.Name ?? $"Loại {typ.Id}",
+                        Selected = model.DocumentTypeId == typ.Id
+                    });
+            }
+        }
+        catch
+        {
+            model.AvailableTypes.Add(new SelectListItem { Value = "", Text = "-- Lỗi dữ liệu --" });
+        }
 
-        model.AvailableIssuers.Add(new SelectListItem { Value = "", Text = "-- Chọn cơ quan ban hành --" });
-        foreach (var iss in await _documentPortalService.GetAllIssuersAsync())
-            model.AvailableIssuers.Add(new SelectListItem { Value = iss.Id.ToString(), Text = iss.Name });
+        try
+        {
+            var issuers = await _documentPortalService.GetAllIssuersAsync();
+            model.AvailableIssuers.Add(new SelectListItem { Value = "", Text = "-- Chọn cơ quan ban hành --" });
+            if (issuers != null)
+            {
+                foreach (var iss in issuers)
+                    model.AvailableIssuers.Add(new SelectListItem
+                    {
+                        Value = iss.Id.ToString(),
+                        Text = iss.Name ?? $"Cơ quan {iss.Id}",
+                        Selected = model.IssuerId == iss.Id
+                    });
+            }
+        }
+        catch
+        {
+            model.AvailableIssuers.Add(new SelectListItem { Value = "", Text = "-- Lỗi dữ liệu --" });
+        }
 
         return model;
     }

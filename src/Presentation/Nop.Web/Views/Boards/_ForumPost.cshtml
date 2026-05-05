@@ -1,104 +1,56 @@
-﻿@model ForumPostModel
+@model ForumPostModel
 @using Nop.Core
-@using Nop.Core.Domain.Forums
 
 @inject IWebHelper webHelper;
 @{
     var thisPageUrl = webHelper.GetThisPageUrl(true);
+    var customerInitial = !string.IsNullOrWhiteSpace(Model.CustomerName)
+        ? Model.CustomerName.Substring(0, 1).ToUpperInvariant()
+        : "?";
 }
-<div class="topic-post overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="@Html.Encode($"post{Model.Id}")">
-    <div class="grid gap-0 lg:grid-cols-[220px_minmax(0,1fr)]">
-    <div class="post-info border-b border-slate-100 bg-slate-50 p-4 lg:border-b-0 lg:border-r">
-        <div class="user-info flex flex-col items-start gap-2">
-            @if (Model.AllowViewingProfiles)
-            {
-                @Html.RouteLink(Model.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = Model.CustomerId }, new { @class = "username text-sm font-bold text-slate-900 hover:text-military-green" })
-            }
-            else
-            {
-                <span class="username text-sm font-bold text-slate-900">@Model.CustomerName</span>
-            }
-            @if (!string.IsNullOrEmpty(Model.CustomerAvatarUrl))
-            {
-                <div class="avatar">
-                    @if (Model.AllowViewingProfiles)
-                    {
-                        <a href="@Url.RouteUrl(NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = Model.CustomerId })" class="avatar-img-link">
-                            <img src="@(Model.CustomerAvatarUrl)" class="avatar-img h-14 w-14 rounded-full object-cover" alt="Avatar" />
-                        </a>
-                    }
-                    else
-                    {
-                        <img src="@(Model.CustomerAvatarUrl)" class="avatar-img h-14 w-14 rounded-full object-cover" alt="Avatar" />
-                    }
-                </div>
-            }
-        </div>
-        <ul class="user-stats mt-3 space-y-1 text-xs text-slate-600">
-            @if (Model.IsCustomerForumModerator)
-            {
-                <li class="status">
-                    <label>@T("Forum.Status"):</label>
-                    <span>@T("Forum.Moderator")</span>
-                </li>
-            }
-            @if (Model.ShowCustomersPostCount)
-            {
-                <li class="total-posts">
-                    <label>@T("Forum.TotalPosts"):</label>
-                    <span>@Model.ForumPostCount</span>
-                </li>
-            }
-            @if (Model.ShowCustomersJoinDate)
-            {
-                <li class="joined">
-                    <label>@T("Forum.Joined"):</label>
-                    <span>@Model.CustomerJoinDate.ToString("d")</span>
-                </li>
-            }
-            @if (Model.ShowCustomersLocation && !string.IsNullOrEmpty(Model.CustomerLocation))
-            {
-                <li class="location">
-                    <label>@T("Forum.Location"):</label>
-                    <span>@Model.CustomerLocation</span>
-                </li>
-            }
-        </ul>
-        @if (Model.AllowPrivateMessages)
+
+<article class="topic-post rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" id="@Html.Encode($"post{Model.Id}")" style="overflow:visible;">
+    <div class="flex items-start gap-3">
+        @if (!string.IsNullOrWhiteSpace(Model.CustomerAvatarUrl))
         {
-            <div class="send-pm mt-3">
-                @Html.RouteLink(T("Forum.PrivateMessages.PM").Text, NopRouteNames.Standard.SEND_PM, new { toCustomerId = Model.CustomerId }, new { @class = "pm-button inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
-            </div>
+            <img src="@Model.CustomerAvatarUrl" alt="avatar" class="h-10 w-10 rounded-full object-cover" />
         }
-    </div>
-    <div class="post-content p-4 sm:p-5">
-        <div class="post-head mb-3 flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-3">
-            <div class="post-time text-xs text-slate-500">
-                <label>@T("Forum.Posted"):</label>
-                <span class="stat-value">@Model.PostCreatedOnStr</span>
-            </div>
-            <div class="post-actions flex flex-wrap items-center gap-2">
-                <div class="manage-post flex flex-wrap items-center gap-2">
-                    @if (Model.IsCurrentCustomerAllowedToEditPost)
+        else
+        {
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-amber-300">@customerInitial</div>
+        }
+
+        <div class="min-w-0 flex-1 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="font-bold text-slate-900">
+                        @if (Model.AllowViewingProfiles)
+                        {
+                            @Html.RouteLink(Model.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = Model.CustomerId }, new { @class = "hover:text-military-green" })
+                        }
+                        else
+                        {
+                            @Model.CustomerName
+                        }
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Rank))
                     {
-                        @Html.RouteLink(T("Forum.EditPost").Text, NopRouteNames.Standard.POST_EDIT, new { id = Model.Id }, new { @class = "edit-post-button inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
+                        <span class="rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">@Model.Rank</span>
                     }
-                    @if (Model.IsCurrentCustomerAllowedToDeletePost)
+                    @if (!string.IsNullOrWhiteSpace(Model.UnitName))
                     {
-                        <a href="#" class="delete-post-button inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100" onclick="return deletepost(@(Model.Id))">@T("Forum.DeletePost").Text</a>
+                        <span class="rounded bg-slate-100 px-2 py-0.5 text-slate-500">@Model.UnitName</span>
                     }
+                    <span class="text-slate-400">@Model.PostCreatedOnStr</span>
                 </div>
-                <div class="quote-post flex flex-wrap items-center gap-2">
-                    <a id="@Model.Id" title="@T("Forum.PostLinkTitle")" class="post-link-button inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700" href="@(thisPageUrl)#@(Model.Id)">#@(Model.Id)</a>
-                    @Html.RouteLink(T("Forum.QuotePost").Text, NopRouteNames.Standard.POST_CREATE_QUOTE, new { id = Model.ForumTopicId, quote = Model.Id }, new { @class = "quote-post-button inline-flex h-8 items-center justify-center rounded-lg bg-military-green px-3 text-xs font-semibold text-white transition hover:brightness-110" })
-                </div>
+
+                <a id="post-link-@Model.Id" title="@T("Forum.PostLinkTitle")" class="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" href="@(thisPageUrl)#post@(Model.Id)">#@(Model.Id)</a>
             </div>
-        </div>
-        <div class="post-body">
-            <div class="post-text prose prose-slate max-w-none text-sm leading-7 text-slate-700" data-post-content="@Model.Id">
-                @* Original content will be replaced by JavaScript for Markdown editor*@
+
+            <div class="post-text prose prose-slate w-full max-w-full break-words rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700" data-post-content="@Model.Id" style="width:100%;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
                 @Html.Raw(Model.FormattedText)
             </div>
+
             @if (Model.AllowPostVoting)
             {
                 <script asp-location="Footer">
@@ -138,22 +90,70 @@
                         });
                     });
                 </script>
+            }
 
-                <div class="post-vote" id="@($"post-vote-{Model.Id}")">
-                    <span class="vote up @if (Model.VoteIsUp.HasValue && (bool) Model.VoteIsUp){<text>selected</text>}"
-                          title="@T("Forum.Post.IsUseful")"></span>
-                    <div class="vote-count-post"> @Model.VoteCount </div>
-                    <span class="vote down @if (Model.VoteIsUp.HasValue && (bool)!Model.VoteIsUp) { <text>selected</text> }"
-                          title="@T("Forum.Post.IsNotUseful")"></span>
+            @if (Model.AllowPostVoting)
+            {
+                <div class="post-vote mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5" id="@($"post-vote-{Model.Id}")">
+                    <span class="vote up inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-400 hover:text-emerald-600 @if (Model.VoteIsUp.HasValue && (bool)Model.VoteIsUp){<text>selected</text>}" title="@T("Forum.Post.IsUseful")"></span>
+                    <div class="vote-count-post min-w-[24px] text-center text-xs font-bold text-slate-700">@Model.VoteCount</div>
+                    <span class="vote down inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-rose-400 hover:text-rose-600 @if (Model.VoteIsUp.HasValue && (bool)!Model.VoteIsUp){<text>selected</text>}" title="@T("Forum.Post.IsNotUseful")"></span>
+                </div>
+            }
+
+            <div class="mt-3 border-t border-slate-100 pt-3" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;clear:both;width:100%;overflow:visible;">
+                @if (Model.IsCurrentCustomerAllowedToCreatePost)
+                {
+                    <a href="#"
+                       class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm transition hover:brightness-110"
+                       style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;text-decoration:none;"
+                       data-inline-reply-target="inline-reply-form-@Model.Id">Trả lời</a>
+                }
+                @if (Model.IsCurrentCustomerAllowedToEditPost)
+                {
+                    @Html.RouteLink(T("Forum.EditPost").Text, NopRouteNames.Standard.POST_EDIT, new { id = Model.Id }, new { @class = "inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green", style = "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;text-decoration:none;" })
+                }
+                @if (Model.IsCurrentCustomerAllowedToDeletePost)
+                {
+                    <a href="#" class="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;text-decoration:none;" onclick="return deletepost(@(Model.Id))">@T("Forum.DeletePost").Text</a>
+                }
+            </div>
+
+            @if (Model.IsCurrentCustomerAllowedToCreatePost)
+            {
+                <form id="inline-reply-form-@Model.Id"
+                      asp-route="@NopRouteNames.Standard.POST_CREATE"
+                      asp-route-id="@Model.ForumTopicId"
+                      method="post"
+                      class="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3"
+                      style="display:none;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="FromTopicInline" value="true" />
+                    <input type="hidden" name="ForumTopicId" value="@Model.ForumTopicId" />
+                    <input type="hidden" name="ReplyToPostId" value="@Model.Id" />
+                    <input type="hidden" name="Subscribed" value="true" />
+
+                    <label class="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">Trả lời @Model.CustomerName</label>
+                    <textarea name="Text" rows="3" required
+                              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-700 outline-none transition focus:border-military-green"></textarea>
+
+                    <div class="mt-2 flex items-center justify-end gap-2">
+                        <button type="button"
+                                class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700"
+                                data-inline-reply-cancel="inline-reply-form-@Model.Id">Hủy</button>
+                        <button type="submit"
+                                class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm"
+                                style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Gửi trả lời</button>
+                    </div>
+                </form>
+            }
+
+            @if (Model.SignaturesEnabled & !string.IsNullOrEmpty(Model.FormattedSignature))
+            {
+                <div class="signature border-t border-slate-100 pt-3 text-xs text-slate-500">
+                    @Html.Raw(Model.FormattedSignature)
                 </div>
             }
         </div>
-        @if (Model.SignaturesEnabled & !string.IsNullOrEmpty(Model.FormattedSignature))
-        {
-            <div class="signature mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                @Html.Raw(Model.FormattedSignature)
-            </div>
-        }
     </div>
-    </div>
-</div>
+</article>

@@ -1,5 +1,4 @@
-﻿using Nop.Core.Domain.Vendors;
-using Nop.Web.Models.Common;
+﻿using Nop.Web.Models.Common;
 
 namespace Nop.Web.Factories;
 
@@ -36,15 +35,6 @@ public partial interface ICommonModelFactory
     Task<CurrencySelectorModel> PrepareCurrencySelectorModelAsync();
 
     /// <summary>
-    /// Prepare the tax type selector model
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ax type selector model
-    /// </returns>
-    Task<TaxTypeSelectorModel> PrepareTaxTypeSelectorModelAsync();
-
-    /// <summary>
     /// Prepare the header links model
     /// </summary>
     /// <returns>
@@ -79,30 +69,6 @@ public partial interface ICommonModelFactory
     /// The task result contains the footer model
     /// </returns>
     Task<FooterModel> PrepareFooterModelAsync();
-
-    /// <summary>
-    /// Prepare the contact us model
-    /// </summary>
-    /// <param name="model">Contact us model</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the contact us model
-    /// </returns>
-    Task<ContactUsModel> PrepareContactUsModelAsync(ContactUsModel model, bool excludeProperties);
-
-    /// <summary>
-    /// Prepare the contact vendor model
-    /// </summary>
-    /// <param name="model">Contact vendor model</param>
-    /// <param name="vendor">Vendor</param>
-    /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the contact vendor model
-    /// </returns>
-    Task<ContactVendorModel> PrepareContactVendorModelAsync(ContactVendorModel model, Vendor vendor,
-        bool excludeProperties);
 
     /// <summary>
     /// Prepare the store theme selector model

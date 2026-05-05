@@ -3,7 +3,7 @@
 
 @{
     var themeName = await themeContext.GetWorkingThemeNameAsync();
-    var title = await NopHtml.GenerateTitleAsync();
+    var title = await NopHtml.GenerateTitleAsync(false);
 }
 <!DOCTYPE html>
 <html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" dir="@Html.GetUIDirection(!await Html.ShouldUseRtlThemeAsync())" class="@NopHtml.GeneratePageCssClasses()">

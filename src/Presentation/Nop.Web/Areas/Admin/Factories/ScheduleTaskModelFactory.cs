@@ -1,4 +1,4 @@
-﻿using Nop.Services.Common;
+﻿using Nop.Core.Domain.ScheduleTasks;
 using Nop.Services.Helpers;
 using Nop.Services.ScheduleTasks;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
@@ -13,6 +13,13 @@ namespace Nop.Web.Areas.Admin.Factories;
 /// </summary>
 public partial class ScheduleTaskModelFactory : IScheduleTaskModelFactory
 {
+    protected static readonly string[] UnsupportedTaskTypeNames =
+    [
+        "DeleteGuestsTask",
+        "ResetLicenseCheckTask",
+        "UpdateExchangeRateTask"
+    ];
+
     #region Fields
 
     protected readonly IDateTimeHelper _dateTimeHelper;
@@ -32,6 +39,14 @@ public partial class ScheduleTaskModelFactory : IScheduleTaskModelFactory
     #endregion
 
     #region Methods
+
+    protected virtual bool IsUnsupportedTask(ScheduleTask scheduleTask)
+    {
+        return UnsupportedTaskTypeNames.Any(taskTypeName =>
+            string.Equals(scheduleTask.Name, taskTypeName, StringComparison.InvariantCultureIgnoreCase) ||
+            (scheduleTask.Type?.Contains($".{taskTypeName},", StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (scheduleTask.Type?.EndsWith($".{taskTypeName}", StringComparison.InvariantCultureIgnoreCase) ?? false));
+    }
 
     /// <summary>
     /// Prepare schedule task search model
@@ -65,7 +80,7 @@ public partial class ScheduleTaskModelFactory : IScheduleTaskModelFactory
 
         //get schedule tasks
         var scheduleTasks = (await _scheduleTaskService.GetAllTasksAsync(true))
-            .Where(task => !string.Equals(task.Name, nameof(ResetLicenseCheckTask), StringComparison.InvariantCultureIgnoreCase))
+            .Where(task => !IsUnsupportedTask(task))
             .ToList()
             .ToPagedList(searchModel);
 

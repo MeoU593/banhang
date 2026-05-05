@@ -15,6 +15,13 @@ namespace Nop.Web.Areas.Admin.Controllers;
 
 public partial class ScheduleTaskController : BaseAdminController
 {
+    protected static readonly string[] UnsupportedTaskTypeNames =
+    [
+        "DeleteGuestsTask",
+        "ResetLicenseCheckTask",
+        "UpdateExchangeRateTask"
+    ];
+
     #region Fields
 
     protected readonly ICustomerActivityService _customerActivityService;
@@ -44,6 +51,18 @@ public partial class ScheduleTaskController : BaseAdminController
         _scheduleTaskModelFactory = scheduleTaskModelFactory;
         _scheduleTaskService = scheduleTaskService;
         _taskRunner = taskRunner;
+    }
+
+    #endregion
+
+    #region Utilities
+
+    protected virtual bool IsUnsupportedTask(Nop.Core.Domain.ScheduleTasks.ScheduleTask scheduleTask)
+    {
+        return UnsupportedTaskTypeNames.Any(taskTypeName =>
+            string.Equals(scheduleTask.Name, taskTypeName, StringComparison.InvariantCultureIgnoreCase) ||
+            (scheduleTask.Type?.Contains($".{taskTypeName},", StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (scheduleTask.Type?.EndsWith($".{taskTypeName}", StringComparison.InvariantCultureIgnoreCase) ?? false));
     }
 
     #endregion
@@ -82,6 +101,9 @@ public partial class ScheduleTaskController : BaseAdminController
         var scheduleTask = await _scheduleTaskService.GetTaskByIdAsync(model.Id)
             ?? throw new ArgumentException("Schedule task cannot be loaded");
 
+        if (IsUnsupportedTask(scheduleTask))
+            return NotFound();
+
         //To prevent inject the XSS payload in Schedule tasks ('Name' field), we must disable editing this field, 
         //but since it is required, we need to get its value before updating the entity.
         if (!string.IsNullOrEmpty(scheduleTask.Name))
@@ -115,6 +137,9 @@ public partial class ScheduleTaskController : BaseAdminController
             //try to get a schedule task with the specified id
             var scheduleTask = await _scheduleTaskService.GetTaskByIdAsync(id)
                 ?? throw new ArgumentException("Schedule task cannot be loaded", nameof(id));
+
+            if (IsUnsupportedTask(scheduleTask))
+                return NotFound();
 
             await _taskRunner.ExecuteAsync(scheduleTask, true, true, false);
 

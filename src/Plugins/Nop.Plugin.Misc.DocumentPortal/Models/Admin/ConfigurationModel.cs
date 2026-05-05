@@ -20,6 +20,4 @@ public record ConfigurationModel : BaseNopModel
     [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Settings.Fields.AutoGenerateSlug")]
     public bool AutoGenerateSlug { get; set; }
 
-    [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Settings.Fields.RequireLoginForPrivateDocuments")]
-    public bool RequireLoginForPrivateDocuments { get; set; }
 }

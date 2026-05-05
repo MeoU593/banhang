@@ -45,6 +45,36 @@ public partial class BlogPost : BaseEntity, ISlugSupported, IStoreMappingSupport
     public int PostTypeId { get; set; }
 
     /// <summary>
+    /// Gets or sets the thumbnail picture identifier
+    /// </summary>
+    public int ThumbnailPictureId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the author name
+    /// </summary>
+    public string AuthorName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the PDF download identifier (used for document posts)
+    /// </summary>
+    public int PdfDownloadId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the DOC/DOCX download identifier (used for document posts)
+    /// </summary>
+    public int DocDownloadId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the vendor identifier
+    /// </summary>
+    public int VendorId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of public views
+    /// </summary>
+    public int ViewCount { get; set; }
+
+    /// <summary>
     /// Gets or sets the blog tags
     /// </summary>
     public string Tags { get; set; }

@@ -50,26 +50,6 @@ public partial interface ISettingModelFactory
     Task<ForumSettingsModel> PrepareForumSettingsModelAsync(ForumSettingsModel model = null);
 
     /// <summary>
-    /// Prepare shipping settings model
-    /// </summary>
-    /// <param name="model">Shipping settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the shipping settings model
-    /// </returns>
-    Task<ShippingSettingsModel> PrepareShippingSettingsModelAsync(ShippingSettingsModel model = null);
-
-    /// <summary>
-    /// Prepare tax settings model
-    /// </summary>
-    /// <param name="model">Tax settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the ax settings model
-    /// </returns>
-    Task<TaxSettingsModel> PrepareTaxSettingsModelAsync(TaxSettingsModel model = null);
-
-    /// <summary>
     /// Prepare catalog settings model
     /// </summary>
     /// <param name="model">Catalog settings model</param>

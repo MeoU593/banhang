@@ -92,15 +92,6 @@ public partial interface IBaseAdminModelFactory
     Task PrepareCustomerRolesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
 
     /// <summary>
-    /// Prepare available newsletter subscription types
-    /// </summary>
-    /// <param name="items">Newsletter subscription type items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    Task PrepareSubscriptionTypesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
-
-    /// <summary>
     /// Prepare available email accounts
     /// </summary>
     /// <param name="items">Email account items</param>
@@ -108,15 +99,6 @@ public partial interface IBaseAdminModelFactory
     /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
     /// <returns>A task that represents the asynchronous operation</returns>
     Task PrepareEmailAccountsAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
-
-    /// <summary>
-    /// Prepare available tax categories
-    /// </summary>
-    /// <param name="items">Tax category items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    Task PrepareTaxCategoriesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
 
     /// <summary>
     /// Prepare available categories
@@ -272,24 +254,6 @@ public partial interface IBaseAdminModelFactory
     /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
     /// <returns>A task that represents the asynchronous operation</returns>
     Task PrepareTopicTemplatesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
-
-    /// <summary>
-    /// Prepare available warehouses
-    /// </summary>
-    /// <param name="items">Warehouse items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    Task PrepareWarehousesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
-
-    /// <summary>
-    /// Prepare available delivery dates
-    /// </summary>
-    /// <param name="items">Delivery date items</param>
-    /// <param name="withSpecialDefaultItem">Whether to insert the first special item for the default value</param>
-    /// <param name="defaultItemText">Default item text; pass null to use default value of the default item text</param>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    Task PrepareDeliveryDatesAsync(IList<SelectListItem> items, bool withSpecialDefaultItem = true, string defaultItemText = null);
 
     /// <summary>
     /// Prepare available product availability ranges

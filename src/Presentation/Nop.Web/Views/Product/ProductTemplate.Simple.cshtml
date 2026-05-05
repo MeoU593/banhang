@@ -47,21 +47,8 @@
 
     NopHtml.AddJsonLdParts(Model.JsonLd);
 
-    var availabilityState = Model.AddToCart.AvailableForPreOrder
-        ? "preorder"
-        : Model.AddToCart.DisableBuyButton
-            ? "supplying"
-            : "available";
-    var availabilityText = availabilityState == "preorder"
-        ? "Đặt trước"
-        : availabilityState == "supplying"
-            ? "Đang cung ứng"
-            : "Có sẵn";
-    var availabilityClass = availabilityState == "preorder"
-        ? "is-preorder"
-        : availabilityState == "supplying"
-            ? "is-supplying"
-            : "is-available";
+    var availabilityText = string.IsNullOrWhiteSpace(Model.StockAvailability) ? "Có sẵn" : Model.StockAvailability;
+    var availabilityClass = string.IsNullOrWhiteSpace(Model.StockAvailability) ? "is-available" : "is-supplying";
     var codeHint = !string.IsNullOrWhiteSpace(Model.Sku)
         ? Model.Sku
         : !string.IsNullOrWhiteSpace(Model.ManufacturerPartNumber)
@@ -71,9 +58,6 @@
                 : $"ID-{Model.Id}";
     var hasSpecifications = Model.ProductSpecificationModel.Groups.Any(group => group.Attributes.Any());
     var hasTags = Model.ProductTags.Any();
-    var vendorUrl = Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.SeName)
-        ? await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = Model.VendorModel.SeName })
-        : string.Empty;
 }
 
 @section Breadcrumb
@@ -137,7 +121,7 @@
         gap: 6px;
         border-radius: 999px;
         padding: 6px 12px;
-        font-size: 11px;
+        font-size: var(--public-font-label);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.12em;
@@ -164,7 +148,7 @@
     .logistics-product-page .product-name h1 {
         margin: 0;
         color: #141c24;
-        font-size: 30px;
+        font-size: var(--public-font-page-title);
         font-weight: 900;
         letter-spacing: -0.03em;
         line-height: 1.1;
@@ -178,14 +162,14 @@
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         color: #475569;
-        font-size: 11px;
+        font-size: var(--public-font-label);
         font-weight: 700;
         padding: 4px 10px;
     }
 
     .logistics-product-page .short-description {
         color: #475569;
-        font-size: 14px;
+        font-size: var(--public-font-body);
         line-height: 1.7;
         padding: 12px 0;
         border-top: 1px solid #edf2f7;
@@ -204,13 +188,13 @@
     .logistics-product-page .overview-info .product-vendor,
     .logistics-product-page .overview-info .delivery-date,
     .logistics-product-page .overview-info .free-shipping,
-    .logistics-product-page .overview-info .manufacturers {
+    .logistics-product-page .overview-info .product-poster {
         border-radius: 10px;
         border: 1px solid #edf2f7;
         background: #f8fafc;
         padding: 8px 10px;
         color: #334155;
-        font-size: 13px;
+        font-size: var(--public-font-control);
     }
 
     .logistics-product-page .overview-info .label {
@@ -228,8 +212,40 @@
         color: #2e0001;
     }
 
-    .logistics-product-page .overview-info .manufacturers ul {
-        margin: 8px 0 0 16px;
+    .logistics-product-page .overview-info .product-poster .poster-details summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        list-style: none;
+        font-weight: 700;
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-card {
+        margin-top: 8px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        padding: 8px;
+        display: grid;
+        gap: 6px;
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-field {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-field-label {
+        font-size: var(--public-font-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
     }
 
     .logistics-product-page .overview-info .product-reviews-overview {
@@ -245,7 +261,7 @@
 
     .logistics-product-page .overview-info .product-review-links a {
         color: #2e0001;
-        font-size: 12px;
+        font-size: var(--public-font-meta);
         font-weight: 700;
     }
 
@@ -268,7 +284,7 @@
 
     .logistics-product-page .old-product-price {
         color: #64748b;
-        font-size: 13px;
+        font-size: var(--public-font-control);
     }
 
     .logistics-product-page .overview-actions {
@@ -288,7 +304,7 @@
         border: 1px solid #dbe3ef;
         background: #f8fafc;
         color: #334155;
-        font-size: 13px;
+        font-size: var(--public-font-control);
         font-weight: 700;
         padding: 0 12px;
         transition: all 0.2s ease;
@@ -309,7 +325,7 @@
 
     .logistics-product-page .contact-card-label {
         color: #64748b;
-        font-size: 10px;
+        font-size: var(--public-font-label);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.14em;
@@ -321,7 +337,7 @@
         align-items: center;
         gap: 8px;
         color: #141c24;
-        font-size: 14px;
+        font-size: var(--public-font-control);
         font-weight: 800;
         text-decoration: none;
     }
@@ -337,14 +353,14 @@
     .logistics-product-page .section-title {
         margin: 0 0 14px;
         color: #141c24;
-        font-size: 19px;
+        font-size: var(--public-font-section-title);
         font-weight: 900;
         letter-spacing: -0.02em;
     }
 
     .logistics-product-page .full-description {
         color: #334155;
-        font-size: 14px;
+        font-size: var(--public-font-body);
         line-height: 1.85;
     }
 
@@ -361,7 +377,7 @@
     .logistics-product-page .product-tags-box .title {
         margin: 0 0 10px;
         color: #1e293b;
-        font-size: 14px;
+        font-size: var(--public-font-control);
         font-weight: 800;
     }
 
@@ -391,7 +407,7 @@
         }
 
         .logistics-product-page .product-name h1 {
-            font-size: 24px;
+            font-size: var(--public-font-page-title);
         }
     }
 </style>
@@ -437,7 +453,7 @@
 
                         <div class="overview-info">
                             @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
-                            @await Html.PartialAsync("_ProductManufacturers", Model.ProductManufacturers)
+                            @await Html.PartialAsync("_ProductPoster", Model)
                             @await Html.PartialAsync("_Availability", Model)
                             @await Html.PartialAsync("_SKU_Man_GTIN_Ven", Model)
                             @await Html.PartialAsync("_DeliveryInfo", Model)
@@ -445,55 +461,19 @@
                         </div>
 
                         @{
-                            var dataDictAttributes = new ViewDataDictionary(ViewData);
-                            dataDictAttributes.TemplateInfo.HtmlFieldPrefix = $"attributes_{Model.Id}";
-                            @await Html.PartialAsync("_ProductAttributes", Model, dataDictAttributes)
-                        }
-
-                        @{
-                            var dataDictGiftCard = new ViewDataDictionary(ViewData);
-                            dataDictGiftCard.TemplateInfo.HtmlFieldPrefix = $"giftcard_{Model.Id}";
-                            @await Html.PartialAsync("_GiftCardInfo", Model.GiftCard, dataDictGiftCard)
-                        }
-
-                        @{
-                            var dataDictRental = new ViewDataDictionary(ViewData);
-                            dataDictRental.TemplateInfo.HtmlFieldPrefix = $"rental_{Model.Id}";
-                            @await Html.PartialAsync("_RentalInfo", Model, dataDictRental)
-                        }
-
-                        @{
                             var dataDictPrice = new ViewDataDictionary(ViewData);
                             dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceTop, additionalData = Model })
                             @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceBottom, additionalData = Model })
-                            @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)
-
-                            var dataDictAddToCart = new ViewDataDictionary(ViewData);
-                            dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";
-                            @await Html.PartialAsync("_AddToCart", Model.AddToCart, dataDictAddToCart)
                         }
 
                         <div class="overview-actions">
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsBefore, additionalData = Model })
                             @await Html.PartialAsync("_CompareProductsButton", Model)
-                            @await Html.PartialAsync("_ProductEmailAFriendButton", Model)
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsAfter, additionalData = Model })
                         </div>
 
-                        @if (Model.ShowVendor && !string.IsNullOrWhiteSpace(Model.VendorModel.Name) && !string.IsNullOrWhiteSpace(vendorUrl))
-                        {
-                            <div class="contact-card">
-                                <div class="contact-card-label">Đơn vị phụ trách</div>
-                                <a class="contact-card-link" href="@vendorUrl">
-                                    <span class="material-symbols-outlined text-[18px]">corporate_fare</span>
-                                    <span>@Model.VendorModel.Name</span>
-                                </a>
-                            </div>
-                        }
-
-                        @await Html.PartialAsync("_ShareButton", Model)
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewBottom, additionalData = Model })
                     </aside>
                 </section>

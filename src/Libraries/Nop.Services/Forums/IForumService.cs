@@ -267,6 +267,24 @@ public partial interface IForumService
         string keywords, int pageIndex = 0, int pageSize = int.MaxValue);
 
     /// <summary>
+    /// Gets public unit contact private messages between a customer and unit contact person
+    /// </summary>
+    /// <param name="vendorId">Vendor identifier</param>
+    /// <param name="customerId">Customer identifier</param>
+    /// <param name="contactCustomerId">Contact customer identifier</param>
+    /// <param name="storeId">Store identifier; pass 0 to load all stores</param>
+    /// <param name="take">Maximum number of messages to return</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task<IList<PrivateMessage>> GetUnitContactPrivateMessagesAsync(int vendorId, int customerId, int contactCustomerId, int storeId = 0, int take = 50);
+
+    /// <summary>
+    /// Deletes public unit contact private messages older than the specified date
+    /// </summary>
+    /// <param name="createdBeforeUtc">Created before UTC</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task DeleteUnitContactPrivateMessagesOlderThanAsync(DateTime createdBeforeUtc);
+
+    /// <summary>
     /// Inserts a private message
     /// </summary>
     /// <param name="privateMessage">Private message</param>

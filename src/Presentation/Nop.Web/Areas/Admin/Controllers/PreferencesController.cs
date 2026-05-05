@@ -30,7 +30,8 @@ public partial class PreferencesController : BaseAdminController
     public virtual async Task<IActionResult> SavePreference(string name, bool value)
     {
         //permission validation is not required here
-        ArgumentException.ThrowIfNullOrEmpty(name);
+        if (string.IsNullOrWhiteSpace(name))
+            return BadRequest(new { Result = false, Error = "Preference name is required." });
 
         await _genericAttributeService.SaveAttributeAsync(await _workContext.GetCurrentCustomerAsync(), name, value);
 

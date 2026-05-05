@@ -86,6 +86,10 @@
 
   </Target>
 
+  <Target Name="EnsureThemesDirectory" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)Themes" />
+  </Target>
+
   <PropertyGroup>
     <!--The common language runtime (CLR) supports two types of garbage collection:
       workstation garbage collection, which is available on all systems, and server garbage collection,

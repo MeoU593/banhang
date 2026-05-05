@@ -1,4 +1,6 @@
-﻿using Nop.Core;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.RegularExpressions;
+using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Customers;
@@ -10,6 +12,7 @@ using Nop.Services.Customers;
 using Nop.Services.Helpers;
 using Nop.Services.Media;
 using Nop.Services.Seo;
+using Nop.Services.Vendors;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Blogs;
 
@@ -20,19 +23,24 @@ namespace Nop.Web.Factories;
 /// </summary>
 public partial class BlogModelFactory : IBlogModelFactory
 {
+    private static readonly Regex ReplyToTokenRegex = new(@"^\[replyto:(\d+)\]\s*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     #region Fields
 
     protected readonly BlogSettings _blogSettings;
     protected readonly CaptchaSettings _captchaSettings;
     protected readonly CustomerSettings _customerSettings;
     protected readonly IBlogService _blogService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerService _customerService;
+    protected readonly IDownloadService _downloadService;
     protected readonly IDateTimeHelper _dateTimeHelper;
     protected readonly IGenericAttributeService _genericAttributeService;
     protected readonly IPictureService _pictureService;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IStoreContext _storeContext;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
     protected readonly MediaSettings _mediaSettings;
 
@@ -44,13 +52,16 @@ public partial class BlogModelFactory : IBlogModelFactory
         CaptchaSettings captchaSettings,
         CustomerSettings customerSettings,
         IBlogService blogService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
+        IDownloadService downloadService,
         IDateTimeHelper dateTimeHelper,
         IGenericAttributeService genericAttributeService,
         IPictureService pictureService,
         IStaticCacheManager staticCacheManager,
         IStoreContext storeContext,
         IUrlRecordService urlRecordService,
+        IVendorService vendorService,
         IWorkContext workContext,
         MediaSettings mediaSettings)
     {
@@ -58,15 +69,57 @@ public partial class BlogModelFactory : IBlogModelFactory
         _captchaSettings = captchaSettings;
         _customerSettings = customerSettings;
         _blogService = blogService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
+        _downloadService = downloadService;
         _dateTimeHelper = dateTimeHelper;
         _genericAttributeService = genericAttributeService;
         _pictureService = pictureService;
         _staticCacheManager = staticCacheManager;
         _storeContext = storeContext;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
         _workContext = workContext;
         _mediaSettings = mediaSettings;
+    }
+
+    #endregion
+
+    #region Utilities
+
+    protected virtual async Task<BlogPostModel> PrepareBlogPostPreviewModelAsync(BlogPost blogPost)
+    {
+        var model = new BlogPostModel
+        {
+            Id = blogPost.Id,
+            Title = blogPost.Title,
+            BodyOverview = blogPost.BodyOverview,
+            Body = blogPost.Body,
+            PostTypeId = blogPost.PostTypeId,
+            ThumbnailPictureId = blogPost.ThumbnailPictureId,
+            AuthorName = blogPost.AuthorName,
+            ViewCount = blogPost.ViewCount,
+            CreatedOn = await _dateTimeHelper.ConvertToUserTimeAsync(blogPost.StartDateUtc ?? blogPost.CreatedOnUtc, DateTimeKind.Utc),
+            SeName = await _urlRecordService.GetSeNameAsync(blogPost, blogPost.LanguageId, ensureTwoPublishedLanguages: false)
+        };
+
+        if (blogPost.ThumbnailPictureId > 0)
+            model.ThumbnailImageUrl = await _pictureService.GetPictureUrlAsync(blogPost.ThumbnailPictureId, showDefaultPicture: false);
+
+        return model;
+    }
+
+    private static (int ReplyToCommentId, string DisplayText) ParseReplyData(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return (0, string.Empty);
+
+        var match = ReplyToTokenRegex.Match(text);
+        if (!match.Success)
+            return (0, text);
+
+        _ = int.TryParse(match.Groups[1].Value, out var replyToCommentId);
+        return (replyToCommentId, text[match.Length..].TrimStart());
     }
 
     #endregion
@@ -95,7 +148,29 @@ public partial class BlogModelFactory : IBlogModelFactory
         model.Body = blogPost.Body;
         model.BodyOverview = blogPost.BodyOverview;
         model.PostTypeId = blogPost.PostTypeId;
+        model.ThumbnailPictureId = blogPost.ThumbnailPictureId;
+        model.AuthorName = blogPost.AuthorName;
+        model.PdfDownloadId = blogPost.PdfDownloadId;
+        model.DocDownloadId = blogPost.DocDownloadId;
         model.AllowComments = blogPost.AllowComments;
+        model.ViewCount = blogPost.ViewCount;
+
+        if (blogPost.ThumbnailPictureId > 0)
+            model.ThumbnailImageUrl = await _pictureService.GetPictureUrlAsync(blogPost.ThumbnailPictureId, showDefaultPicture: false);
+
+        if (blogPost.PdfDownloadId > 0)
+        {
+            var pdfDownload = await _downloadService.GetDownloadByIdAsync(blogPost.PdfDownloadId);
+            if (pdfDownload != null)
+                model.PdfDownloadGuid = pdfDownload.DownloadGuid;
+        }
+
+        if (blogPost.DocDownloadId > 0)
+        {
+            var docDownload = await _downloadService.GetDownloadByIdAsync(blogPost.DocDownloadId);
+            if (docDownload != null)
+                model.DocDownloadGuid = docDownload.DownloadGuid;
+        }
 
         model.PreventNotRegisteredUsersToLeaveComments =
             await _customerService.IsGuestAsync(await _workContext.GetCurrentCustomerAsync()) &&
@@ -124,6 +199,30 @@ public partial class BlogModelFactory : IBlogModelFactory
                 model.Comments.Add(commentModel);
             }
         }
+
+        var latestNewsPosts = await _blogService.GetAllBlogPostsAsync(
+            store.Id,
+            blogPost.LanguageId,
+            pageIndex: 0,
+            pageSize: 6,
+            postTypeId: 0);
+
+        model.LatestNewsPosts = await latestNewsPosts
+            .Where(post => post.Id != blogPost.Id)
+            .Take(5)
+            .SelectAwait(async post => await PrepareBlogPostPreviewModelAsync(post))
+            .ToListAsync();
+
+        var popularNewsPosts = await _blogService.GetPopularBlogPostsAsync(
+            store.Id,
+            blogPost.LanguageId,
+            pageSize: 5,
+            postTypeId: 0,
+            excludeBlogPostId: blogPost.Id);
+
+        model.PopularNewsPosts = await popularNewsPosts
+            .SelectAwait(async post => await PrepareBlogPostPreviewModelAsync(post))
+            .ToListAsync();
     }
 
     /// <summary>
@@ -143,19 +242,44 @@ public partial class BlogModelFactory : IBlogModelFactory
         if (command.PageNumber <= 0)
             command.PageNumber = 1;
 
-        var dateFrom = command.GetFromMonth();
-        var dateTo = command.GetToMonth();
+        var dateFrom = command.GetFromDate();
+        var dateTo = command.GetToDate();
+        if (dateFrom.HasValue && dateTo.HasValue && dateFrom > dateTo)
+            (dateFrom, dateTo) = (dateTo, dateFrom);
 
         var language = await _workContext.GetWorkingLanguageAsync();
         var store = await _storeContext.GetCurrentStoreAsync();
+        var vendorIds = command.VendorId > 0 ? new List<int> { command.VendorId } : null;
         var blogPosts = string.IsNullOrEmpty(command.Tag)
-            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize, postTypeId: command.PostTypeId)
-            : await _blogService.GetAllBlogPostsByTagAsync(store.Id, language.Id, command.Tag, command.PageNumber - 1, command.PageSize);
+            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize, postTypeId: command.PostTypeId, vendorIds: vendorIds, keywords: command.Q)
+            : await _blogService.GetAllBlogPostsByTagAsync(store.Id, language.Id, command.Tag, command.PageNumber - 1, command.PageSize, vendorIds: vendorIds);
+
+        var availableVendors = (await _vendorService.GetAllVendorsAsync(showHidden: false))
+            .OrderBy(vendor => vendor.DisplayOrder)
+            .ThenBy(vendor => vendor.Name)
+            .Select(vendor => new SelectListItem
+            {
+                Text = vendor.Name,
+                Value = vendor.Id.ToString(),
+                Selected = vendor.Id == command.VendorId
+            })
+            .ToList();
+        availableVendors.Insert(0, new SelectListItem { Text = "Tất cả đơn vị", Value = "0", Selected = command.VendorId <= 0 });
 
         var model = new BlogPostListModel
         {
-            PagingFilteringContext = { Tag = command.Tag, Month = command.Month, PostTypeId = command.PostTypeId },
+            PagingFilteringContext =
+            {
+                Q = command.Q,
+                Tag = command.Tag,
+                Month = command.Month,
+                PostTypeId = command.PostTypeId,
+                VendorId = command.VendorId,
+                DateFrom = command.DateFrom,
+                DateTo = command.DateTo
+            },
             WorkingLanguageId = language.Id,
+            AvailableVendors = availableVendors,
             BlogPosts = await blogPosts.SelectAwait(async blogPost =>
             {
                 var blogPostModel = new BlogPostModel();
@@ -164,6 +288,27 @@ public partial class BlogModelFactory : IBlogModelFactory
             }).ToListAsync()
         };
         model.PagingFilteringContext.LoadPagedList(blogPosts);
+
+        if (!command.PostTypeId.HasValue && string.IsNullOrEmpty(command.Tag))
+        {
+            var latestDocumentPosts = await _blogService.GetAllBlogPostsAsync(
+                store.Id,
+                language.Id,
+                dateFrom,
+                dateTo,
+                pageIndex: 0,
+                pageSize: 8,
+                postTypeId: 1,
+                vendorIds: vendorIds,
+                keywords: command.Q);
+
+            model.LatestDocumentPosts = await latestDocumentPosts.SelectAwait(async blogPost =>
+            {
+                var blogPostModel = new BlogPostModel();
+                await PrepareBlogPostModelAsync(blogPostModel, blogPost, false);
+                return blogPostModel;
+            }).ToListAsync();
+        }
 
         return model;
     }
@@ -279,18 +424,25 @@ public partial class BlogModelFactory : IBlogModelFactory
         ArgumentNullException.ThrowIfNull(blogComment);
 
         var customer = await _customerService.GetCustomerByIdAsync(blogComment.CustomerId);
+        var customerIsGuest = customer == null || await _customerService.IsGuestAsync(customer);
+        var militaryProfile = customerIsGuest ? null : await _customerMilitaryProfileService.GetByCustomerIdAsync(blogComment.CustomerId);
+        var (replyToCommentId, displayCommentText) = ParseReplyData(blogComment.CommentText);
 
         var model = new BlogCommentModel
         {
             Id = blogComment.Id,
+            ReplyToCommentId = replyToCommentId,
             CustomerId = blogComment.CustomerId,
             CustomerName = await _customerService.FormatUsernameAsync(customer),
-            CommentText = blogComment.CommentText,
+            CommentText = displayCommentText,
+            Rank = militaryProfile?.Rank,
+            UnitName = militaryProfile?.UnitName,
+            PositionTitle = militaryProfile?.PositionTitle,
             CreatedOn = await _dateTimeHelper.ConvertToUserTimeAsync(blogComment.CreatedOnUtc, DateTimeKind.Utc),
-            AllowViewingProfiles = _customerSettings.AllowViewingProfiles && customer != null && !await _customerService.IsGuestAsync(customer)
+            AllowViewingProfiles = _customerSettings.AllowViewingProfiles && !customerIsGuest
         };
 
-        if (_customerSettings.AllowCustomersToUploadAvatars)
+        if (_customerSettings.AllowCustomersToUploadAvatars && customer != null)
         {
             model.CustomerAvatarUrl = await _pictureService.GetPictureUrlAsync(
                 await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute),

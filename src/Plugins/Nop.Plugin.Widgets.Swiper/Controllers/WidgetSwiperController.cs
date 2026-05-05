@@ -60,7 +60,14 @@ public class WidgetSwiperController : BasePluginController
         if (string.IsNullOrEmpty(slidesSetting))
             return new List<Slide>();
 
-        return JsonConvert.DeserializeObject<List<Slide>>(slidesSetting);
+        try
+        {
+            return JsonConvert.DeserializeObject<List<Slide>>(slidesSetting) ?? new List<Slide>();
+        }
+        catch (JsonException)
+        {
+            return new List<Slide>();
+        }
     }
 
     #endregion
@@ -87,6 +94,7 @@ public class WidgetSwiperController : BasePluginController
         if (storeScope > 0)
         {
             model.ShowNavigation_OverrideForStore = await _settingService.SettingExistsAsync(sliderSettings, x => x.ShowNavigation, storeScope);
+            model.ShowPagination_OverrideForStore = await _settingService.SettingExistsAsync(sliderSettings, x => x.ShowPagination, storeScope);
             model.Autoplay_OverrideForStore = await _settingService.SettingExistsAsync(sliderSettings, x => x.Autoplay, storeScope);
             model.AutoplayDelay_OverrideForStore = await _settingService.SettingExistsAsync(sliderSettings, x => x.AutoplayDelay, storeScope);
             model.LazyLoading_OverrideForStore = await _settingService.SettingExistsAsync(sliderSettings, x => x.LazyLoading, storeScope);
@@ -126,7 +134,6 @@ public class WidgetSwiperController : BasePluginController
         return await Configure();
     }
 
-    [IgnoreAntiforgeryToken]
     [CheckPermission(StandardPermission.Configuration.MANAGE_WIDGETS)]
     [HttpPost, ActionName("Configure")]
     [FormValueRequired("add-slide")]

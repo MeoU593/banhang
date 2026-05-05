@@ -49,7 +49,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
 </head>
 <body class="hold-transition sidebar-mini layout-fixed control-sidebar-slide-open">
     <div class="throbber">
@@ -131,7 +131,7 @@
                                             </button>
                                             <script>
                                                 $(function() {
-                                                    $("#restart-application").click(function (e) {
+                                                    $("#restart-application").off('click.restartApplication').on('click.restartApplication', function (e) {
                                                         showThrobber('@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Header.RestartApplication.Progress").Text))');
                                                     });
                                                 });
@@ -222,6 +222,9 @@
                     );
 
                     observer.observe(stickyHeader);
+                    window.addEventListener('beforeunload', function () {
+                        observer.disconnect();
+                    }, { once: true });
                 }
             });
         </script>
@@ -309,7 +312,7 @@
                         });
                     }
 
-                    $('#accept-license-terms-button').on('click', function () {
+                    $('#accept-license-terms-button').off('click.licenseTerms').on('click.licenseTerms', function () {
                         var postData = {
                             accepted: true
                         };

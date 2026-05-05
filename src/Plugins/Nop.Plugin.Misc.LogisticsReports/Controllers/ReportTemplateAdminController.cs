@@ -113,10 +113,13 @@ public class ReportTemplateAdminController : BaseAdminController
         if (entity == null)
             return RedirectToAction(nameof(List));
 
+        var previousTemplatePath = entity.TemplateStoredFileName;
+        var newTemplatePath = string.Empty;
         if (model.TemplateFile != null && model.TemplateFile.Length > 0)
         {
             await using var stream = model.TemplateFile.OpenReadStream();
-            entity.TemplateStoredFileName = await _storageService.SaveTemplateAsync(model.TemplateFile.FileName, stream);
+            newTemplatePath = await _storageService.SaveTemplateAsync(model.TemplateFile.FileName, stream);
+            entity.TemplateStoredFileName = newTemplatePath;
         }
 
         entity.Code = model.Code;
@@ -128,6 +131,9 @@ public class ReportTemplateAdminController : BaseAdminController
         entity.EffectiveFromUtc = model.EffectiveFromUtc;
         entity.EffectiveToUtc = model.EffectiveToUtc;
         await _reportTemplateService.UpdateAsync(entity);
+
+        if (!string.IsNullOrWhiteSpace(newTemplatePath) && !string.Equals(previousTemplatePath, newTemplatePath, StringComparison.OrdinalIgnoreCase))
+            await _storageService.DeleteAsync(previousTemplatePath);
 
         return RedirectToAction(nameof(List));
     }

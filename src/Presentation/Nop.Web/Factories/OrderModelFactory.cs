@@ -491,23 +491,10 @@ public partial class OrderModelFactory : IOrderModelFactory
         model.DisplayTaxShippingInfo = _catalogSettings.DisplayTaxShippingInfoOrderDetailsPage;
         model.PricesIncludeTax = order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax;
 
-        //gift cards
-        foreach (var gcuh in await _giftCardService.GetGiftCardUsageHistoryAsync(order))
-        {
-            model.GiftCards.Add(new OrderDetailsModel.GiftCard
-            {
-                CouponCode = (await _giftCardService.GetGiftCardByIdAsync(gcuh.GiftCardId)).GiftCardCouponCode,
-                Amount = await _priceFormatter.FormatPriceAsync(-(_currencyService.ConvertCurrency(gcuh.UsedValue, order.CurrencyRate)), true, order.CustomerCurrencyCode, false, languageId),
-            });
-        }
-
         //total
         var orderTotalInCustomerCurrency = _currencyService.ConvertCurrency(order.OrderTotal, order.CurrencyRate);
         model.OrderTotal = await _priceFormatter.FormatPriceAsync(orderTotalInCustomerCurrency, true, order.CustomerCurrencyCode, false, languageId);
         model.OrderTotalValue = orderTotalInCustomerCurrency;
-
-        //checkout attributes
-        model.CheckoutAttributeInfo = order.CheckoutAttributeDescription;
 
         //order notes
         foreach (var orderNote in (await _orderService.GetOrderNotesByOrderIdAsync(order.Id, true))

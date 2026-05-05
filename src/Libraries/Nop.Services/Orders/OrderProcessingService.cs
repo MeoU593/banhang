@@ -820,7 +820,8 @@ public partial class OrderProcessingService : IOrderProcessingService
             : "Order placed");
 
         //send email notifications
-        var orderPlacedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+        //var orderPlacedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+        var orderPlacedStoreOwnerNotificationQueuedEmailIds = new List<int>();
         if (orderPlacedStoreOwnerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order placed\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderPlacedStoreOwnerNotificationQueuedEmailIds)}.");
 
@@ -828,15 +829,17 @@ public partial class OrderProcessingService : IOrderProcessingService
             (await _pdfService.SaveOrderPdfToDiskAsync(order)) : null;
         var orderPlacedAttachmentFileName = _orderSettings.AttachPdfInvoiceToOrderPlacedEmail ?
             (string.Format(await _localizationService.GetResourceAsync("PDFInvoice.FileName"), order.CustomOrderNumber) + ".pdf") : null;
-        var orderPlacedCustomerNotificationQueuedEmailIds = await _workflowMessageService
-            .SendOrderPlacedCustomerNotificationAsync(order, order.CustomerLanguageId, orderPlacedAttachmentFilePath, orderPlacedAttachmentFileName);
+        //var orderPlacedCustomerNotificationQueuedEmailIds = await _workflowMessageService
+        //    .SendOrderPlacedCustomerNotificationAsync(order, order.CustomerLanguageId, orderPlacedAttachmentFilePath, orderPlacedAttachmentFileName);
+        var orderPlacedCustomerNotificationQueuedEmailIds = new List<int>();
         if (orderPlacedCustomerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order placed\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderPlacedCustomerNotificationQueuedEmailIds)}.");
 
         var vendors = await GetVendorsInOrderAsync(order);
         foreach (var vendor in vendors)
         {
-            var orderPlacedVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+            //var orderPlacedVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+            var orderPlacedVendorNotificationQueuedEmailIds = new List<int>();
             if (orderPlacedVendorNotificationQueuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Order placed\" email (to vendor) has been queued. Queued email identifiers: {string.Join(", ", orderPlacedVendorNotificationQueuedEmailIds)}.");
         }
@@ -844,7 +847,8 @@ public partial class OrderProcessingService : IOrderProcessingService
         if (order.AffiliateId == 0)
             return;
 
-        var orderPlacedAffiliateNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedAffiliateNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+        //var orderPlacedAffiliateNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPlacedAffiliateNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+        var orderPlacedAffiliateNotificationQueuedEmailIds = new List<int>();
         if (orderPlacedAffiliateNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order placed\" email (to affiliate) has been queued. Queued email identifiers: {string.Join(", ", orderPlacedAffiliateNotificationQueuedEmailIds)}.");
     }
@@ -974,7 +978,8 @@ public partial class OrderProcessingService : IOrderProcessingService
                         var customerLang = (await _languageService.GetLanguageByIdAsync(order.CustomerLanguageId) ??
                                             (await _languageService.GetAllLanguagesAsync()).FirstOrDefault())
                                            ?? throw new Exception("No languages could be loaded");
-                        var queuedEmailIds = await _workflowMessageService.SendGiftCardNotificationAsync(gc, customerLang.Id);
+                        //var queuedEmailIds = await _workflowMessageService.SendGiftCardNotificationAsync(gc, customerLang.Id);
+            var queuedEmailIds = new List<int>();
                         if (queuedEmailIds.Any())
                             isRecipientNotified = true;
                     }
@@ -1052,7 +1057,7 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await AddOrderNoteAsync(order, $"\"Order completed\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderCompletedCustomerNotificationQueuedEmailIds)}.");
 
             //notify store owner
-            await _workflowMessageService.SendOrderCompletedStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+            //await _workflowMessageService.SendOrderCompletedStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
         }
 
         if (prevOrderStatus != OrderStatus.Cancelled &&
@@ -1060,14 +1065,16 @@ public partial class OrderProcessingService : IOrderProcessingService
             && notifyCustomer)
         {
             //notification
-            var orderCancelledCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderCancelledCustomerNotificationAsync(order, order.CustomerLanguageId);
+            //var orderCancelledCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderCancelledCustomerNotificationAsync(order, order.CustomerLanguageId);
+            var orderCancelledCustomerNotificationQueuedEmailIds = new List<int>();
             if (orderCancelledCustomerNotificationQueuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Order cancelled\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderCancelledCustomerNotificationQueuedEmailIds)}.");
 
             var vendors = await GetVendorsInOrderAsync(order);
             foreach (var vendor in vendors)
             {
-                var orderCancelVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderCancelledVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+                //var orderCancelVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderCancelledVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+                var orderCancelVendorNotificationQueuedEmailIds = new List<int>();
 
                 if (orderCancelVendorNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order cancelled\" email (to vendor) has been queued. Queued email identifiers: {string.Join(", ", orderCancelVendorNotificationQueuedEmailIds)}.");
@@ -1112,20 +1119,23 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await _pdfService.SaveOrderPdfToDiskAsync(order) : null;
             var orderPaidAttachmentFileName = _orderSettings.AttachPdfInvoiceToOrderPaidEmail ?
                 (string.Format(await _localizationService.GetResourceAsync("PDFInvoice.FileName"), order.CustomOrderNumber) + ".pdf") : null;
-            var orderPaidCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidCustomerNotificationAsync(order, order.CustomerLanguageId,
-                orderPaidAttachmentFilePath, orderPaidAttachmentFileName);
+            //var orderPaidCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidCustomerNotificationAsync(order, order.CustomerLanguageId,
+            //    orderPaidAttachmentFilePath, orderPaidAttachmentFileName);
+            var orderPaidCustomerNotificationQueuedEmailIds = new List<int>();
 
             if (orderPaidCustomerNotificationQueuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Order paid\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderPaidCustomerNotificationQueuedEmailIds)}.");
 
-            var orderPaidStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+            //var orderPaidStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+            var orderPaidStoreOwnerNotificationQueuedEmailIds = new List<int>();
             if (orderPaidStoreOwnerNotificationQueuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Order paid\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderPaidStoreOwnerNotificationQueuedEmailIds)}.");
 
             var vendors = await GetVendorsInOrderAsync(order);
             foreach (var vendor in vendors)
             {
-                var orderPaidVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+                //var orderPaidVendorNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidVendorNotificationAsync(order, vendor, _localizationSettings.DefaultAdminLanguageId);
+                var orderPaidVendorNotificationQueuedEmailIds = new List<int>();
 
                 if (orderPaidVendorNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order paid\" email (to vendor) has been queued. Queued email identifiers: {string.Join(", ", orderPaidVendorNotificationQueuedEmailIds)}.");
@@ -1133,8 +1143,9 @@ public partial class OrderProcessingService : IOrderProcessingService
 
             if (order.AffiliateId != 0)
             {
-                var orderPaidAffiliateNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidAffiliateNotificationAsync(order,
-                    _localizationSettings.DefaultAdminLanguageId);
+                //var orderPaidAffiliateNotificationQueuedEmailIds = await _workflowMessageService.SendOrderPaidAffiliateNotificationAsync(order,
+                //    _localizationSettings.DefaultAdminLanguageId);
+                var orderPaidAffiliateNotificationQueuedEmailIds = new List<int>();
                 if (orderPaidAffiliateNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order paid\" email (to affiliate) has been queued. Queued email identifiers: {string.Join(", ", orderPaidAffiliateNotificationQueuedEmailIds)}.");
             }
@@ -2023,11 +2034,13 @@ public partial class OrderProcessingService : IOrderProcessingService
                     await _logger.ErrorAsync(error);
 
                 //notify a customer about cancelled payment
-                await _workflowMessageService.SendRecurringPaymentCancelledCustomerNotificationAsync(recurringPayment, initialOrder.CustomerLanguageId);
+                //await _workflowMessageService.SendRecurringPaymentCancelledCustomerNotificationAsync(recurringPayment, initialOrder.CustomerLanguageId);
             }
             else
+            {
                 //notify a customer about failed payment
-                await _workflowMessageService.SendRecurringPaymentFailedCustomerNotificationAsync(recurringPayment, initialOrder.CustomerLanguageId);
+                //await _workflowMessageService.SendRecurringPaymentFailedCustomerNotificationAsync(recurringPayment, initialOrder.CustomerLanguageId);
+            }
 
             return processPaymentResult.Errors;
         }
@@ -2221,7 +2234,8 @@ public partial class OrderProcessingService : IOrderProcessingService
         if (notifyCustomer)
         {
             //notify customer
-            var queuedEmailIds = await _workflowMessageService.SendShipmentSentCustomerNotificationAsync(shipment, order.CustomerLanguageId);
+            //var queuedEmailIds = await _workflowMessageService.SendShipmentSentCustomerNotificationAsync(shipment, order.CustomerLanguageId);
+            var queuedEmailIds = new List<int>();
             if (queuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Shipped\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", queuedEmailIds)}.");
         }
@@ -2258,7 +2272,8 @@ public partial class OrderProcessingService : IOrderProcessingService
 
         if (notifyCustomer)
         {
-            var queuedEmailIds = await _workflowMessageService.SendShipmentReadyForPickupNotificationAsync(shipment, order.CustomerLanguageId);
+            //var queuedEmailIds = await _workflowMessageService.SendShipmentReadyForPickupNotificationAsync(shipment, order.CustomerLanguageId);
+            var queuedEmailIds = new List<int>();
             if (queuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Ready for pickup\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", queuedEmailIds)}.");
         }
@@ -2312,7 +2327,8 @@ public partial class OrderProcessingService : IOrderProcessingService
         if (notifyCustomer)
         {
             //send email notification
-            var queuedEmailIds = await _workflowMessageService.SendShipmentDeliveredCustomerNotificationAsync(shipment, order.CustomerLanguageId);
+            //var queuedEmailIds = await _workflowMessageService.SendShipmentDeliveredCustomerNotificationAsync(shipment, order.CustomerLanguageId);
+            var queuedEmailIds = new List<int>();
             if (queuedEmailIds.Any())
                 await AddOrderNoteAsync(order, $"\"Delivered\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", queuedEmailIds)}.");
         }
@@ -2358,7 +2374,7 @@ public partial class OrderProcessingService : IOrderProcessingService
         //notify store owner
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
         if (order.CustomerId == currentCustomer.Id)
-            await _workflowMessageService.SendOrderCancelledStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
+            //await _workflowMessageService.SendOrderCancelledStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
 
         //add a note
         await AddOrderNoteAsync(order, "Order has been cancelled");
@@ -2634,11 +2650,13 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await CheckOrderStatusAsync(order);
 
                 //notifications
-                var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, request.AmountToRefund, _localizationSettings.DefaultAdminLanguageId);
+                //var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, request.AmountToRefund, _localizationSettings.DefaultAdminLanguageId);
+                var orderRefundedStoreOwnerNotificationQueuedEmailIds = new List<int>();
                 if (orderRefundedStoreOwnerNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order refunded\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedStoreOwnerNotificationQueuedEmailIds)}.");
 
-                var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, request.AmountToRefund, order.CustomerLanguageId);
+                //var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, request.AmountToRefund, order.CustomerLanguageId);
+                var orderRefundedCustomerNotificationQueuedEmailIds = new List<int>();
                 if (orderRefundedCustomerNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order refunded\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedCustomerNotificationQueuedEmailIds)}.");
             }
@@ -2730,11 +2748,13 @@ public partial class OrderProcessingService : IOrderProcessingService
         await CheckOrderStatusAsync(order);
 
         //notifications
-        var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+        //var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+        var orderRefundedStoreOwnerNotificationQueuedEmailIds = new List<int>();
         if (orderRefundedStoreOwnerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order refunded\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedStoreOwnerNotificationQueuedEmailIds)}.");
 
-        var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+        //var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+        var orderRefundedCustomerNotificationQueuedEmailIds = new List<int>();
         if (orderRefundedCustomerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order refunded\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedCustomerNotificationQueuedEmailIds)}.");
     }
@@ -2821,11 +2841,13 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await CheckOrderStatusAsync(order);
 
                 //notifications
-                var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+                //var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+        var orderRefundedStoreOwnerNotificationQueuedEmailIds = new List<int>();
                 if (orderRefundedStoreOwnerNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order refunded\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedStoreOwnerNotificationQueuedEmailIds)}.");
 
-                var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+                //var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+        var orderRefundedCustomerNotificationQueuedEmailIds = new List<int>();
                 if (orderRefundedCustomerNotificationQueuedEmailIds.Any())
                     await AddOrderNoteAsync(order, $"\"Order refunded\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedCustomerNotificationQueuedEmailIds)}.");
             }
@@ -2920,11 +2942,13 @@ public partial class OrderProcessingService : IOrderProcessingService
         await CheckOrderStatusAsync(order);
 
         //notifications
-        var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+        //var orderRefundedStoreOwnerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedStoreOwnerNotificationAsync(order, amountToRefund, _localizationSettings.DefaultAdminLanguageId);
+        var orderRefundedStoreOwnerNotificationQueuedEmailIds = new List<int>();
         if (orderRefundedStoreOwnerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order refunded\" email (to store owner) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedStoreOwnerNotificationQueuedEmailIds)}.");
 
-        var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+        //var orderRefundedCustomerNotificationQueuedEmailIds = await _workflowMessageService.SendOrderRefundedCustomerNotificationAsync(order, amountToRefund, order.CustomerLanguageId);
+        var orderRefundedCustomerNotificationQueuedEmailIds = new List<int>();
         if (orderRefundedCustomerNotificationQueuedEmailIds.Any())
             await AddOrderNoteAsync(order, $"\"Order refunded\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderRefundedCustomerNotificationQueuedEmailIds)}.");
     }

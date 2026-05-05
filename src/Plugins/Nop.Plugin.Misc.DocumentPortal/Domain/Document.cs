@@ -30,7 +30,8 @@ public class Document : BaseEntity
     public bool Deleted { get; set; }
 
     public int? UploadedByCustomerId { get; set; }
-    public int? UploadedByVendorId { get; set; }
+    public int? OwnerVendorId { get; set; }
+    public int AccessScopeId { get; set; } = (int)DocumentAccessScope.Public;
 
     public DateTime CreatedOnUtc { get; set; }
     public DateTime UpdatedOnUtc { get; set; }

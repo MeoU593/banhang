@@ -11,10 +11,10 @@ public class SchemaMigration : AutoReversingMigration
     public override void Up()
     {
         this.CreateTableIfNotExists<Document>();
+        this.CreateTableIfNotExists<DocumentComment>();
         this.CreateTableIfNotExists<DocumentCategory>();
         this.CreateTableIfNotExists<DocumentType>();
         this.CreateTableIfNotExists<DocumentIssuer>();
-        this.CreateTableIfNotExists<DocumentCustomerRoleMapping>();
 
         if (!Schema.Table(nameof(Document)).Index("IX_Document_Published_Deleted").Exists())
             Create.Index("IX_Document_Published_Deleted").OnTable(nameof(Document))

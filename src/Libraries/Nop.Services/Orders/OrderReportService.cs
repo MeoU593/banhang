@@ -76,6 +76,11 @@ public partial class OrderReportService : IOrderReportService
 
     #region Utilities
 
+    protected virtual bool CommerceSchemaAvailable()
+    {
+        return false;
+    }
+
     /// <summary>
     /// Search order items
     /// </summary>
@@ -699,6 +704,9 @@ public partial class OrderReportService : IOrderReportService
         int pageSize = int.MaxValue,
         bool showHidden = false)
     {
+        if (!CommerceSchemaAvailable())
+            return await Task.FromResult(new PagedList<BestsellersReportLine>(new List<BestsellersReportLine>(), pageIndex, pageSize, 0));
+
         var bestSellers = SearchOrderItems(categoryId, manufacturerId, storeId, vendorId, createdFromUtc, createdToUtc, os, ps, ss, billingCountryId, showHidden);
 
         var bsReport =
@@ -765,6 +773,9 @@ public partial class OrderReportService : IOrderReportService
         int billingCountryId = 0,
         bool showHidden = false)
     {
+        if (!CommerceSchemaAvailable())
+            return await Task.FromResult(0m);
+
         return await SearchOrderItems(categoryId, manufacturerId, storeId, vendorId, createdFromUtc, createdToUtc, os, ps, ss, billingCountryId, showHidden: showHidden)
             .SumAsync(bestseller => bestseller.PriceExclTax);
     }
@@ -784,6 +795,9 @@ public partial class OrderReportService : IOrderReportService
     public virtual async Task<int[]> GetAlsoPurchasedProductsIdsAsync(int storeId, int productId,
         int recordsToReturn = 5, bool visibleIndividuallyOnly = true, bool showHidden = false)
     {
+        if (!CommerceSchemaAvailable())
+            return await Task.FromResult(Array.Empty<int>());
+
         if (productId == 0)
             throw new ArgumentException("Product ID is not specified");
 

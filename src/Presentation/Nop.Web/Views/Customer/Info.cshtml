@@ -11,6 +11,20 @@
     var fullName = $"{Model.FirstName} {Model.LastName}".Trim();
     if (string.IsNullOrWhiteSpace(fullName))
         fullName = Context.User.Identity?.Name ?? "Hồ sơ quân nhân";
+
+    var avatarReturnUrl = webHelper.GetRawUrl(Context.Request);
+
+    string getAvatarInitial(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?";
+
+        var namePart = name.Trim()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .LastOrDefault() ?? name.Trim();
+
+        return namePart.Substring(0, 1).ToUpper(new System.Globalization.CultureInfo("vi-VN"));
+    }
 }
 
 @section left
@@ -20,13 +34,13 @@
 
 <style>
 .command-edit-page {
-    padding: 28px;
-    background: #edf4ff;
-    min-height: calc(100vh - 4rem);
+    padding: 0 0 32px;
+    background: transparent;
+    min-height: auto;
 }
 
 .command-header {
-    margin-bottom: 18px;
+    margin-bottom: 8px;
 }
 
 .command-breadcrumb {
@@ -41,25 +55,10 @@
     padding: 3px 8px;
     background: #dbe3ef;
     color: #44474c;
-    font-size: 10px;
+    font-size: var(--public-font-label);
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-}
-
-.command-header h1 {
-    margin: 0;
-    color: #2e0001;
-    font-size: 34px;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-}
-
-.command-header p {
-    margin: 6px 0 0;
-    color: #44474c;
-    font-size: 14px;
-    font-weight: 500;
 }
 
 .command-shell {
@@ -89,6 +88,7 @@
 }
 
 .profile-photo {
+    position: relative;
     width: 100%;
     height: 100%;
     border-radius: 999px;
@@ -101,6 +101,15 @@
     font-size: 46px;
     font-weight: 800;
     letter-spacing: -0.02em;
+    overflow: hidden;
+}
+
+.profile-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .profile-photo-link {
@@ -111,27 +120,28 @@
     height: 36px;
     border: 0;
     border-radius: 999px;
-    background: #2e0001;
-    color: #fff;
+    background: #b22222;
+    color: #d4af37;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .profile-side-card h2 {
     margin: 0;
-    color: #2e0001;
-    font-size: 21px;
+    color: #141c24;
+    font-size: var(--public-font-card-title);
     font-weight: 800;
 }
 
 .profile-meta {
     margin-top: 8px;
-    color: #735c00;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    color: #64748b;
+    font-size: var(--public-font-meta);
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
@@ -140,17 +150,30 @@
     display: block;
     border-radius: 8px;
     padding: 10px 12px;
-    background: #edf4ff;
+    background: #f0f1ed;
     color: #141c24;
     text-decoration: none;
-    font-size: 12px;
+    font-size: var(--public-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
 
+.profile-side-action + .profile-side-action {
+    margin-top: 10px;
+}
+
+.profile-side-action-danger {
+    width: 100%;
+    border: 0;
+    background: #ffdad6;
+    color: #93000a;
+    cursor: pointer;
+}
+
 .command-card {
     overflow: hidden;
+    border: 1px solid #e2e8f0;
 }
 
 .command-section {
@@ -167,17 +190,17 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #2e0001;
-    font-size: 18px;
-    font-weight: 800;
+    color: #141c24;
+    font-size: var(--public-font-list-title);
+    font-weight: 700;
 }
 
 .command-section h3::before {
     content: "";
-    width: 6px;
-    height: 24px;
+    width: 4px;
+    height: 18px;
     border-radius: 999px;
-    background: #735c00;
+    background: #b22222;
 }
 
 .command-grid {
@@ -188,18 +211,52 @@
 
 .command-field {
     display: flex;
-    flex-direction: column;
-    gap: 7px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 4px;
+    row-gap: 7px;
 }
 
 .command-field > label,
-.command-field .label {
+.command-field > .label {
+    order: 2;
+    flex-shrink: 0;
     margin: 0;
     color: #44474c;
-    font-size: 11px;
+    font-size: var(--public-font-label);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+}
+
+.command-field > .required,
+.command-field > .nop-required {
+    order: 1;
+    flex-shrink: 0;
+    margin: 0;
+    line-height: 1;
+}
+
+.command-field > .input-shell,
+.command-field > input,
+.command-field > select,
+.command-field > textarea,
+.command-field > .gdpr-row,
+.command-field > .command-readonly,
+.command-field > div:not(.required):not(.nop-required):not(.label) {
+    order: 3;
+    flex-basis: 100%;
+    margin-top: 2px;
+}
+
+.command-field > span:not(.required):not(.nop-required):not(.label),
+.command-field > a,
+.command-field > .please-wait,
+.command-field > .field-validation-error,
+.command-field > .field-validation-valid {
+    order: 4;
+    flex-basis: 100%;
 }
 
 .input-shell {
@@ -232,7 +289,7 @@
     box-shadow: inset 0 0 0 1px rgba(196, 198, 204, 0.35);
     padding: 11px 12px 11px 40px;
     color: #141c24;
-    font-size: 13px;
+    font-size: var(--public-font-control);
     font-weight: 600;
     transition: box-shadow .18s ease;
 }
@@ -246,19 +303,19 @@
 .command-field select:focus,
 .command-field textarea:focus {
     outline: none;
-    box-shadow: inset 0 0 0 2px rgba(115, 92, 0, 0.45);
+    box-shadow: inset 0 0 0 2px rgba(45, 58, 34, 0.4);
 }
 
 .command-readonly {
     display: flex;
     align-items: center;
-    background: #edf4ff;
+    background: #f4f5f2;
     color: #44474c;
 }
 
 .field-validation-error {
     color: #ba1a1a;
-    font-size: 11px;
+    font-size: var(--public-font-meta);
     font-weight: 700;
 }
 
@@ -268,7 +325,7 @@
     background: #ffdad6;
     color: #93000a;
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: var(--public-font-meta);
     font-weight: 600;
 }
 
@@ -308,7 +365,7 @@
 .auth-table th,
 .auth-table td {
     padding: 10px;
-    font-size: 12px;
+    font-size: var(--public-font-meta);
     text-align: left;
     border-bottom: 1px solid rgba(196, 198, 204, 0.3);
 }
@@ -317,7 +374,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #44474c;
-    font-size: 10px;
+    font-size: var(--public-font-label);
 }
 
 .security-tip {
@@ -326,7 +383,7 @@
     box-shadow: inset 0 0 0 1px rgba(254, 214, 91, 0.55);
     padding: 10px 12px;
     color: #745c00;
-    font-size: 11px;
+    font-size: var(--public-font-meta);
     font-style: italic;
     font-weight: 600;
 }
@@ -334,7 +391,7 @@
 .command-footer {
     margin-top: 0;
     padding: 18px 24px;
-    background: #e7eefa;
+    background: #f8fafc;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -345,7 +402,7 @@
     border: 0;
     background: transparent;
     color: #44474c;
-    font-size: 12px;
+    font-size: var(--public-font-label);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -356,9 +413,9 @@
     border: 0;
     border-radius: 8px;
     padding: 12px 18px;
-    background: #2e0001;
+    background: #2f5d31;
     color: #fff;
-    font-size: 12px;
+    font-size: var(--public-font-label);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -366,7 +423,7 @@
 }
 
 .command-save:hover {
-    background: #550005;
+    background: #264d28;
 }
 
 @@media (max-width: 1200px) {
@@ -377,11 +434,7 @@
 
 @@media (max-width: 768px) {
     .command-edit-page {
-        padding: 14px;
-    }
-
-    .command-header h1 {
-        font-size: 27px;
+        padding: 0 0 24px;
     }
 
     .command-grid {
@@ -397,35 +450,72 @@
 </style>
 
 <div class="page account-page command-edit-page customer-info-page">
-    <div class="command-header">
-        <div class="command-breadcrumb">
-            <span class="command-chip">Hệ thống</span>
-            <span class="material-symbols-outlined" style="font-size:16px;color:#75777c;">chevron_right</span>
-            <span class="command-chip" style="color:#2e0001;background:#ffdad6;">Hồ sơ cá nhân</span>
+    <section class="command-header overflow-hidden rounded-2xl border p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+        <div class="space-y-1.5">
+            <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                <span>Tài khoản</span>
+                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                <span class="text-white">Cập nhật hồ sơ</span>
+            </nav>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#f6dc9a]">Tài khoản cá nhân</p>
+            <h1 class="public-hero-title font-black tracking-tight text-white">Cập nhật hồ sơ quân nhân</h1>
+            <p class="text-xs leading-5 text-slate-200 sm:text-sm">Điều chỉnh thông tin cơ bản, liên lạc, xác thực và tùy chọn bổ sung cho tài khoản.</p>
         </div>
-        <h1>Chỉnh sửa hồ sơ quân nhân</h1>
-        <p>Cập nhật thông tin cá nhân, hồ sơ quân nhân và liên lạc nội bộ theo chuẩn hệ thống chỉ huy.</p>
-    </div>
+    </section>
 
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoTop, additionalData = Model })
 
-    <form asp-route="@NopRouteNames.General.CUSTOMER_INFO" method="post">
+    <form id="customer-avatar-upload-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="returnUrl" value="@avatarReturnUrl" />
+        <input type="hidden" name="upload-avatar" value="true" />
+    </form>
+    <form id="customer-avatar-remove-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post">
+        <input type="hidden" name="returnUrl" value="@avatarReturnUrl" />
+    </form>
+
+    <form asp-route="CustomerEditAccount" method="post">
         <div asp-validation-summary="ModelOnly" class="message-error"></div>
+
+        @if (TempData["ProfileAvatarMessage"] != null)
+        {
+            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                @TempData["ProfileAvatarMessage"]
+            </div>
+        }
+        @if (TempData["ProfileAvatarError"] != null)
+        {
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                @TempData["ProfileAvatarError"]
+            </div>
+        }
 
         <div class="command-shell">
             <aside>
                 <div class="profile-side-card">
                     <div class="profile-photo-wrap">
-                        <div class="profile-photo">@fullName.Substring(0, 1).ToUpperInvariant()</div>
-                        <a class="profile-photo-link" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" title="Đổi ảnh đại diện">
+                        <div class="profile-photo">
+                            <span>@getAvatarInitial(fullName)</span>
+                            @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+                            {
+                                <img src="@Model.AvatarUrl" alt="@fullName" onerror="this.remove()" />
+                            }
+                        </div>
+                        <label class="profile-photo-link" title="Đổi ảnh đại diện">
                             <span class="material-symbols-outlined" style="font-size:18px;">photo_camera</span>
-                        </a>
+                            <input name="uploadedFile" accept="image/jpeg,image/png,image/gif,image/webp" type="file" form="customer-avatar-upload-form" style="display:none" onchange="this.form.submit()" />
+                        </label>
                     </div>
 
                     <h2>@fullName</h2>
                     <div class="profile-meta">Mã quân nhân: @(string.IsNullOrWhiteSpace(Model.MilitaryCode) ? "Chưa cập nhật" : Model.MilitaryCode)</div>
 
                     <a class="profile-side-action" asp-route="@NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT">Xem hồ sơ hiển thị</a>
+                    @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+                    {
+                        <button type="submit" name="remove-avatar" form="customer-avatar-remove-form" class="profile-side-action profile-side-action-danger">Xóa avatar</button>
+                    }
                 </div>
             </aside>
 
@@ -433,37 +523,31 @@
                 <section class="command-section">
                     <h3>Thông tin Quân nhân</h3>
                     <div class="command-grid">
-                        @if (Model.FirstNameEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="FirstName"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">person</span>
-                                    <input asp-for="FirstName" />
-                                </div>
-                                @if (Model.FirstNameRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="FirstName"></span>
+                        <div class="command-field">
+                            <label asp-for="FirstName"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">person</span>
+                                <input asp-for="FirstName" />
                             </div>
-                        }
+                            @if (Model.FirstNameRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="FirstName"></span>
+                        </div>
 
-                        @if (Model.LastNameEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="LastName"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">badge</span>
-                                    <input asp-for="LastName" />
-                                </div>
-                                @if (Model.LastNameRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="LastName"></span>
+                        <div class="command-field">
+                            <label asp-for="LastName"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">badge</span>
+                                <input asp-for="LastName" />
                             </div>
-                        }
+                            @if (Model.LastNameRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="LastName"></span>
+                        </div>
 
                         <div class="command-field">
                             <label for="@Html.IdFor(model => model.MilitaryCode)">Số hiệu quân nhân</label>
@@ -604,21 +688,18 @@
                             }
                         }
 
-                        @if (Model.PhoneEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="Phone"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">call</span>
-                                    <input asp-for="Phone" />
-                                </div>
-                                @if (Model.PhoneRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="Phone"></span>
+                        <div class="command-field">
+                            <label asp-for="Phone"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">call</span>
+                                <input asp-for="Phone" />
                             </div>
-                        }
+                            @if (Model.PhoneRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="Phone"></span>
+                        </div>
 
                         @if (Model.FaxEnabled)
                         {
@@ -673,69 +754,57 @@
                             </div>
                         }
 
-                        @if (Model.StreetAddressEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="StreetAddress"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">location_on</span>
-                                    <input asp-for="StreetAddress" />
-                                </div>
-                                @if (Model.StreetAddressRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="StreetAddress"></span>
+                        <div class="command-field">
+                            <label asp-for="StreetAddress"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">location_on</span>
+                                <input asp-for="StreetAddress" />
                             </div>
-                        }
+                            @if (Model.StreetAddressRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="StreetAddress"></span>
+                        </div>
 
-                        @if (Model.StreetAddress2Enabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="StreetAddress2"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">pin_drop</span>
-                                    <input asp-for="StreetAddress2" />
-                                </div>
-                                @if (Model.StreetAddress2Required)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="StreetAddress2"></span>
+                        <div class="command-field">
+                            <label asp-for="StreetAddress2"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">pin_drop</span>
+                                <input asp-for="StreetAddress2" />
                             </div>
-                        }
+                            @if (Model.StreetAddress2Required)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="StreetAddress2"></span>
+                        </div>
 
-                        @if (Model.CityEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="City"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">apartment</span>
-                                    <input asp-for="City" />
-                                </div>
-                                @if (Model.CityRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="City"></span>
+                        <div class="command-field">
+                            <label asp-for="City"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">apartment</span>
+                                <input asp-for="City" />
                             </div>
-                        }
+                            @if (Model.CityRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="City"></span>
+                        </div>
 
-                        @if (Model.CountyEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="County"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">map</span>
-                                    <input asp-for="County" />
-                                </div>
-                                @if (Model.CountyRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="County"></span>
+                        <div class="command-field">
+                            <label asp-for="County"></label>
+                            <div class="input-shell">
+                                <span class="material-symbols-outlined input-icon">map</span>
+                                <input asp-for="County" />
                             </div>
-                        }
+                            @if (Model.CountyRequired)
+                            {
+                                <nop-required />
+                            }
+                            <span asp-validation-for="County"></span>
+                        </div>
 
                         @if (Model.ZipPostalCodeEnabled)
                         {
@@ -814,25 +883,6 @@
                         }
                     </div>
                 </section>
-
-                @if (Model.NewsletterEnabled && Model.NewsLetterSubscriptions.Count > 0)
-                {
-                    <section class="command-section">
-                        <h3>Đăng ký bản tin</h3>
-                        <div class="command-grid" style="grid-template-columns:1fr;">
-                            @for (int i = 0; i < Model.NewsLetterSubscriptions.Count; i++)
-                            {
-                                <div class="newsletter-row">
-                                    <label for="@Html.IdFor(m => m.NewsLetterSubscriptions[i].IsActive)">@Model.NewsLetterSubscriptions[i].Name</label>
-                                    <div>
-                                        <input type="hidden" asp-for="NewsLetterSubscriptions[i].TypeId" />
-                                        <input type="checkbox" asp-for="NewsLetterSubscriptions[i].IsActive" />
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </section>
-                }
 
                 @if (Model.CustomerAttributes.Count > 0)
                 {

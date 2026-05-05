@@ -37,10 +37,10 @@ public class UnitReportService : IUnitReportService
     }
 
     public async Task<IList<UnitReport>> GetByPeriodAsync(int reportPeriodId)
-        => await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId).OrderBy(x => x.OrganizationUnitId).ToListAsync();
+        => await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId).OrderBy(x => x.VendorId).ToListAsync();
 
-    public async Task<IList<UnitReport>> GetByParentOrganizationAsync(int reportPeriodId, int organizationUnitId)
-        => await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId && x.ParentOrganizationUnitId == organizationUnitId).ToListAsync();
+    public async Task<IList<UnitReport>> GetByParentVendorAsync(int reportPeriodId, int parentVendorId)
+        => await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId && x.ParentVendorId == parentVendorId).ToListAsync();
 
     public async Task<UnitReport?> GetByIdAsync(int id) => await _unitReportRepository.GetByIdAsync(id);
 
@@ -69,6 +69,11 @@ public class UnitReportService : IUnitReportService
 
     public async Task SaveValuesAsync(int unitReportId, IList<UnitReportValue> values, int customerId)
     {
+        var report = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Không tìm thấy báo cáo đơn vị");
+        var period = await _periodRepository.GetByIdAsync(report.ReportPeriodId) ?? throw new ArgumentException("Không tìm thấy kỳ báo cáo");
+        if (!CanEditReport(report, period))
+            throw new InvalidOperationException("Báo cáo hiện không cho phép chỉnh sửa");
+
         var now = DateTime.UtcNow;
         foreach (var value in values)
         {
@@ -83,6 +88,10 @@ public class UnitReportService : IUnitReportService
     public async Task SubmitAsync(int unitReportId, int customerId)
     {
         var entity = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Không tìm thấy báo cáo đơn vị");
+        var period = await _periodRepository.GetByIdAsync(entity.ReportPeriodId) ?? throw new ArgumentException("Không tìm thấy kỳ báo cáo");
+        if (!CanSubmitReport(entity, period))
+            throw new InvalidOperationException("Báo cáo hiện không cho phép gửi");
+
         var fromStatus = entity.StatusId;
         entity.StatusId = (int)UnitReportStatus.Submitted;
         entity.SubmittedByCustomerId = customerId;
@@ -94,6 +103,10 @@ public class UnitReportService : IUnitReportService
     public async Task ReturnAsync(int unitReportId, int customerId, string reason)
     {
         var entity = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Unit report not found");
+        var period = await _periodRepository.GetByIdAsync(entity.ReportPeriodId) ?? throw new ArgumentException("Không tìm thấy kỳ báo cáo");
+        if (!CanReturnReport(entity, period))
+            throw new InvalidOperationException("Báo cáo hiện không cho phép trả lại");
+
         var fromStatus = entity.StatusId;
         entity.StatusId = (int)UnitReportStatus.Returned;
         entity.ReturnedReason = reason;
@@ -104,6 +117,10 @@ public class UnitReportService : IUnitReportService
     public async Task LockAsync(int unitReportId, int customerId)
     {
         var entity = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Không tìm thấy báo cáo đơn vị");
+        var period = await _periodRepository.GetByIdAsync(entity.ReportPeriodId) ?? throw new ArgumentException("Không tìm thấy kỳ báo cáo");
+        if (!CanLockReport(entity, period))
+            throw new InvalidOperationException("Báo cáo hiện không cho phép khóa");
+
         var fromStatus = entity.StatusId;
         entity.StatusId = (int)UnitReportStatus.Locked;
         entity.LockedByCustomerId = customerId;
@@ -116,6 +133,13 @@ public class UnitReportService : IUnitReportService
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("Tệp nhập liệu đang rỗng");
+
+        var report = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Không tìm thấy báo cáo đơn vị");
+        var period = await _periodRepository.GetByIdAsync(report.ReportPeriodId) ?? throw new ArgumentException("Không tìm thấy kỳ báo cáo");
+        if (!CanEditReport(report, period))
+            throw new InvalidOperationException("Báo cáo hiện không cho phép nhập liệu");
+
+        var fromStatus = report.StatusId;
 
         await using var stream = file.OpenReadStream();
         var storedPath = await _storageService.SaveImportAsync(file.FileName, stream);
@@ -133,15 +157,65 @@ public class UnitReportService : IUnitReportService
             ErrorLogPath = result.errorLog
         });
 
-        var report = await GetByIdAsync(unitReportId) ?? throw new ArgumentException("Không tìm thấy báo cáo đơn vị");
+        await _storageService.CleanupOldFilesAsync("Imports", TimeSpan.FromDays(90));
+
         if (result.successCount > 0)
         {
             report.StatusId = (int)UnitReportStatus.Imported;
             await _unitReportRepository.UpdateAsync(report);
         }
 
-        await AddWorkflowAsync(unitReportId, report.StatusId, report.StatusId, customerId, "Nhập liệu", $"Thành công: {result.successCount}; Lỗi: {result.errorCount}");
+        await AddWorkflowAsync(unitReportId, fromStatus, report.StatusId, customerId, "Nhập liệu", $"Thành công: {result.successCount}; Lỗi: {result.errorCount}");
         return result.successCount;
+    }
+
+    private static bool CanEditReport(UnitReport report, ReportPeriod period)
+    {
+        if (!IsPeriodAcceptingUpdates(period))
+            return false;
+
+        return report.StatusId == (int)UnitReportStatus.Draft
+            || report.StatusId == (int)UnitReportStatus.Imported
+            || report.StatusId == (int)UnitReportStatus.Returned;
+    }
+
+    private static bool CanSubmitReport(UnitReport report, ReportPeriod period)
+    {
+        if (!IsPeriodAcceptingUpdates(period))
+            return false;
+
+        return report.StatusId == (int)UnitReportStatus.Draft
+            || report.StatusId == (int)UnitReportStatus.Imported
+            || report.StatusId == (int)UnitReportStatus.Returned;
+    }
+
+    private static bool CanReturnReport(UnitReport report, ReportPeriod period)
+    {
+        if (!IsPeriodAcceptingUpdates(period))
+            return false;
+
+        return report.StatusId == (int)UnitReportStatus.Submitted;
+    }
+
+    private static bool CanLockReport(UnitReport report, ReportPeriod period)
+    {
+        if (!IsPeriodAcceptingUpdates(period))
+            return false;
+
+        return report.StatusId == (int)UnitReportStatus.Submitted;
+    }
+
+    private static bool IsPeriodClosed(ReportPeriod period)
+    {
+        return period.IsLocked || period.StatusId == (int)ReportPeriodStatus.Closed || period.StatusId == (int)ReportPeriodStatus.Locked;
+    }
+
+    private static bool IsPeriodAcceptingUpdates(ReportPeriod period)
+    {
+        if (IsPeriodClosed(period))
+            return false;
+
+        return period.StatusId == (int)ReportPeriodStatus.Open || period.StatusId == (int)ReportPeriodStatus.Aggregating;
     }
 
     private async Task AddWorkflowAsync(int unitReportId, int fromStatus, int toStatus, int customerId, string action, string comment)

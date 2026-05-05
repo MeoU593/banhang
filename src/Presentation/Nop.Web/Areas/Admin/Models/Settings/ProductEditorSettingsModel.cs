@@ -84,26 +84,8 @@ public partial record ProductEditorSettingsModel : BaseNopModel, ISettingsModel
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.IsRental")]
     public bool IsRental { get; set; }
 
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.FreeShipping")]
-    public bool FreeShipping { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.ShipSeparately")]
-    public bool ShipSeparately { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.AdditionalShippingCharge")]
-    public bool AdditionalShippingCharge { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.DeliveryDate")]
-    public bool DeliveryDate { get; set; }
-
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.ProductAvailabilityRange")]
     public bool ProductAvailabilityRange { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.UseMultipleWarehouses")]
-    public bool UseMultipleWarehouses { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.Warehouse")]
-    public bool Warehouse { get; set; }
 
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.DisplayStockAvailability")]
     public bool DisplayStockAvailability { get; set; }
@@ -137,12 +119,6 @@ public partial record ProductEditorSettingsModel : BaseNopModel, ISettingsModel
     
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.NotReturnable")]
     public bool NotReturnable { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.Weight")]
-    public bool Weight { get; set; }
-
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.Dimensions")]
-    public bool Dimensions { get; set; }
 
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.AvailableStartDate")]
     public bool AvailableStartDate { get; set; }

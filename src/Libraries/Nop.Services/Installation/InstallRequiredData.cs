@@ -62,20 +62,20 @@ public partial class InstallationService
         var stores = new List<Store>
         {
             new() {
-                Name = "Your store name",
-                DefaultTitle = "Your store",
+                Name = "BCTTG",
+                DefaultTitle = "BCTTG",
                 DefaultMetaKeywords = string.Empty,
                 DefaultMetaDescription = string.Empty,
-                HomepageTitle = "Home page title",
-                HomepageDescription = "Home page description",
+                HomepageTitle = "BCTTG",
+                HomepageDescription = "Hệ thống Hậu cần BCTTG",
                 Url = storeUrl,
                 SslEnabled = _webHelper.IsCurrentConnectionSecured(),
-                Hosts = "yourstore.com,www.yourstore.com",
+                Hosts = string.Empty,
                 DisplayOrder = 1,
                 //should we set some default company info?
-                CompanyName = "Your company name",
-                CompanyAddress = "your company country, state, zip, street, etc",
-                CompanyPhoneNumber = "(123) 456-78901",
+                CompanyName = "BCTTG",
+                CompanyAddress = string.Empty,
+                CompanyPhoneNumber = string.Empty,
                 CompanyVat = null
             }
         };
@@ -1549,7 +1549,7 @@ public partial class InstallationService
             RequiredReLoginAfterPasswordChange = false,
             UserRegistrationType = UserRegistrationType.Standard,
             AllowCustomersToUploadAvatars = false,
-            AvatarMaximumSizeBytes = 20000,
+            AvatarMaximumSizeBytes = 5242880,
             DefaultAvatarEnabled = true,
             ShowCustomersLocation = false,
             ShowCustomersJoinDate = false,
@@ -1583,8 +1583,8 @@ public partial class InstallationService
             PhoneEnabled = false,
             FaxEnabled = false,
             AcceptPrivacyPolicyEnabled = false,
-            NewsletterEnabled = true,
-            HideNewsletterBlock = false,
+            NewsletterEnabled = false,
+            HideNewsletterBlock = true,
             NewsletterBlockAllowToUnsubscribe = false,
             OnlineCustomerMinutes = 20,
             StoreLastVisitedPage = false,
@@ -1802,34 +1802,6 @@ public partial class InstallationService
             AllowStoreOwnerExportImportCustomersWithHashedPassword = true
         });
 
-        await SaveSettingAsync(dictionary, new ShippingSettings
-        {
-            ActiveShippingRateComputationMethodSystemNames = ["Shipping.FixedByWeightByTotal"],
-            ActivePickupPointProviderSystemNames = ["Pickup.PickupInStore"],
-            ShipToSameAddress = true,
-            AllowPickupInStore = true,
-            DisplayPickupPointsOnMap = false,
-            IgnoreAdditionalShippingChargeForPickupInStore = true,
-            UseWarehouseLocation = false,
-            NotifyCustomerAboutShippingFromMultipleLocations = false,
-            FreeShippingOverXEnabled = false,
-            FreeShippingOverXValue = decimal.Zero,
-            FreeShippingOverXIncludingTax = false,
-            EstimateShippingProductPageEnabled = true,
-            EstimateShippingCartPageEnabled = true,
-            EstimateShippingCityNameEnabled = false,
-            DisplayShipmentEventsToCustomers = false,
-            DisplayShipmentEventsToStoreOwner = false,
-            HideShippingTotal = false,
-            ReturnValidOptionsIfThereAreAny = true,
-            BypassShippingMethodSelectionIfOnlyOne = false,
-            UseCubeRootMethod = true,
-            ConsiderAssociatedProductsDimensions = true,
-            ShipSeparatelyOneItemEach = false,
-            RequestDelay = 300,
-            ShippingSorting = ShippingSortingEnum.Position,
-        });
-
         await SaveSettingAsync(dictionary, new PaymentSettings
         {
             ActivePaymentMethodSystemNames = ["Payments.CheckMoneyOrder", "Payments.Manual"],
@@ -1839,42 +1811,6 @@ public partial class InstallationService
             SkipPaymentInfoStepForRedirectionPaymentMethods = false,
             CancelRecurringPaymentsAfterFailedPayment = false,
             RegenerateOrderGuidInterval = 180
-        });
-
-        await SaveSettingAsync(dictionary, new TaxSettings
-        {
-            TaxBasedOn = TaxBasedOn.BillingAddress,
-            TaxBasedOnPickupPointAddress = false,
-            TaxDisplayType = TaxDisplayType.ExcludingTax,
-            ActiveTaxProviderSystemName = "Tax.FixedOrByCountryStateZip",
-            DefaultTaxAddressId = 0,
-            DisplayTaxSuffix = false,
-            DisplayTaxRates = false,
-            PricesIncludeTax = false,
-            AutomaticallyDetectCountry = true,
-            AllowCustomersToSelectTaxDisplayType = false,
-            ForceTaxExclusionFromOrderSubtotal = false,
-            DefaultTaxCategoryId = 0,
-            HideZeroTax = false,
-            HideTaxInOrderSummary = false,
-            ShippingIsTaxable = false,
-            ShippingPriceIncludesTax = false,
-            ShippingTaxClassId = 0,
-            PaymentMethodAdditionalFeeIsTaxable = false,
-            PaymentMethodAdditionalFeeIncludesTax = false,
-            PaymentMethodAdditionalFeeTaxClassId = 0,
-            EuVatEnabled = isEurope,
-            EuVatEnabledForGuests = false,
-            EuVatRequired = false,
-            EuVatShopCountryId = isEurope ? (await GetFirstEntityIdAsync<Country>(x => x.TwoLetterIsoCode == country) ?? 0) : 0,
-            EuVatAllowVatExemption = true,
-            EuVatUseWebService = false,
-            EuVatAssumeValid = false,
-            EuVatEmailAdminWhenNewVatSubmitted = false,
-            HmrcApiUrl = "https://api.service.hmrc.gov.uk",
-            HmrcClientId = string.Empty,
-            HmrcClientSecret = string.Empty,
-            LogErrors = false
         });
 
         await SaveSettingAsync(dictionary, new DateTimeSettings
@@ -1938,7 +1874,7 @@ public partial class InstallationService
             DefaultVendorPageSizeOptions = "6, 3, 9",
             VendorsBlockItemsToDisplay = 0,
             ShowVendorOnProductDetailsPage = true,
-            AllowCustomersToContactVendors = true,
+            AllowCustomersToContactVendors = false,
             AllowCustomersToApplyForVendorAccount = true,
             TermsOfServiceEnabled = false,
             AllowVendorsToEditInfo = false,
@@ -1948,8 +1884,7 @@ public partial class InstallationService
             MaximumProductPicturesNumber = 5
         });
 
-        var eaGeneral = await Table<EmailAccount>().FirstOrDefaultAsync() ?? throw new Exception("Default email account cannot be loaded");
-        await SaveSettingAsync(dictionary, new EmailAccountSettings { DefaultEmailAccountId = eaGeneral.Id });
+        await SaveSettingAsync(dictionary, new EmailAccountSettings { DefaultEmailAccountId = 0 });
 
         await SaveSettingAsync(dictionary, new CaptchaSettings
         {
@@ -3384,15 +3319,7 @@ public partial class InstallationService
         var tasks = new List<ScheduleTask>
             {
                 new() {
-                    Name = "Send emails",
-                    Seconds = 60,
-                    Type = "Nop.Services.Messages.QueuedMessagesSendTask, Nop.Services",
-                    Enabled = true,
-                    LastEnabledUtc = lastEnabledUtc,
-                    StopOnError = false
-                },
-                new() {
-                    Name = "Keep alive",
+                    Name = "Giữ ứng dụng hoạt động",
                     Seconds = 300,
                     Type = "Nop.Services.Common.KeepAliveTask, Nop.Services",
                     Enabled = true,
@@ -3400,7 +3327,7 @@ public partial class InstallationService
                     StopOnError = false
                 },
                 new() {
-                    Name = nameof(ResetLicenseCheckTask),
+                    Name = "Đặt lại kiểm tra giấy phép",
                     Seconds = 2073600,
                     Type = "Nop.Services.Common.ResetLicenseCheckTask, Nop.Services",
                     Enabled = true,
@@ -3408,7 +3335,7 @@ public partial class InstallationService
                     StopOnError = false
                 },
                 new() {
-                    Name = "Delete guests",
+                    Name = "Xóa khách vãng lai",
                     Seconds = 600,
                     Type = "Nop.Services.Customers.DeleteGuestsTask, Nop.Services",
                     Enabled = true,
@@ -3416,14 +3343,14 @@ public partial class InstallationService
                     StopOnError = false
                 },
                 new() {
-                    Name = "Clear cache",
+                    Name = "Xóa bộ nhớ đệm",
                     Seconds = 600,
                     Type = "Nop.Services.Caching.ClearCacheTask, Nop.Services",
                     Enabled = false,
                     StopOnError = false
                 },
                 new() {
-                    Name = "Clear log",
+                    Name = "Xóa nhật ký",
                     //60 minutes
                     Seconds = 3600,
                     Type = "Nop.Services.Logging.ClearLogTask, Nop.Services",
@@ -3431,7 +3358,7 @@ public partial class InstallationService
                     StopOnError = false
                 },
                 new() {
-                    Name = "Update currency exchange rates",
+                    Name = "Cập nhật tỷ giá",
                     //60 minutes
                     Seconds = 3600,
                     Type = "Nop.Services.Directory.UpdateExchangeRateTask, Nop.Services",
@@ -3440,11 +3367,20 @@ public partial class InstallationService
                     StopOnError = false
                 },
                 new() {
-                    Name = "Delete inactive customers (GDPR)",
+                    Name = "Xóa tài khoản không hoạt động",
                     //24 hours
                     Seconds = 86400,
                     Type = "Nop.Services.Gdpr.DeleteInactiveCustomersTask, Nop.Services",
                     Enabled = false,
+                    StopOnError = false
+                },
+                new() {
+                    Name = "Xóa tin nhắn liên hệ đơn vị",
+                    //24 hours
+                    Seconds = 86400,
+                    Type = "Nop.Services.Forums.DeleteUnitContactPrivateMessagesTask, Nop.Services",
+                    Enabled = true,
+                    LastEnabledUtc = lastEnabledUtc,
                     StopOnError = false
                 }
             };

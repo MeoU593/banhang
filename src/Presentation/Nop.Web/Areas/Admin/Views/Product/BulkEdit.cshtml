@@ -100,14 +100,6 @@
                                                     <nop-select asp-for="SearchStoreId" asp-items="Model.AvailableStores"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group row" @(Model.AvailableWarehouses.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                                <div class="col-md-4">
-                                                    <nop-label asp-for="SearchWarehouseId"/>
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <nop-select asp-for="SearchWarehouseId" asp-items="Model.AvailableWarehouses"/>
-                                                </div>
-                                            </div>
                                             <div class="form-group row">
                                                 <div class="col-md-4">
                                                     <nop-label asp-for="SearchProductTypeId"/>
@@ -225,7 +217,6 @@
         var manufacturer = $("#@Html.IdFor(model => model.SearchManufacturerId)").val();
         var vendor = $("#@Html.IdFor(model => model.SearchVendorId)").val();
         var store = $("#@Html.IdFor(model => model.SearchStoreId)").val();
-        var warehouse = $("#@Html.IdFor(model => model.SearchWarehouseId)").val();
         var published = $("#@Html.IdFor(model => model.SearchPublishedId)").val();
         var productType = $("#@Html.IdFor(model => model.SearchProductTypeId)").val();
                                         
@@ -254,7 +245,6 @@
             SearchManufacturerId: manufacturer,
             SearchVendorId: vendor,
             SearchStoreId: store,
-            SearchWarehouseId: warehouse,
             SearchPublishedId: published,
             SearchProductTypeId: productType,
             Start: start,
@@ -311,12 +301,14 @@
     $(function() {
         var displayModal = @((Model.LicenseCheckModel?.DisplayWarning == true || Model.LicenseCheckModel?.BlockPages == true).ToString().ToLower());
         if (displayModal) {
-            $('#license-window').modal({
+            var $licenseWindow = $('#license-window');
+
+            $licenseWindow.modal({
                 backdrop: 'static',
                 keyboard: false
             });
 
-            $('#license-window').on('shown.bs.modal', function (event) {
+            $licenseWindow.off('shown.bs.modal.licenseWarning').on('shown.bs.modal.licenseWarning', function (event) {
                 var modalCloseEl = $(this).find('button.close');
                 var closeTextEl = $('span', modalCloseEl);
 
@@ -330,7 +322,7 @@
 
                 setTimeout(function() {
                     closeTextEl.html('&times;');
-                    modalCloseEl.on('click', function() {
+                    modalCloseEl.off('click.licenseWarning').on('click.licenseWarning', function() {
                         $('#license-window').modal('hide')
                     });
                     clearInterval(timer);

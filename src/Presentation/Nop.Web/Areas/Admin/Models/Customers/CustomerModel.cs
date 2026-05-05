@@ -16,7 +16,6 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     public CustomerModel()
     {
         AvailableTimeZones = new List<SelectListItem>();
-        SendEmail = new SendEmailModel() { SendImmediately = true };
         SendPm = new SendPmModel();
 
         SelectedCustomerRoleIds = new List<int>();
@@ -215,20 +214,11 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     [NopResourceDisplayName("Admin.Customers.Customers.Fields.CustomerRoles")]
     public IList<int> SelectedCustomerRoleIds { get; set; }
 
-    //send email model
-    public SendEmailModel SendEmail { get; set; }
-
     //send PM model
     public SendPmModel SendPm { get; set; }
 
     //send a private message
     public bool AllowSendingOfPrivateMessage { get; set; }
-
-    //send the welcome message
-    public bool AllowSendingOfWelcomeMessage { get; set; }
-
-    //re-send the activation message
-    public bool AllowReSendingOfActivationMessage { get; set; }
 
     //GDPR enabled
     public bool GdprEnabled { get; set; }
@@ -248,22 +238,6 @@ public partial record CustomerModel : BaseNopEntityModel, IAclSupportedModel
     #endregion
 
     #region Nested classes
-
-    public partial record SendEmailModel : BaseNopModel
-    {
-        [NopResourceDisplayName("Admin.Customers.Customers.SendEmail.Subject")]
-        public string Subject { get; set; }
-
-        [NopResourceDisplayName("Admin.Customers.Customers.SendEmail.Body")]
-        public string Body { get; set; }
-
-        [NopResourceDisplayName("Admin.Customers.Customers.SendEmail.SendImmediately")]
-        public bool SendImmediately { get; set; }
-
-        [NopResourceDisplayName("Admin.Customers.Customers.SendEmail.DontSendBeforeDate")]
-        [UIHint("DateTimeNullable")]
-        public DateTime? DontSendBeforeDate { get; set; }
-    }
 
     public partial record SendPmModel : BaseNopModel
     {

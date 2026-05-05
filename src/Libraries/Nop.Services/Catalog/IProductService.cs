@@ -140,6 +140,8 @@ public partial interface IProductService
     /// <param name="manufacturerIds">Manufacturer identifiers</param>
     /// <param name="storeId">Store identifier; 0 to load all records</param>
     /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
+    /// <param name="vendorIds">Vendor identifiers; null/empty to ignore this filter</param>
+    /// <param name="productIds">Product identifiers; null/empty to ignore this filter</param>
     /// <param name="warehouseId">Warehouse identifier; 0 to load all records</param>
     /// <param name="productType">Product type; 0 to load all records</param>
     /// <param name="visibleIndividuallyOnly">A values indicating whether to load only products marked as "visible individually"; "false" to load all records; "true" to load "visible individually" only</param>
@@ -172,6 +174,7 @@ public partial interface IProductService
         IList<int> manufacturerIds = null,
         int storeId = 0,
         int vendorId = 0,
+        IList<int> productIds = null,
         int warehouseId = 0,
         ProductType? productType = null,
         bool visibleIndividuallyOnly = false,
@@ -188,7 +191,8 @@ public partial interface IProductService
         IList<SpecificationAttributeOption> filteredSpecOptions = null,
         ProductSortingEnum orderBy = ProductSortingEnum.Position,
         bool showHidden = false,
-        bool? overridePublished = null);
+        bool? overridePublished = null,
+        IList<int> vendorIds = null);
 
     /// <summary>
     /// Gets products by product attribute

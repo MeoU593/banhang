@@ -24,6 +24,7 @@ using Nop.Services.Media;
 using Nop.Services.Orders;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Models.Customers;
@@ -72,6 +73,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreService _storeService;
     protected readonly ITaxService _taxService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
     protected readonly MediaSettings _mediaSettings;
     protected readonly TaxSettings _taxSettings;
@@ -114,6 +116,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IStoreContext storeContext,
         IStoreService storeService,
         ITaxService taxService,
+        IVendorService vendorService,
         IWorkContext workContext,
         MediaSettings mediaSettings,
         TaxSettings taxSettings)
@@ -152,6 +155,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _storeContext = storeContext;
         _storeService = storeService;
         _taxService = taxService;
+        _vendorService = vendorService;
         _workContext = workContext;
         _mediaSettings = mediaSettings;
         _taxSettings = taxSettings;
@@ -525,6 +529,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
         //prepare list model
+        var vendorNameById = new Dictionary<int, string>();
         var model = await new CustomerListModel().PrepareToGridAsync(searchModel, customers, () =>
         {
             return customers.SelectAwait(async customer =>
@@ -537,7 +542,21 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                     ? customer.Email
                     : await _localizationService.GetResourceAsync("Admin.Customers.Guest");
                 customerModel.FullName = await _customerService.GetCustomerFullNameAsync(customer);
-                customerModel.Company = customer.Company;
+
+                var companyName = customer.Company;
+                if (customer.VendorId > 0)
+                {
+                    if (!vendorNameById.TryGetValue(customer.VendorId, out var vendorName))
+                    {
+                        vendorName = (await _vendorService.GetVendorByIdAsync(customer.VendorId))?.Name ?? string.Empty;
+                        vendorNameById[customer.VendorId] = vendorName;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(vendorName))
+                        companyName = vendorName;
+                }
+
+                customerModel.Company = companyName;
                 customerModel.Phone = customer.Phone;
                 customerModel.ZipPostalCode = customer.ZipPostalCode;
 
@@ -582,10 +601,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             model.DisplayVatNumber = _taxSettings.EuVatEnabled;
             model.AllowSendingOfPrivateMessage = await _customerService.IsRegisteredAsync(customer) &&
                                                  _forumSettings.AllowPrivateMessages;
-            model.AllowSendingOfWelcomeMessage = await _customerService.IsRegisteredAsync(customer) &&
-                                                 _customerSettings.UserRegistrationType == UserRegistrationType.AdminApproval;
-            model.AllowReSendingOfActivationMessage = await _customerService.IsRegisteredAsync(customer) && !customer.Active &&
-                                                      _customerSettings.UserRegistrationType == UserRegistrationType.EmailValidation;
             model.GdprEnabled = _gdprSettings.GdprEnabled;
 
             model.MultiFactorAuthenticationProvider = await _genericAttributeService

@@ -96,12 +96,14 @@
         checkFilterSelections();
 
         // Add change event listener to all filter selects
-        $('.filter-level-select').on('change', function() {
-            checkFilterSelections();
-        });
+        $('.filter-level-select')
+            .off('change.searchFilterLevels')
+            .on('change.searchFilterLevels', function() {
+                checkFilterSelections();
+            });
 
         // Handle existing functionality for catalog products
-        $(CatalogProducts).on('before', function (e) {
+        $(CatalogProducts).off('before.searchFilterLevels').on('before.searchFilterLevels', function (e) {
             e.payload.urlBuilder
                 .addParameter('fl1id', $('#@Html.IdFor(model => model.fl1id)').val())
                 .addParameter('fl2id', $('#@Html.IdFor(model => model.fl2id)').val())

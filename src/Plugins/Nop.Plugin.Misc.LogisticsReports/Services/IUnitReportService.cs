@@ -6,7 +6,7 @@ namespace Nop.Plugin.Misc.LogisticsReports.Services;
 public interface IUnitReportService
 {
     Task<IList<UnitReport>> GetByPeriodAsync(int reportPeriodId);
-    Task<IList<UnitReport>> GetByParentOrganizationAsync(int reportPeriodId, int organizationUnitId);
+    Task<IList<UnitReport>> GetByParentVendorAsync(int reportPeriodId, int parentVendorId);
     Task<UnitReport?> GetByIdAsync(int id);
     Task<IList<UnitReportValue>> GetValuesAsync(int unitReportId);
     Task SaveValuesAsync(int unitReportId, IList<UnitReportValue> values, int customerId);

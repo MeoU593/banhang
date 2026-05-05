@@ -643,15 +643,12 @@ public partial class CustomerService : ICustomerService
 
         var guestsToDelete = from guest in _customerRepository.Table
             join g in allGuestCustomers on guest.Id equals g.Id
-            from sCart in _shoppingCartRepository.Table.Where(sci => sci.CustomerId == guest.Id).DefaultIfEmpty()
-            from order in _orderRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
             from blogComment in _blogCommentRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
             from productReview in _productReviewRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
             from productReviewHelpfulness in _productReviewHelpfulnessRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
             from forumTopic in _forumTopicRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
             from forumPost in _forumPostRepository.Table.Where(o => o.CustomerId == guest.Id).DefaultIfEmpty()
-            where (!onlyWithoutShoppingCart || sCart == null) &&
-                  order == null && blogComment == null && productReview == null && productReviewHelpfulness == null &&
+            where blogComment == null && productReview == null && productReviewHelpfulness == null &&
                   forumTopic == null && forumPost == null &&
                   !guest.IsSystemAccount &&
                   (createdFromUtc == null || guest.CreatedOnUtc > createdFromUtc) &&

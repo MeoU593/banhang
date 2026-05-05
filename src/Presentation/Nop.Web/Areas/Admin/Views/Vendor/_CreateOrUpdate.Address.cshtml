@@ -1,0 +1,83 @@
+@model VendorModel
+
+@{
+    var countryName = Model.Address.AvailableCountries
+        .FirstOrDefault(x => x.Value == Model.Address.CountryId?.ToString())?.Text ?? "Việt Nam";
+}
+
+<input asp-for="Address.Id" type="hidden" />
+<input asp-for="Address.CountryId" type="hidden" />
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.Company)">Đơn vị</label>
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Address.Company" asp-required="@Model.Address.CompanyRequired" />
+        <span asp-validation-for="Address.Company"></span>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.CountryId)">Quốc gia</label>
+    </div>
+    <div class="col-md-9">
+        <input type="text" class="form-control" value="@countryName" readonly />
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.StateProvinceId)">Tỉnh/Thành phố</label>
+    </div>
+    <div class="col-md-9">
+        <nop-select asp-for="Address.StateProvinceId" asp-items="Model.Address.AvailableStates" />
+        <span asp-validation-for="Address.StateProvinceId"></span>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.City)">Quận/Huyện</label>
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Address.City" asp-required="@Model.Address.CityRequired" />
+        <span asp-validation-for="Address.City"></span>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.Address1)">Địa chỉ</label>
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Address.Address1" asp-required="@Model.Address.StreetAddressRequired" />
+        <span asp-validation-for="Address.Address1"></span>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.ZipPostalCode)">Mã bưu chính</label>
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Address.ZipPostalCode" asp-required="@Model.Address.ZipPostalCodeRequired" />
+        <span asp-validation-for="Address.ZipPostalCode"></span>
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-3">
+        <label class="col-form-label" for="@Html.IdFor(model => model.Address.PhoneNumber)">Số điện thoại</label>
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Address.PhoneNumber" asp-required="@Model.Address.PhoneRequired" />
+        <span asp-validation-for="Address.PhoneNumber"></span>
+    </div>
+</div>
+
+@if (Model.Address.CustomAddressAttributes.Count > 0)
+{
+    @await Html.PartialAsync("_AddressAttributes", Model.Address.CustomAddressAttributes)
+}

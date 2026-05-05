@@ -34,5 +34,10 @@ public partial record CatalogProductsCommand : BasePageableModel
     /// </summary>
     public string ViewMode { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether only favorite products should be displayed
+    /// </summary>
+    public bool FavoritesOnly { get; set; }
+
     #endregion
 }

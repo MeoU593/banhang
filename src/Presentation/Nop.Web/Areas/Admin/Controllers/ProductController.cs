@@ -13,7 +13,6 @@ using Nop.Core.Domain.FilterLevels;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
-using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Events;
 using Nop.Core.Http;
@@ -22,6 +21,7 @@ using Nop.Services.ArtificialIntelligence;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
+using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Discounts;
 using Nop.Services.ExportImport;
@@ -33,8 +33,8 @@ using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Seo;
-using Nop.Services.Shipping;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Catalog;
@@ -62,6 +62,7 @@ public partial class ProductController : BaseAdminController
     protected readonly ICopyProductService _copyProductService;
     protected readonly ICurrencyService _currencyService;
     protected readonly ICustomerActivityService _customerActivityService;
+    protected readonly ICustomerService _customerService;
     protected readonly IDiscountService _discountService;
     protected readonly IDownloadService _downloadService;
     protected readonly IEventPublisher _eventPublisher;
@@ -93,12 +94,11 @@ public partial class ProductController : BaseAdminController
     protected readonly ITranslationModelFactory _translationModelFactory;
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IVideoService _videoService;
-    protected readonly IWarehouseService _warehouseService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
+    protected readonly IVendorService _vendorService;
     protected readonly CurrencySettings _currencySettings;
     protected readonly LocalizationSettings _localizationSettings;
-    protected readonly TaxSettings _taxSettings;
     protected readonly VendorSettings _vendorSettings;
     private static readonly char[] _separator = [','];
 
@@ -116,6 +116,7 @@ public partial class ProductController : BaseAdminController
         ICopyProductService copyProductService,
         ICurrencyService currencyService,
         ICustomerActivityService customerActivityService,
+        ICustomerService customerService,
         IDiscountService discountService,
         IDownloadService downloadService,
         IEventPublisher eventPublisher,
@@ -147,12 +148,11 @@ public partial class ProductController : BaseAdminController
         ITranslationModelFactory translationModelFactory,
         IUrlRecordService urlRecordService,
         IVideoService videoService,
-        IWarehouseService warehouseService,
         IWebHelper webHelper,
         IWorkContext workContext,
+        IVendorService vendorService,
         CurrencySettings currencySettings,
         LocalizationSettings localizationSettings,
-        TaxSettings taxSettings,
         VendorSettings vendorSettings)
     {
         _adminAreaSettings = adminAreaSettings;
@@ -165,6 +165,7 @@ public partial class ProductController : BaseAdminController
         _copyProductService = copyProductService;
         _currencyService = currencyService;
         _customerActivityService = customerActivityService;
+        _customerService = customerService;
         _discountService = discountService;
         _downloadService = downloadService;
         _eventPublisher = eventPublisher;
@@ -196,12 +197,11 @@ public partial class ProductController : BaseAdminController
         _translationModelFactory = translationModelFactory;
         _urlRecordService = urlRecordService;
         _videoService = videoService;
-        _warehouseService = warehouseService;
         _webHelper = webHelper;
         _workContext = workContext;
+        _vendorService = vendorService;
         _currencySettings = currencySettings;
         _localizationSettings = localizationSettings;
-        _taxSettings = taxSettings;
         _vendorSettings = vendorSettings;
     }
 
@@ -218,6 +218,87 @@ public partial class ProductController : BaseAdminController
             key.Equals(fieldName, StringComparison.OrdinalIgnoreCase) ||
             key.StartsWith($"{fieldName}.", StringComparison.OrdinalIgnoreCase) ||
             key.StartsWith($"{fieldName}[", StringComparison.OrdinalIgnoreCase));
+    }
+
+    protected virtual async Task<ISet<int>> GetCurrentVendorScopeIdsAsync()
+    {
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor == null)
+            return null;
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var isLeader = currentVendor.PmCustomerId == currentCustomer.Id;
+
+        return isLeader
+            ? (await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)).ToHashSet()
+            : new HashSet<int> { currentVendor.Id };
+    }
+
+    protected virtual async Task<bool> IsProductInCurrentVendorScopeAsync(Product product)
+    {
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        return vendorScopeIds == null || vendorScopeIds.Contains(product.VendorId);
+    }
+
+    protected virtual async Task<IList<int>> GetCurrentVendorScopeForSearchAsync(int selectedVendorId = 0)
+    {
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        if (vendorScopeIds == null)
+            return null;
+
+        if (selectedVendorId > 0)
+            return vendorScopeIds.Contains(selectedVendorId) ? [selectedVendorId] : [];
+
+        return vendorScopeIds.ToList();
+    }
+
+    protected virtual async Task<bool> IsCustomerInVendorAsync(int customerId, int vendorId)
+    {
+        if (customerId <= 0)
+            return false;
+
+        var customer = await _customerService.GetCustomerByIdAsync(customerId);
+        if (customer == null || customer.Deleted || !customer.Active)
+            return false;
+
+        if (vendorId <= 0)
+            return true;
+
+        return customer.VendorId == vendorId;
+    }
+
+    protected virtual async Task<int> ResolveProductPosterCustomerIdAsync(Customer currentCustomer, int vendorId)
+    {
+        if (currentCustomer != null &&
+            currentCustomer.Id > 0 &&
+            currentCustomer.Active &&
+            !currentCustomer.Deleted &&
+            (vendorId <= 0 || currentCustomer.VendorId == vendorId))
+        {
+            return currentCustomer.Id;
+        }
+
+        if (vendorId > 0)
+        {
+            var customersInVendor = await _customerService.GetAllCustomersAsync(
+                vendorId: vendorId,
+                isActive: true,
+                pageIndex: 0,
+                pageSize: 250);
+
+            var candidates = customersInVendor
+                .Where(customer => !customer.Deleted)
+                .ToList();
+
+            if (candidates.Count > 0)
+                return candidates[Random.Shared.Next(candidates.Count)].Id;
+        }
+
+        if (currentCustomer != null && currentCustomer.Id > 0 && currentCustomer.Active && !currentCustomer.Deleted)
+            return currentCustomer.Id;
+
+        var fallbackCustomers = await _customerService.GetAllCustomersAsync(isActive: true, pageIndex: 0, pageSize: 1);
+        return fallbackCustomers.FirstOrDefault(customer => !customer.Deleted)?.Id ?? 0;
     }
 
     protected virtual Product CreateProductSnapshot(Product product)
@@ -411,7 +492,24 @@ public partial class ProductController : BaseAdminController
 
         var currentVendor = await _workContext.GetCurrentVendorAsync();
         if (currentVendor != null)
-            selectedUnitId = currentVendor.Id;
+        {
+            var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+            var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+            var isLeader = currentVendor.PmCustomerId == currentCustomer.Id;
+
+            if (!isLeader)
+                selectedUnitId = currentVendor.Id;
+            else
+            {
+                var currentProductVendorInScope = vendorScopeIds?.Contains(product.VendorId) ?? false;
+
+                if (selectedUnitId <= 0)
+                    selectedUnitId = currentProductVendorInScope ? product.VendorId : currentVendor.Id;
+
+                if (!(vendorScopeIds?.Contains(selectedUnitId) ?? false))
+                    selectedUnitId = currentProductVendorInScope ? product.VendorId : currentVendor.Id;
+            }
+        }
 
         if (product.VendorId != selectedUnitId)
         {
@@ -599,108 +697,6 @@ public partial class ProductController : BaseAdminController
         }
 
         return attributesXml;
-    }
-
-    protected virtual async Task SaveProductWarehouseInventoryAsync(Product product, ProductModel model)
-    {
-        ArgumentNullException.ThrowIfNull(product);
-
-        if (model.ManageInventoryMethodId != (int)ManageInventoryMethod.ManageStock)
-            return;
-
-        if (!model.UseMultipleWarehouses)
-            return;
-
-        var warehouses = await _warehouseService.GetAllWarehousesAsync();
-
-        var form = await Request.ReadFormAsync();
-        var formData = form.ToDictionary(x => x.Key, x => x.Value.ToString());
-
-        foreach (var warehouse in warehouses)
-        {
-            //parse stock quantity
-            var stockQuantity = 0;
-            foreach (var formKey in formData.Keys)
-            {
-                if (!formKey.Equals($"warehouse_qty_{warehouse.Id}", StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                _ = int.TryParse(formData[formKey], out stockQuantity);
-                break;
-            }
-
-            //parse reserved quantity
-            var reservedQuantity = 0;
-            foreach (var formKey in formData.Keys)
-            {
-                if (formKey.Equals($"warehouse_reserved_{warehouse.Id}", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    _ = int.TryParse(formData[formKey], out reservedQuantity);
-                    break;
-                }
-            }
-
-            //parse "used" field
-            var used = false;
-            foreach (var formKey in formData.Keys)
-            {
-                if (formKey.Equals($"warehouse_used_{warehouse.Id}", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    _ = int.TryParse(formData[formKey], out var tmp);
-                    used = tmp == warehouse.Id;
-                    break;
-                }
-            }
-
-            //quantity change history message
-            var message = $"{await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.MultipleWarehouses")} {await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.Edit")}";
-
-            var existingPwI = (await _productService.GetAllProductWarehouseInventoryRecordsAsync(product.Id)).FirstOrDefault(x => x.WarehouseId == warehouse.Id);
-            if (existingPwI != null)
-            {
-                if (used)
-                {
-                    var previousStockQuantity = existingPwI.StockQuantity;
-
-                    //update existing record
-                    existingPwI.StockQuantity = stockQuantity;
-                    existingPwI.ReservedQuantity = reservedQuantity;
-                    await _productService.UpdateProductWarehouseInventoryAsync(existingPwI);
-
-                    //quantity change history
-                    await _productService.AddStockQuantityHistoryEntryAsync(product, existingPwI.StockQuantity - previousStockQuantity, existingPwI.StockQuantity,
-                        existingPwI.WarehouseId, message);
-                }
-                else
-                {
-                    //delete. no need to store record for qty 0
-                    await _productService.DeleteProductWarehouseInventoryAsync(existingPwI);
-
-                    //quantity change history
-                    await _productService.AddStockQuantityHistoryEntryAsync(product, -existingPwI.StockQuantity, 0, existingPwI.WarehouseId, message);
-                }
-            }
-            else
-            {
-                if (!used)
-                    continue;
-
-                //no need to insert a record for qty 0
-                existingPwI = new ProductWarehouseInventory
-                {
-                    WarehouseId = warehouse.Id,
-                    ProductId = product.Id,
-                    StockQuantity = stockQuantity,
-                    ReservedQuantity = reservedQuantity
-                };
-
-                await _productService.InsertProductWarehouseInventoryAsync(existingPwI);
-
-                //quantity change history
-                await _productService.AddStockQuantityHistoryEntryAsync(product, existingPwI.StockQuantity, existingPwI.StockQuantity,
-                    existingPwI.WarehouseId, message);
-            }
-        }
     }
 
     protected virtual async Task SaveConditionAttributesAsync(ProductAttributeMapping productAttributeMapping,
@@ -980,7 +976,7 @@ public partial class ProductController : BaseAdminController
         void setData(int productId, Action<BulkEditData> action)
         {
             if (!rez.ContainsKey(productId))
-                rez.Add(productId, new BulkEditData(_taxSettings.DefaultTaxCategoryId, currentVendor?.Id ?? 0));
+                rez.Add(productId, new BulkEditData(currentVendor?.Id ?? 0));
 
             action(rez[productId]);
         }
@@ -1117,6 +1113,10 @@ public partial class ProductController : BaseAdminController
     {
         //validate maximum number of products per vendor
         var currentVendor = await _workContext.GetCurrentVendorAsync();
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        var isCurrentVendorLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
+
         if (_vendorSettings.MaximumProductNumber > 0 &&
             currentVendor != null &&
             await _productService.GetNumberOfProductsByVendorIdAsync(currentVendor.Id) >= _vendorSettings.MaximumProductNumber)
@@ -1128,9 +1128,11 @@ public partial class ProductController : BaseAdminController
 
         if (ModelState.IsValid)
         {
-            //a vendor should have access only to his products
             if (currentVendor != null)
-                model.VendorId = currentVendor.Id;
+            {
+                if (!isCurrentVendorLeader || model.VendorId <= 0 || !(vendorScopeIds?.Contains(model.VendorId) ?? false))
+                    model.VendorId = currentVendor.Id;
+            }
 
             //vendors cannot edit "Show on home page" property
             if (currentVendor != null && model.ShowOnHomepage)
@@ -1140,6 +1142,7 @@ public partial class ProductController : BaseAdminController
             var product = model.ToEntity<Product>();
             product.CreatedOnUtc = DateTime.UtcNow;
             product.UpdatedOnUtc = DateTime.UtcNow;
+            product.CreatedByCustomerId = await ResolveProductPosterCustomerIdAsync(currentCustomer, product.VendorId);
             await _productService.InsertProductAsync(product);
 
             //search engine name
@@ -1166,11 +1169,8 @@ public partial class ProductController : BaseAdminController
             if (IsFieldPosted(nameof(ProductModel.SelectedProductTags)))
                 await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
 
-            //warehouses
-            await SaveProductWarehouseInventoryAsync(product, model);
-
             //quantity change history
-            await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity, product.StockQuantity, product.WarehouseId,
+            await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity, product.StockQuantity, 0,
                 await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.Edit"));
 
             //activity log
@@ -1201,8 +1201,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List");
 
         //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List");
 
         //prepare model
@@ -1223,8 +1222,7 @@ public partial class ProductController : BaseAdminController
             return Json(translationModel);
 
         //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Json(translationModel);
 
         //prepare model
@@ -1249,8 +1247,12 @@ public partial class ProductController : BaseAdminController
 
         //a vendor should have access only to his products
         var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List");
+
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        var isCurrentVendorLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
 
         //check if the product quantity has been changed while we were editing the product
         //and if it has been changed then we show error notification
@@ -1263,9 +1265,11 @@ public partial class ProductController : BaseAdminController
 
         if (ModelState.IsValid)
         {
-            //a vendor should have access only to his products
             if (currentVendor != null)
-                model.VendorId = currentVendor.Id;
+            {
+                if (!isCurrentVendorLeader || model.VendorId <= 0 || !(vendorScopeIds?.Contains(model.VendorId) ?? false))
+                    model.VendorId = currentVendor.Id;
+            }
 
             //we do not validate maximum number of products per vendor when editing existing products (only during creation of new products)
             //vendors cannot edit "Show on home page" property
@@ -1277,7 +1281,6 @@ public partial class ProductController : BaseAdminController
             var prevDownloadId = product.DownloadId;
             var prevSampleDownloadId = product.SampleDownloadId;
             var previousStockQuantity = product.StockQuantity;
-            var previousWarehouseId = product.WarehouseId;
             var previousProductType = product.ProductType;
             var previousRequiredProductIds = product.RequiredProductIds;
             var snapshotProduct = CreateProductSnapshot(product);
@@ -1285,6 +1288,9 @@ public partial class ProductController : BaseAdminController
             //product
             product = model.ToEntity(product);
             RestoreUnpostedProductFields(snapshotProduct, product);
+
+            if (!await IsCustomerInVendorAsync(product.CreatedByCustomerId, product.VendorId))
+                product.CreatedByCustomerId = await ResolveProductPosterCustomerIdAsync(currentCustomer, product.VendorId);
 
             product.UpdatedOnUtc = DateTime.UtcNow;
 
@@ -1334,9 +1340,6 @@ public partial class ProductController : BaseAdminController
             if (IsFieldPosted(nameof(ProductModel.SelectedProductTags)))
                 await _productTagService.UpdateProductTagsAsync(product, model.SelectedProductTags.ToArray());
 
-            //warehouses
-            await SaveProductWarehouseInventoryAsync(product, model);
-
             //categories
             await SaveCategoryMappingsAsync(product, model);
 
@@ -1381,38 +1384,8 @@ public partial class ProductController : BaseAdminController
                     await _downloadService.DeleteDownloadAsync(prevSampleDownload);
             }
 
-            //quantity change history
-            if (previousWarehouseId != product.WarehouseId)
-            {
-                //warehouse is changed 
-                //compose a message
-                var oldWarehouseMessage = string.Empty;
-                if (previousWarehouseId > 0)
-                {
-                    var oldWarehouse = await _warehouseService.GetWarehouseByIdAsync(previousWarehouseId);
-                    if (oldWarehouse != null)
-                        oldWarehouseMessage = string.Format(await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.EditWarehouse.Old"), oldWarehouse.Name);
-                }
-
-                var newWarehouseMessage = string.Empty;
-                if (product.WarehouseId > 0)
-                {
-                    var newWarehouse = await _warehouseService.GetWarehouseByIdAsync(product.WarehouseId);
-                    if (newWarehouse != null)
-                        newWarehouseMessage = string.Format(await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.EditWarehouse.New"), newWarehouse.Name);
-                }
-
-                var message = string.Format(await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.EditWarehouse"), oldWarehouseMessage, newWarehouseMessage);
-
-                //record history
-                await _productService.AddStockQuantityHistoryEntryAsync(product, -previousStockQuantity, 0, previousWarehouseId, message);
-                await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity, product.StockQuantity, product.WarehouseId, message);
-            }
-            else
-            {
-                await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity - previousStockQuantity, product.StockQuantity,
-                    product.WarehouseId, await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.Edit"));
-            }
+            await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity - previousStockQuantity, product.StockQuantity,
+                0, await _localizationService.GetResourceAsync("Admin.StockQuantityHistory.Messages.Edit"));
 
             //activity log
             await _customerActivityService.InsertActivityAsync("EditProduct",
@@ -1472,9 +1445,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List");
 
         await _productService.DeleteProductAsync(product);
@@ -1495,10 +1466,10 @@ public partial class ProductController : BaseAdminController
         if (selectedIds == null || !selectedIds.Any())
             return NoContent();
 
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
 
         var products = (await _productService.GetProductsByIdsAsync(selectedIds.ToArray()))
-            .Where(p => currentVendor == null || p.VendorId == currentVendor.Id).ToList();
+            .Where(p => vendorScopeIds == null || vendorScopeIds.Contains(p.VendorId)).ToList();
 
         await _productService.DeleteProductsAsync(products);
 
@@ -1523,9 +1494,7 @@ public partial class ProductController : BaseAdminController
         {
             var originalProduct = await _productService.GetProductByIdAsync(copyModel.Id);
 
-            //a vendor should have access only to his products
-            var currentVendor = await _workContext.GetCurrentVendorAsync();
-            if (currentVendor != null && originalProduct.VendorId != currentVendor.Id)
+            if (!await IsProductInCurrentVendorScopeAsync(originalProduct))
                 return RedirectToAction("List");
 
             var newProduct = await _copyProductService.CopyProductAsync(originalProduct, copyModel.Name, copyModel.Published, copyModel.CopyMultimedia);
@@ -1695,9 +1664,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -1714,14 +1681,9 @@ public partial class ProductController : BaseAdminController
         var relatedProduct = await _productService.GetRelatedProductByIdAsync(model.Id)
             ?? throw new ArgumentException("No related product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(relatedProduct.ProductId1);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var product = await _productService.GetProductByIdAsync(relatedProduct.ProductId1);
+        if (product == null || !await IsProductInCurrentVendorScopeAsync(product))
+            return Content("This is not your product");
 
         relatedProduct.DisplayOrder = model.DisplayOrder;
         await _productService.UpdateRelatedProductAsync(relatedProduct);
@@ -1739,14 +1701,9 @@ public partial class ProductController : BaseAdminController
 
         var productId = relatedProduct.ProductId1;
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(productId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var product = await _productService.GetProductByIdAsync(productId);
+        if (product == null || !await IsProductInCurrentVendorScopeAsync(product))
+            return Content("This is not your product");
 
         await _productService.DeleteRelatedProductAsync(relatedProduct);
 
@@ -1781,11 +1738,10 @@ public partial class ProductController : BaseAdminController
         if (selectedProducts.Any())
         {
             var existingRelatedProducts = await _productService.GetRelatedProductsByProductId1Async(model.ProductId, showHidden: true);
-            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
             foreach (var product in selectedProducts)
             {
-                //a vendor should have access only to his products
-                if (currentVendor != null && product.VendorId != currentVendor.Id)
+                if (vendorScopeIds != null && !vendorScopeIds.Contains(product.VendorId))
                     continue;
 
                 if (_productService.FindRelatedProduct(existingRelatedProducts, model.ProductId, product.Id) != null)
@@ -1817,9 +1773,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -1836,14 +1790,9 @@ public partial class ProductController : BaseAdminController
         var crossSellProduct = await _productService.GetCrossSellProductByIdAsync(id)
             ?? throw new ArgumentException("No cross-sell product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(crossSellProduct.ProductId1);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var product = await _productService.GetProductByIdAsync(crossSellProduct.ProductId1);
+        if (product == null || !await IsProductInCurrentVendorScopeAsync(product))
+            return Content("This is not your product");
 
         await _productService.DeleteCrossSellProductAsync(crossSellProduct);
 
@@ -1878,11 +1827,10 @@ public partial class ProductController : BaseAdminController
         if (selectedProducts.Any())
         {
             var existingCrossSellProducts = await _productService.GetCrossSellProductsByProductId1Async(model.ProductId, showHidden: true);
-            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
             foreach (var product in selectedProducts)
             {
-                //a vendor should have access only to his products
-                if (currentVendor != null && product.VendorId != currentVendor.Id)
+                if (vendorScopeIds != null && !vendorScopeIds.Contains(product.VendorId))
                     continue;
 
                 if (_productService.FindCrossSellProduct(existingCrossSellProducts, model.ProductId, product.Id) != null)
@@ -1913,9 +1861,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -1934,14 +1880,9 @@ public partial class ProductController : BaseAdminController
         var filterLevelValueMapping = existingProductFilterLevelValues.FirstOrDefault(pc => pc.ProductId == productId && pc.FilterLevelValueId == id)
             ?? throw new ArgumentException("No filter level value mapping found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(filterLevelValueMapping.ProductId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var product = await _productService.GetProductByIdAsync(filterLevelValueMapping.ProductId);
+        if (product == null || !await IsProductInCurrentVendorScopeAsync(product))
+            return Content("This is not your product");
 
         await _filterLevelValueService.DeleteFilterLevelValueProductAsync(filterLevelValueMapping);
 
@@ -2007,9 +1948,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -2026,9 +1965,7 @@ public partial class ProductController : BaseAdminController
         var associatedProduct = await _productService.GetProductByIdAsync(model.Id)
             ?? throw new ArgumentException("No associated product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && associatedProduct.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(associatedProduct))
             return Content("This is not your product");
 
         associatedProduct.DisplayOrder = model.DisplayOrder;
@@ -2045,9 +1982,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(id)
             ?? throw new ArgumentException("No associated product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         product.ParentGroupedProductId = 0;
@@ -2093,9 +2028,7 @@ public partial class ProductController : BaseAdminController
                 if (product.Id == model.ProductId)
                     continue;
 
-                //a vendor should have access only to his products
-                var currentVendor = await _workContext.GetCurrentVendorAsync();
-                if (currentVendor != null && product.VendorId != currentVendor.Id)
+                if (!await IsProductInCurrentVendorScopeAsync(product))
                     continue;
 
                 product.ParentGroupedProductId = model.ProductId;
@@ -2143,11 +2076,10 @@ public partial class ProductController : BaseAdminController
         if (!files.Any())
             return Json(new { success = false });
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
+        var isVendorUser = await _workContext.GetCurrentVendorAsync() != null;
+        if (isVendorUser)
         {
-            if (product.VendorId != currentVendor.Id)
+            if (!await IsProductInCurrentVendorScopeAsync(product))
                 return RedirectToAction("List");
 
             var existingPictures = await _pictureService.GetPicturesByProductIdAsync(product.Id);
@@ -2199,8 +2131,7 @@ public partial class ProductController : BaseAdminController
             ?? throw new ArgumentException("No product found with the specified id");
 
         //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -2217,14 +2148,9 @@ public partial class ProductController : BaseAdminController
         var productPicture = await _productService.GetProductPictureByIdAsync(model.Id)
             ?? throw new ArgumentException("No product picture found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(productPicture.ProductId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var pictureProduct = await _productService.GetProductByIdAsync(productPicture.ProductId);
+        if (pictureProduct == null || !await IsProductInCurrentVendorScopeAsync(pictureProduct))
+            return Content("This is not your product");
 
         //try to get a picture with the specified id
         var picture = await _pictureService.GetPictureByIdAsync(productPicture.PictureId)
@@ -2251,14 +2177,9 @@ public partial class ProductController : BaseAdminController
         var productPicture = await _productService.GetProductPictureByIdAsync(id)
             ?? throw new ArgumentException("No product picture found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(productPicture.ProductId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var pictureProduct = await _productService.GetProductByIdAsync(productPicture.ProductId);
+        if (pictureProduct == null || !await IsProductInCurrentVendorScopeAsync(pictureProduct))
+            return Content("This is not your product");
 
         var pictureId = productPicture.PictureId;
         await _productService.DeleteProductPictureAsync(productPicture);
@@ -2311,9 +2232,7 @@ public partial class ProductController : BaseAdminController
             });
         }
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List");
         try
         {
@@ -2352,9 +2271,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -2371,14 +2288,9 @@ public partial class ProductController : BaseAdminController
         var productVideo = await _productService.GetProductVideoByIdAsync(model.Id)
             ?? throw new ArgumentException("No product video found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(productVideo.ProductId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var videoProduct = await _productService.GetProductByIdAsync(productVideo.ProductId);
+        if (videoProduct == null || !await IsProductInCurrentVendorScopeAsync(videoProduct))
+            return Content("This is not your product");
 
         //try to get a video with the specified id
         var video = await _videoService.GetVideoByIdAsync(productVideo.VideoId)
@@ -2417,14 +2329,9 @@ public partial class ProductController : BaseAdminController
         var productVideo = await _productService.GetProductVideoByIdAsync(id)
             ?? throw new ArgumentException("No product video found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-        {
-            var product = await _productService.GetProductByIdAsync(productVideo.ProductId);
-            if (product != null && product.VendorId != currentVendor.Id)
-                return Content("This is not your product");
-        }
+        var videoProduct = await _productService.GetProductByIdAsync(productVideo.ProductId);
+        if (videoProduct == null || !await IsProductInCurrentVendorScopeAsync(videoProduct))
+            return Content("This is not your product");
 
         var videoId = productVideo.VideoId;
         await _productService.DeleteProductVideoAsync(productVideo);
@@ -2453,9 +2360,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List");
         }
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List");
 
         //we allow filtering only for "Option" attribute type
@@ -2523,9 +2428,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -2549,10 +2452,8 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("Edit", new { id = model.ProductId });
         }
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null
-            && (await _productService.GetProductByIdAsync(psa.ProductId)).VendorId != currentVendor.Id)
+        var specificationProduct = await _productService.GetProductByIdAsync(psa.ProductId);
+        if (specificationProduct == null || !await IsProductInCurrentVendorScopeAsync(specificationProduct))
         {
             _notificationService.ErrorNotification("This is not your product");
 
@@ -2654,9 +2555,8 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("Edit", new { id = model.ProductId });
         }
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && (await _productService.GetProductByIdAsync(psa.ProductId)).VendorId != currentVendor.Id)
+        var specificationProduct = await _productService.GetProductByIdAsync(psa.ProductId);
+        if (specificationProduct == null || !await IsProductInCurrentVendorScopeAsync(specificationProduct))
         {
             _notificationService.ErrorNotification("This is not your product");
             return RedirectToAction("List", new { id = model.ProductId });
@@ -2789,9 +2689,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -2809,10 +2707,7 @@ public partial class ProductController : BaseAdminController
     [CheckPermission(StandardPermission.Catalog.PRODUCTS_IMPORT_EXPORT)]
     public virtual async Task<IActionResult> DownloadCatalogAsPdf(ProductSearchModel model)
     {
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            model.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeForSearchAsync(model.SearchVendorId);
 
         var categoryIds = new List<int> { model.SearchCategoryId };
         //include subcategories
@@ -2832,8 +2727,8 @@ public partial class ProductController : BaseAdminController
             categoryIds: categoryIds,
             manufacturerIds: new List<int> { model.SearchManufacturerId },
             storeId: model.SearchStoreId,
-            vendorId: model.SearchVendorId,
-            warehouseId: model.SearchWarehouseId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: model.SearchProductTypeId > 0 ? (ProductType?)model.SearchProductTypeId : null,
             keywords: model.SearchProductName,
             showHidden: true,
@@ -2862,10 +2757,7 @@ public partial class ProductController : BaseAdminController
     [CheckPermission(StandardPermission.Catalog.PRODUCTS_IMPORT_EXPORT)]
     public virtual async Task<IActionResult> ExportXmlAll(ProductSearchModel model)
     {
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            model.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeForSearchAsync(model.SearchVendorId);
 
         var categoryIds = new List<int> { model.SearchCategoryId };
         //include subcategories
@@ -2885,8 +2777,8 @@ public partial class ProductController : BaseAdminController
             categoryIds: categoryIds,
             manufacturerIds: new List<int> { model.SearchManufacturerId },
             storeId: model.SearchStoreId,
-            vendorId: model.SearchVendorId,
-            warehouseId: model.SearchWarehouseId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: model.SearchProductTypeId > 0 ? (ProductType?)model.SearchProductTypeId : null,
             keywords: model.SearchProductName,
             showHidden: true,
@@ -2918,10 +2810,9 @@ public partial class ProductController : BaseAdminController
                 .ToArray();
             products.AddRange(await _productService.GetProductsByIdsAsync(ids));
         }
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            products = products.Where(p => p.VendorId == currentVendor.Id).ToList();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        if (vendorScopeIds != null)
+            products = products.Where(p => vendorScopeIds.Contains(p.VendorId)).ToList();
 
         try
         {
@@ -2940,10 +2831,7 @@ public partial class ProductController : BaseAdminController
     [CheckPermission(StandardPermission.Catalog.PRODUCTS_IMPORT_EXPORT)]
     public virtual async Task<IActionResult> ExportExcelAll(ProductSearchModel model)
     {
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            model.SearchVendorId = currentVendor.Id;
+        var vendorScopeIds = await GetCurrentVendorScopeForSearchAsync(model.SearchVendorId);
 
         var categoryIds = new List<int> { model.SearchCategoryId };
         //include subcategories
@@ -2963,8 +2851,8 @@ public partial class ProductController : BaseAdminController
             categoryIds: categoryIds,
             manufacturerIds: new List<int> { model.SearchManufacturerId },
             storeId: model.SearchStoreId,
-            vendorId: model.SearchVendorId,
-            warehouseId: model.SearchWarehouseId,
+            vendorId: 0,
+            vendorIds: vendorScopeIds,
             productType: model.SearchProductTypeId > 0 ? (ProductType?)model.SearchProductTypeId : null,
             keywords: model.SearchProductName,
             showHidden: true,
@@ -2997,10 +2885,9 @@ public partial class ProductController : BaseAdminController
                 .ToArray();
             products.AddRange(await _productService.GetProductsByIdsAsync(ids));
         }
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null)
-            products = products.Where(p => p.VendorId == currentVendor.Id).ToList();
+        var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
+        if (vendorScopeIds != null)
+            products = products.Where(p => vendorScopeIds.Contains(p.VendorId)).ToList();
 
         try
         {
@@ -3059,9 +2946,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -3077,9 +2962,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
         {
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("This is not your product"));
             return RedirectToAction("List");
@@ -3099,9 +2982,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(model.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
         {
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("This is not your product"));
             return RedirectToAction("List");
@@ -3178,9 +3059,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
         {
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("This is not your product"));
             return RedirectToAction("List");
@@ -3204,9 +3083,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
         {
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("This is not your product"));
             return RedirectToAction("List");
@@ -3279,9 +3156,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //check if existed combinations contains the specified attribute
@@ -3325,9 +3200,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -3347,9 +3220,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //prepare model
@@ -3371,9 +3242,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         if (productAttributeMapping.AttributeControlType == AttributeControlType.ColorSquares)
@@ -3436,9 +3305,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //prepare model
@@ -3465,9 +3332,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         if (productAttributeMapping.AttributeControlType == AttributeControlType.ColorSquares)
@@ -3528,9 +3393,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productAttributeMapping.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //check if existed combinations contains the specified attribute value
@@ -3586,9 +3449,7 @@ public partial class ProductController : BaseAdminController
         if (associatedProduct == null)
             return Content("Cannot load a product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && associatedProduct.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(associatedProduct))
             return Content("This is not your product");
 
         ViewBag.RefreshPage = true;
@@ -3637,9 +3498,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -3660,9 +3519,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(combination.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         await _productAttributeService.DeleteProductAttributeCombinationAsync(combination);
@@ -3678,9 +3535,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List", "Product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //prepare model
@@ -3698,9 +3553,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List", "Product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //attributes
@@ -3757,9 +3610,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List", "Product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //prepare model
@@ -3822,9 +3673,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List", "Product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //prepare model
@@ -3848,9 +3697,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return RedirectToAction("List", "Product");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return RedirectToAction("List", "Product");
 
         //attributes
@@ -3908,9 +3755,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(productId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         await GenerateAttributeCombinationsAsync(product);
@@ -3956,9 +3801,7 @@ public partial class ProductController : BaseAdminController
         var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
             ?? throw new ArgumentException("No product found with the specified id");
 
-        //a vendor should have access only to his products
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
-        if (currentVendor != null && product.VendorId != currentVendor.Id)
+        if (!await IsProductInCurrentVendorScopeAsync(product))
             return Content("This is not your product");
 
         //prepare model
@@ -3977,12 +3820,10 @@ public partial class ProductController : BaseAdminController
     {
         protected bool _updated;
         protected bool _created;
-        protected int _defaultTaxCategoryId;
         protected int _vendorId;
 
-        public BulkEditData(int defaultTaxCategoryId, int vendorId)
+        public BulkEditData(int vendorId)
         {
-            _defaultTaxCategoryId = defaultTaxCategoryId;
             _vendorId = vendorId;
         }
 
@@ -4072,9 +3913,7 @@ public partial class ProductController : BaseAdminController
                 NotifyAdminForQuantityBelow = 1,
                 OrderMinimumQuantity = 1,
                 OrderMaximumQuantity = 10000,
-                TaxCategoryId = _defaultTaxCategoryId,
                 UnlimitedDownloads = true,
-                IsShipEnabled = true,
                 AllowCustomerReviews = true,
                 VisibleIndividually = true,
                 ProductType = ProductType.SimpleProduct,

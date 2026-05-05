@@ -80,7 +80,15 @@ public class WidgetSwiperViewComponent : NopViewComponent
             AutoplayDelay = sliderSettings.AutoplayDelay,
         };
 
-        var slides = JsonConvert.DeserializeObject<List<Slide>>(sliderSettings.Slides);
+        List<Slide> slides;
+        try
+        {
+            slides = JsonConvert.DeserializeObject<List<Slide>>(sliderSettings.Slides) ?? new List<Slide>();
+        }
+        catch (JsonException)
+        {
+            return Content("");
+        }
         foreach (var slide in slides)
         {
             var picUrl = await GetPictureUrlAsync(slide.PictureId);

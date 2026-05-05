@@ -1,31 +1,27 @@
 @model TopicModel
-
-@{    
-    //page title
-    ViewBag.PageTitle = T("Admin.ContentManagement.Topics.AddNew").Text;
-    //active menu item (system name)
+@{
+    ViewBag.PageTitle = "Thêm trang nội dung mới";
     NopHtml.SetActiveMenuItemSystemName("Topics");
 }
 
 <form asp-controller="Topic" asp-action="Create" method="post">
     <div class="content-header clearfix">
         <h1 class="float-left">
-            @T("Admin.ContentManagement.Topics.AddNew") 
+            Thêm trang nội dung mới
             <small>
                 <i class="fas fa-arrow-circle-left"></i>
-                <a asp-action="List">@T("Admin.ContentManagement.Topics.BackToList")</a>
+                <a asp-action="List">Về danh sách</a>
             </small>
         </h1>
         <div class="float-right">
             <button type="submit" name="save" class="btn btn-primary">
                 <i class="far fa-floppy-disk"></i>
-                @T("Admin.Common.Save")
+                Lưu
             </button>
             <button type="submit" name="save-continue" class="btn btn-primary">
                 <i class="far fa-floppy-disk"></i>
-                @T("Admin.Common.SaveContinue")
+                Lưu & tiếp tục
             </button>
-            @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.TopicDetailsButtons, additionalData = Model })
         </div>
     </div>
     @await Html.PartialAsync("_CreateOrUpdate", Model)

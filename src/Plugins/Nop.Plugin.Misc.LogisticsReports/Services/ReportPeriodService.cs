@@ -29,20 +29,40 @@ public class ReportPeriodService : IReportPeriodService
     public async Task<int> EnsureUnitReportsCreatedAsync(int reportPeriodId)
     {
         var period = await GetByIdAsync(reportPeriodId) ?? throw new ArgumentException("Report period not found");
-        var existingOrgIds = await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId)
-            .Select(x => x.OrganizationUnitId)
-            .ToListAsync();
+        var existingReports = await _unitReportRepository.Table.Where(x => x.ReportPeriodId == reportPeriodId).ToListAsync();
+        var existingVendorIds = existingReports.Select(x => x.VendorId).ToList();
 
         var organizations = await _vendorRepository.Table.Where(x => !x.Deleted && x.Active).ToListAsync();
-        var missing = organizations.Where(x => !existingOrgIds.Contains(x.Id)).ToList();
+        var organizationsById = organizations.ToDictionary(x => x.Id, x => x);
+
+        var reportsToUpdate = new List<UnitReport>();
+        foreach (var report in existingReports)
+        {
+            if (report.StatusId == (int)UnitReportStatus.Locked)
+                continue;
+
+            if (!organizationsById.TryGetValue(report.VendorId, out var organization))
+                continue;
+
+            if (report.ParentVendorId == organization.ParentId)
+                continue;
+
+            report.ParentVendorId = organization.ParentId;
+            reportsToUpdate.Add(report);
+        }
+
+        if (reportsToUpdate.Any())
+            await _unitReportRepository.UpdateAsync(reportsToUpdate);
+
+        var missing = organizations.Where(x => !existingVendorIds.Contains(x.Id)).ToList();
         if (!missing.Any())
             return 0;
 
         var unitReports = missing.Select(x => new UnitReport
         {
             ReportPeriodId = period.Id,
-            OrganizationUnitId = x.Id,
-            ParentOrganizationUnitId = x.ParentId,
+            VendorId = x.Id,
+            ParentVendorId = x.ParentId,
             StatusId = (int)UnitReportStatus.Draft,
             CurrentVersion = 1
         }).ToList();

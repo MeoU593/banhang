@@ -45,6 +45,16 @@ public record DocumentModel : BaseNopEntityModel
     [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.Fields.Thumbnail")]
     public int? ThumbnailPictureId { get; set; }
 
+    [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.Fields.OwnerVendor")]
+    public int? OwnerVendorId { get; set; }
+
+    public string? OwnerVendorName { get; set; }
+
+    [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.Fields.AccessScope")]
+    public int AccessScopeId { get; set; }
+
+    public string? AccessScopeName { get; set; }
+
     [NopResourceDisplayName("Plugins.Misc.DocumentPortal.Document.Fields.Published")]
     public bool Published { get; set; }
 
@@ -65,6 +75,7 @@ public record DocumentModel : BaseNopEntityModel
     public IList<SelectListItem> AvailableCategories { get; set; } = new List<SelectListItem>();
     public IList<SelectListItem> AvailableTypes { get; set; } = new List<SelectListItem>();
     public IList<SelectListItem> AvailableIssuers { get; set; } = new List<SelectListItem>();
-    public IList<SelectListItem> AvailableCustomerRoles { get; set; } = new List<SelectListItem>();
-    public IList<int> SelectedCustomerRoleIds { get; set; } = new List<int>();
+    public IList<SelectListItem> AvailableOwnerVendors { get; set; } = new List<SelectListItem>();
+    public IList<SelectListItem> AvailableAccessScopes { get; set; } = new List<SelectListItem>();
+    public bool CanSelectOwnerVendor { get; set; }
 }

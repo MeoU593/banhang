@@ -1,125 +1,464 @@
-﻿@model Nop.Web.Models.Catalog.SearchModel
+@model Nop.Web.Models.Catalog.SearchModel
+
+@using Nop.Core.Domain.Blogs
+@using Nop.Core.Domain.Catalog
+@using Nop.Core.Domain.Vendors
+
 @{
-    Layout = "_ColumnsTwo";
+    Layout = "_ColumnsOne";
 
-    //title
     NopHtml.AddTitleParts(T("PageTitle.Search").Text);
-    //page class
     NopHtml.AppendPageCssClassParts("html-search-page");
-}
-<script asp-location="Footer">
-    $(function() {
-        $("#@Html.IdFor(model => model.advs)").on('click', toggleAdvancedSearch);
-        toggleAdvancedSearch();
-    });
 
-    function toggleAdvancedSearch() {
-        if ($('#@Html.IdFor(model => model.advs)').is(':checked')) {
-            $('#advanced-search-block').show();
-        }
-        else {
-            $('#advanced-search-block').hide();
+    string BuildSearchUrl(string type = null, int? productPage = null, int? unitPage = null, int? blogPage = null, int? documentPage = null)
+    {
+        return Url.RouteUrl(NopRouteNames.General.SEARCH, new
+        {
+            q = Model.q,
+            type,
+            ProductPage = productPage ?? Model.ProductPage,
+            UnitPage = unitPage ?? Model.UnitPage,
+            BlogPage = blogPage ?? Model.BlogPage,
+            DocumentPage = documentPage ?? Model.DocumentPage
+        }) ?? "#";
+    }
+
+    var hasProductResults = Model.ProductTotalCount > 0;
+    var hasBlogResults = Model.BlogTotalCount > 0;
+    var hasDocumentResults = Model.DocumentTotalCount > 0;
+    var hasUnitResults = Model.UnitTotalCount > 0;
+
+    bool ShouldRenderSection(bool isEnabled, bool hasAnyResults)
+        => isEnabled && Model.HasQuery && (!Model.ShowAllSections || hasAnyResults);
+
+    var showProductsSection = ShouldRenderSection(Model.ShowProductsSection, hasProductResults);
+    var showBlogsSection = ShouldRenderSection(Model.ShowBlogsSection, hasBlogResults);
+    var showDocumentsSection = ShouldRenderSection(Model.ShowDocumentsSection, hasDocumentResults);
+    var showUnitsSection = ShouldRenderSection(Model.ShowUnitsSection, hasUnitResults);
+
+    var totalResultCount = Model.ProductTotalCount + Model.BlogTotalCount + Model.DocumentTotalCount + Model.UnitTotalCount;
+    var showGlobalEmptyState = Model.HasQuery && !showProductsSection && !showBlogsSection && !showDocumentsSection && !showUnitsSection;
+    var resetTypeUrl = BuildSearchUrl(type: null, productPage: 1, unitPage: 1, blogPage: 1, documentPage: 1);
+}
+
+<style>
+    .search-page .catalog-products-refined .catalog-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
+    .search-page .catalog-products-refined .product-grid {
+        margin: 0;
+    }
+
+    .search-page .catalog-products-refined .item-grid.catalog-grid {
+        width: 100%;
+    }
+
+    .search-page .catalog-products-refined .item-box {
+        float: none;
+        width: 100%;
+        margin: 0;
+    }
+
+    @@media (min-width: 768px) {
+        .search-page .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
-</script>
 
-@section CatalogFilters {
-    @await Html.PartialAsync("_CatalogFilters", Model.CatalogProductsModel)
-}
+    @@media (min-width: 1024px) {
+        .search-page .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (min-width: 1280px) {
+        .search-page .catalog-products-refined .catalog-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+</style>
 
 <div class="page search-page">
-    <div class="page-title">
-        <h1>@T("Search")</h1>
-    </div>
-    <div class="page-body">
-        <div class="search-input">
-            <form asp-route="@NopRouteNames.General.SEARCH" method="get">
-                <section class="fieldset">
-                    <div class="form-fields">
-                        <div class="basic-search">
-                            <div class="inputs">
-                                <label asp-for="q">@T("Search.SearchTerm"):</label>
-                                <input asp-for="q" class="search-text" />
-                            </div>
-                            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductSearchPageBasic, additionalData = Model })
-                            <div class="inputs reversed">
-                                <input asp-for="advs" />
-                                <label asp-for="advs">@T("Search.AdvancedSearch")</label>
-                            </div>
-                        </div>
-                        <div class="advanced-search" id="advanced-search-block">
-                            @if (Model.AvailableCategories.Count > 0)
-                            {
-                                <div class="inputs">
-                                    <label asp-for="cid">@T("Search.Category"):</label>
-                                    <select asp-for="cid" asp-items="Model.AvailableCategories"></select>
-                                </div>
-                                <div class="inputs reversed">
-                                    <input asp-for="isc" />
-                                    <label asp-for="isc">@T("Search.IncludeSubCategories")</label>
-                                </div>
-                            }
-                            @if (Model.AvailableManufacturers.Count > 0)
-                            {
-                                <div class="inputs">
-                                    <label asp-for="mid">@T("Search.Manufacturer"):</label>
-                                    <select asp-for="mid" asp-items="Model.AvailableManufacturers"></select>
-                                </div>
-                            }
-                            @if (Model.asv && Model.AvailableVendors.Count > 0)
-                            {
-                                <div class="inputs">
-                                    <label asp-for="vid">@T("Search.Vendor"):</label>
-                                    <select asp-for="vid" asp-items="Model.AvailableVendors"></select>
-                                </div>
-                            }
-                            <div class="inputs reversed">
-                                <input asp-for="sid" />
-                                <label asp-for="sid">@T("Search.SearchInDescriptions")</label>
-                            </div>
-                            <div class="inputs reversed">
-                                <input asp-for="sit" />
-                                <label asp-for="sit">@T("Search.SearchInTags")</label>
-                            </div>
-                            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductSearchPageAdvanced, additionalData = Model })
-                        </div>
-                    </div>
-                </section>
-                <section class="buttons">
-                    <button type="submit" class="button-1 search-button">@T("Search.Button")</button>
-                </section>
+    <div class="page-body w-full space-y-6">
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-8">
+            <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+                <span class="text-white">Tìm kiếm</span>
+            </nav>
+            <div class="flex flex-wrap items-start justify-between gap-6">
+                <div class="space-y-2">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-container">Tra cứu tập trung</p>
+                    <h1 class="public-hero-title font-black tracking-tight">Tìm kiếm toàn hệ thống</h1>
+                    <p class="max-w-3xl text-sm text-slate-200 sm:text-base">Tìm trong sản phẩm, tin tức, văn bản kho tài liệu và đơn vị từ một giao diện thống nhất.</p>
+                </div>
+                <div class="rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-center backdrop-blur">
+                    <div class="text-[11px] uppercase tracking-[0.16em] text-slate-200">Kết quả</div>
+                    <div class="mt-1 text-3xl font-black text-white">@totalResultCount</div>
+                </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-3 text-center md:grid-cols-4">
+                <div class="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-200">Sản phẩm</div>
+                    <div class="mt-1 text-xl font-black">@Model.ProductTotalCount</div>
+                </div>
+                <div class="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-200">Tin tức</div>
+                    <div class="mt-1 text-xl font-black">@Model.BlogTotalCount</div>
+                </div>
+                <div class="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-200">Văn bản</div>
+                    <div class="mt-1 text-xl font-black">@Model.DocumentTotalCount</div>
+                </div>
+                <div class="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-200">Đơn vị</div>
+                    <div class="mt-1 text-xl font-black">@Model.UnitTotalCount</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <form asp-route="@NopRouteNames.General.SEARCH" method="get" class="grid gap-3 md:grid-cols-[1fr_auto]">
+                <label class="relative block">
+                    <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 material-symbols-outlined text-[18px]">search</span>
+                    <input asp-for="q" class="h-11 w-full rounded-lg border border-slate-200 bg-white pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:border-military-green focus:ring-2 focus:ring-military-green/10" placeholder="Nhập từ khóa sản phẩm, tin tức, văn bản, đơn vị..." />
+                </label>
+                <button type="submit" class="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-military-green px-6 text-sm font-bold text-white transition hover:bg-military-green/90">
+                    <span class="material-symbols-outlined text-[16px]">search</span>
+                    Tìm kiếm
+                </button>
             </form>
-        </div>
-        @await Html.PartialAsync("_CatalogSelectors", Model.CatalogProductsModel)
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductSearchPageBeforeResults, additionalData = Model })
-        <div class="search-results">
-            @{
-                var catalogProductsViewData = new ViewDataDictionary(ViewData);
-                catalogProductsViewData["fetchUrl"] = Html.Raw(Url.RouteUrl(NopRouteNames.Ajax.SEARCH_PRODUCTS));
+
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+                <a href="@resetTypeUrl" class="@(Model.ShowAllSections ? "inline-flex h-9 items-center rounded-lg bg-military-green px-3 text-xs font-bold uppercase tracking-wider text-white" : "inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition hover:border-military-green hover:text-military-green")">Tất cả</a>
+                <a href="@BuildSearchUrl(type: "products", productPage: 1, unitPage: 1, blogPage: 1, documentPage: 1)" class="@(!Model.ShowAllSections && string.Equals(Model.Type, "products", StringComparison.OrdinalIgnoreCase) ? "inline-flex h-9 items-center rounded-lg bg-military-green px-3 text-xs font-bold uppercase tracking-wider text-white" : "inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition hover:border-military-green hover:text-military-green")">Sản phẩm</a>
+                <a href="@BuildSearchUrl(type: "news", productPage: 1, unitPage: 1, blogPage: 1, documentPage: 1)" class="@(!Model.ShowAllSections && string.Equals(Model.Type, "news", StringComparison.OrdinalIgnoreCase) ? "inline-flex h-9 items-center rounded-lg bg-military-green px-3 text-xs font-bold uppercase tracking-wider text-white" : "inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition hover:border-military-green hover:text-military-green")">Tin tức</a>
+                <a href="@BuildSearchUrl(type: "documents", productPage: 1, unitPage: 1, blogPage: 1, documentPage: 1)" class="@(!Model.ShowAllSections && string.Equals(Model.Type, "documents", StringComparison.OrdinalIgnoreCase) ? "inline-flex h-9 items-center rounded-lg bg-military-green px-3 text-xs font-bold uppercase tracking-wider text-white" : "inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition hover:border-military-green hover:text-military-green")">Văn bản</a>
+                <a href="@BuildSearchUrl(type: "units", productPage: 1, unitPage: 1, blogPage: 1, documentPage: 1)" class="@(!Model.ShowAllSections && string.Equals(Model.Type, "units", StringComparison.OrdinalIgnoreCase) ? "inline-flex h-9 items-center rounded-lg bg-military-green px-3 text-xs font-bold uppercase tracking-wider text-white" : "inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition hover:border-military-green hover:text-military-green")">Đơn vị</a>
+            </div>
+        </section>
+
+        @if (!Model.ShowAllSections)
+        {
+            <a href="@resetTypeUrl" class="inline-flex items-center gap-1.5 text-sm font-semibold text-military-green hover:underline">
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                Quay lại kết quả tổng hợp
+            </a>
+        }
+
+        @if (!Model.HasQuery)
+        {
+            <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
+                <span class="material-symbols-outlined mb-3 text-5xl text-slate-400">manage_search</span>
+                <h2 class="public-card-title font-bold text-slate-900">Nhập từ khóa để bắt đầu tìm kiếm</h2>
+                <p class="mt-2 max-w-xl text-sm text-slate-500">Bạn có thể tìm theo tên sản phẩm, mã văn bản, tiêu đề tin tức hoặc tên đơn vị.</p>
+            </div>
+        }
+        else
+        {
+            @if ((Model.ShowBlogsSection && Model.TopBlogTags.Any()) || (Model.ShowDocumentsSection && Model.TopDocumentKeywords.Any()))
+            {
+                <section class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    @if (Model.ShowBlogsSection && Model.TopBlogTags.Any())
+                    {
+                        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <h2 class="public-meta-text mb-3 font-bold uppercase tracking-wider text-slate-700">Tag tin tức phổ biến</h2>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var tag in Model.TopBlogTags)
+                                {
+                                    <a href="@(Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_TAG, new { tag }) ?? "#")" class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-military-green hover:text-white">@tag</a>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.ShowDocumentsSection && Model.TopDocumentKeywords.Any())
+                    {
+                        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <h2 class="public-meta-text mb-3 font-bold uppercase tracking-wider text-slate-700">Từ khóa tài liệu phổ biến</h2>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var keyword in Model.TopDocumentKeywords)
+                                {
+                                    <a href="/tai-lieu/tim-kiem?q=@keyword" class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-military-green hover:text-white">@keyword</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </section>
             }
-            @await Html.PartialAsync("_CatalogProducts", Model.CatalogProductsModel, catalogProductsViewData)
-            <script asp-location="Footer">
-                $(function() {
-                    $(CatalogProducts).on('before', function (e) {
-                        var isAdvanced = $('#@Html.IdFor(model => model.advs)').is(':checked');
 
-                        e.payload.urlBuilder
-                            .addParameter('q', $('#@Html.IdFor(model => model.q)').val())
-                            .addParameter('advs', isAdvanced);
+            @if (showGlobalEmptyState)
+            {
+                <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
+                    <span class="material-symbols-outlined mb-3 text-5xl text-slate-400">search_off</span>
+                    <h2 class="public-card-title font-bold text-slate-900">Không tìm thấy kết quả phù hợp</h2>
+                    <p class="mt-2 max-w-xl text-sm text-slate-500">Thử rút gọn từ khóa hoặc dùng từ đồng nghĩa để mở rộng phạm vi tìm kiếm.</p>
+                </div>
+            }
 
-                        if (isAdvanced) {
-                            e.payload.urlBuilder
-                                .addParameter('cid', $('#@Html.IdFor(model => model.cid)').val())
-                                .addParameter('isc', $('#@Html.IdFor(model => model.isc)').is(':checked'))
-                                .addParameter('mid', $('#@Html.IdFor(model => model.mid)').val())
-                                .addParameter('vid', $('#@Html.IdFor(model => model.vid)').val())
-                                .addParameter('sid', $('#@Html.IdFor(model => model.sid)').is(':checked'))
-                                .addParameter('sit', $('#@Html.IdFor(model => model.sit)').is(':checked'));
+            @if (showProductsSection)
+            {
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="public-section-title font-black tracking-tight text-slate-900">Sản phẩm (@Model.ProductTotalCount)</h2>
+                        @if (Model.ShowAllSections && Model.ProductTotalCount > Model.ProductPageSize)
+                        {
+                            <a href="@BuildSearchUrl(type: "products", productPage: 1)" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
                         }
-                    });
-                });
-            </script>
-        </div>
-        @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductSearchPageAfterResults, additionalData = Model })
+                    </div>
+
+                    @if (!Model.ProductResults.Any())
+                    {
+                        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm text-slate-600">Không có sản phẩm phù hợp.</div>
+                    }
+                    else
+                    {
+                        <div class="catalog-products-refined">
+                            <div class="product-grid">
+                                <div class="item-grid catalog-grid">
+                                    @foreach (var product in Model.ProductResults)
+                                    {
+                                        <div class="item-box h-full">
+                                            @await Html.PartialAsync("_ProductBox", product)
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.ProductTotalPages > 1)
+                    {
+                        <div class="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                            @if (Model.ProductPage > 1)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, productPage: Model.ProductPage - 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Trước</a>
+                            }
+                            @for (var pageNumber = 1; pageNumber <= Model.ProductTotalPages; pageNumber++)
+                            {
+                                var pageClass = pageNumber == Model.ProductPage
+                                    ? "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg bg-military-green px-3 text-xs font-bold text-white"
+                                    : "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green";
+                                <a href="@BuildSearchUrl(type: Model.Type, productPage: pageNumber)" class="@pageClass">@pageNumber</a>
+                            }
+                            @if (Model.ProductPage < Model.ProductTotalPages)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, productPage: Model.ProductPage + 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Sau</a>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+
+            @if (showBlogsSection)
+            {
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="public-section-title font-black tracking-tight text-slate-900">Tin tức (@Model.BlogTotalCount)</h2>
+                        @if (Model.ShowAllSections && Model.BlogTotalCount > Model.BlogPageSize)
+                        {
+                            <a href="@BuildSearchUrl(type: "news", blogPage: 1)" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
+                        }
+                    </div>
+
+                    @if (!Model.BlogResults.Any())
+                    {
+                        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm text-slate-600">Không có tin tức phù hợp.</div>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var post in Model.BlogResults)
+                            {
+                                var postUrl = !string.IsNullOrWhiteSpace(post.Url)
+                                    ? post.Url
+                                    : await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = post.SeName });
+                                var badgeText = post.PostTypeId == 1 ? "Văn bản" : "Tin tức";
+                                var badgeClass = post.PostTypeId == 1
+                                    ? "bg-amber-50 text-amber-700"
+                                    : "bg-blue-50 text-blue-700";
+
+                                <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined mt-0.5 text-military-green">newspaper</span>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="mb-1.5 flex flex-wrap items-center gap-2">
+                                                <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider @badgeClass">@badgeText</span>
+                                                <span class="text-xs text-slate-500">@post.CreatedOnUtc.ToString("dd/MM/yyyy")</span>
+                                            </div>
+                                            <h3 class="public-list-title font-bold text-slate-900">
+                                                <a href="@postUrl" class="hover:text-military-green">@post.Title</a>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.BlogTotalPages > 1)
+                    {
+                        <div class="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                            @if (Model.BlogPage > 1)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, blogPage: Model.BlogPage - 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Trước</a>
+                            }
+                            @for (var pageNumber = 1; pageNumber <= Model.BlogTotalPages; pageNumber++)
+                            {
+                                var pageClass = pageNumber == Model.BlogPage
+                                    ? "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg bg-military-green px-3 text-xs font-bold text-white"
+                                    : "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green";
+                                <a href="@BuildSearchUrl(type: Model.Type, blogPage: pageNumber)" class="@pageClass">@pageNumber</a>
+                            }
+                            @if (Model.BlogPage < Model.BlogTotalPages)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, blogPage: Model.BlogPage + 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Sau</a>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+
+            @if (showDocumentsSection)
+            {
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="public-section-title font-black tracking-tight text-slate-900">Văn bản kho tài liệu (@Model.DocumentTotalCount)</h2>
+                        @if (Model.ShowAllSections && Model.DocumentTotalCount > Model.DocumentPageSize)
+                        {
+                            <a href="@BuildSearchUrl(type: "documents", documentPage: 1)" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
+                        }
+                    </div>
+
+                    @if (!Model.DocumentResults.Any())
+                    {
+                        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm text-slate-600">Không có văn bản phù hợp.</div>
+                    }
+                    else
+                    {
+                        <div class="space-y-3">
+                            @foreach (var document in Model.DocumentResults)
+                            {
+                                var documentUrl = !string.IsNullOrWhiteSpace(document.Slug)
+                                    ? $"/tai-lieu/{document.Slug}"
+                                    : "/tai-lieu";
+
+                                <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined mt-0.5 text-military-green">description</span>
+                                        <div class="min-w-0 flex-1 space-y-1.5">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                @if (!string.IsNullOrWhiteSpace(document.Code))
+                                                {
+                                                    <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-700">@document.Code</span>
+                                                }
+                                                @if (document.IssuedDate.HasValue)
+                                                {
+                                                    <span class="text-xs text-slate-500">@document.IssuedDate.Value.ToString("dd/MM/yyyy")</span>
+                                                }
+                                            </div>
+                                            <h3 class="public-list-title font-bold text-slate-900">
+                                                <a href="@documentUrl" class="hover:text-military-green">@document.Title</a>
+                                            </h3>
+                                            @if (!string.IsNullOrWhiteSpace(document.Summary))
+                                            {
+                                                <p class="line-clamp-2 text-xs leading-5 text-slate-600">@document.Summary</p>
+                                            }
+                                        </div>
+                                        <a href="@documentUrl" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Xem</a>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.DocumentTotalPages > 1)
+                    {
+                        <div class="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                            @if (Model.DocumentPage > 1)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, documentPage: Model.DocumentPage - 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Trước</a>
+                            }
+                            @for (var pageNumber = 1; pageNumber <= Model.DocumentTotalPages; pageNumber++)
+                            {
+                                var pageClass = pageNumber == Model.DocumentPage
+                                    ? "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg bg-military-green px-3 text-xs font-bold text-white"
+                                    : "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green";
+                                <a href="@BuildSearchUrl(type: Model.Type, documentPage: pageNumber)" class="@pageClass">@pageNumber</a>
+                            }
+                            @if (Model.DocumentPage < Model.DocumentTotalPages)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, documentPage: Model.DocumentPage + 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Sau</a>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+
+            @if (showUnitsSection)
+            {
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="public-section-title font-black tracking-tight text-slate-900">Đơn vị (@Model.UnitTotalCount)</h2>
+                        @if (Model.ShowAllSections && Model.UnitTotalCount > Model.UnitPageSize)
+                        {
+                            <a href="@BuildSearchUrl(type: "units", unitPage: 1)" class="text-sm font-semibold text-military-green hover:underline">Xem tất cả</a>
+                        }
+                    </div>
+
+                    @if (!Model.UnitResults.Any())
+                    {
+                        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm text-slate-600">Không có đơn vị phù hợp.</div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            @foreach (var unit in Model.UnitResults)
+                            {
+                                var unitUrl = !string.IsNullOrWhiteSpace(unit.Url)
+                                    ? unit.Url
+                                    : await NopUrl.RouteGenericUrlAsync<Vendor>(new { SeName = unit.SeName });
+
+                                <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-symbols-outlined mt-0.5 text-military-green">corporate_fare</span>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="public-list-title font-bold text-slate-900 line-clamp-2">
+                                                <a href="@unitUrl" class="hover:text-military-green">@unit.Name</a>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.UnitTotalPages > 1)
+                    {
+                        <div class="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                            @if (Model.UnitPage > 1)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, unitPage: Model.UnitPage - 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Trước</a>
+                            }
+                            @for (var pageNumber = 1; pageNumber <= Model.UnitTotalPages; pageNumber++)
+                            {
+                                var pageClass = pageNumber == Model.UnitPage
+                                    ? "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg bg-military-green px-3 text-xs font-bold text-white"
+                                    : "inline-flex h-9 min-w-[36px] items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green";
+                                <a href="@BuildSearchUrl(type: Model.Type, unitPage: pageNumber)" class="@pageClass">@pageNumber</a>
+                            }
+                            @if (Model.UnitPage < Model.UnitTotalPages)
+                            {
+                                <a href="@BuildSearchUrl(type: Model.Type, unitPage: Model.UnitPage + 1)" class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Sau</a>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+        }
     </div>
 </div>

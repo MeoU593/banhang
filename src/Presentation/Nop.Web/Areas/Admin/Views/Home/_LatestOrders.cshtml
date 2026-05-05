@@ -9,7 +9,6 @@
         <h3 class="card-title">
             <i class="fas fa-cart-plus"></i>
             @T("Admin.Dashboard.LatestOrders")
-            <a asp-controller="Order" asp-action="List" class="btn btn-xs btn-info btn-flat margin-l-10">@T("Admin.Dashboard.LatestOrders.ViewAll")</a>
         </h3>
         <div class="card-tools float-right">
             <button class="btn btn-tool" data-card-widget="collapse">
@@ -28,20 +27,20 @@
         $(function() {
             var collapsed = !$('#@cardId').hasClass('collapsed-card');
             if (collapsed) {
-                $('#latestOrdersReport').load('@Url.Action("GetLatestOrders", "Home")');
+                $('#latestOrdersReport').html('');
             }
 
             $('#@cardId').on('click', 'button[data-card-widget="collapse"]', function () {
                 collapsed = !$('#@cardId').hasClass('collapsed-card');
                 saveUserPreferences('@(Url.Action("SavePreference", "Preferences"))', '@hideCardAttributeName', collapsed);
                 if (!collapsed) {
-                    $('#latestOrdersReport').load('@Url.Action("GetLatestOrders", "Home")');
+                    $('#latestOrdersReport').html('');
                 }
             });
         });
     </script>
     <div class="card-body">
-        <div id="latestOrdersReport"></div>
+        <div id="latestOrdersReport" class="text-muted">Module đơn hàng quản trị đã được tắt.</div>
         <script asp-location="Footer">
             function renderColumnCustomerEmail(data, type, row, meta) {
                 var textRenderer = $.fn.dataTable.render.text().display;

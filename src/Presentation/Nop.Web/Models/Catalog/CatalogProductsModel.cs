@@ -85,6 +85,16 @@ public partial record CatalogProductsModel : BasePageableModel
     /// </summary>
     public IList<ProductOverviewModel> Products { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether favorite filter is available for current customer
+    /// </summary>
+    public bool CanFilterByFavorites { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether favorite filter is active
+    /// </summary>
+    public bool FavoritesOnly { get; set; }
+
     #endregion
 
     #region Ctor

@@ -37,7 +37,22 @@
       "Bash(sed -i 's/bg-red-700\\\\b/bg-military-green/g; s/hover:bg-red-800\\\\b/hover:bg-military-green\\\\/90/g; s/\\\\bbg-primary\\\\b/bg-military-green/g; s/\\\\btext-primary\\\\b/text-military-green/g; s/\\\\bborder-primary\\\\b/border-military-green/g; s/\\\\bhover:bg-primary\\\\b/hover:bg-military-green/g; s/\\\\bhover:text-primary\\\\b/hover:text-military-green/g; s/\\\\bfocus:border-primary\\\\b/focus:border-military-green/g; s/\\\\bring-primary\\\\b/ring-military-green/g; s/bg-primary\\\\/10/bg-military-green\\\\/10/g; s/bg-primary\\\\/5/bg-military-green\\\\/5/g; s/border-primary\\\\/30/border-military-green\\\\/30/g; s/border-primary\\\\/60/border-military-green\\\\/60/g' 'D:\\\\thayhai\\\\banhang\\\\src\\\\Presentation\\\\Nop.Web\\\\Views/Home/Index.cshtml')",
       "Bash(sed -i 's/bg-red-700\\\\b/bg-military-green/g; s/hover:bg-red-800\\\\b/hover:bg-military-green\\\\/90/g; s/\\\\bbg-primary\\\\b/bg-military-green/g; s/\\\\btext-primary\\\\b/text-military-green/g; s/\\\\bborder-primary\\\\b/border-military-green/g; s/\\\\bhover:bg-primary\\\\b/hover:bg-military-green/g; s/\\\\bhover:text-primary\\\\b/hover:text-military-green/g; s/\\\\bfocus:border-primary\\\\b/focus:border-military-green/g; s/\\\\bring-primary\\\\b/ring-military-green/g; s/bg-primary\\\\/10/bg-military-green\\\\/10/g; s/bg-primary\\\\/5/bg-military-green\\\\/5/g; s/border-primary\\\\/30/border-military-green\\\\/30/g; s/border-primary\\\\/60/border-military-green\\\\/60/g' 'D:\\\\thayhai\\\\banhang\\\\src\\\\Presentation\\\\Nop.Web\\\\Views/Customer/Info.cshtml')",
       "Bash(powershell.exe -Command ' *)",
-      "Bash(powershell.exe *)"
+      "Bash(powershell.exe *)",
+      "Read(//d/thayhai/TTG_UI/design-ref-login/**)",
+      "Read(//d/thayhai/TTG_UI/design-ref-register/**)",
+      "PowerShell(sqlcmd *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(git *)",
+      "PowerShell(Invoke-Sqlcmd *)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -eq \"dotnet\" } | Select-Object Id, StartTime, CPU)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Start-Process -FilePath \"dotnet\" -ArgumentList \"run --project D:\\\\thayhai\\\\banhang\\\\src\\\\Presentation\\\\Nop.Web\\\\Nop.Web.csproj --no-build\" -WorkingDirectory \"D:\\\\thayhai\\\\banhang\\\\src\\\\Presentation\\\\Nop.Web\" -WindowStyle Minimized; Write-Host \"Started\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\thayhai\\\\banhang\\\\src\" -Directory)",
+      "Bash(Select-Object -First 20)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\thayhai\\\\banhang\\\\src\" -Directory | Select-Object -First 20 | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\thayhai\\\\banhang\\\\src\\\\Plugins\" -Directory | ForEach-Object { $_.Name })",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

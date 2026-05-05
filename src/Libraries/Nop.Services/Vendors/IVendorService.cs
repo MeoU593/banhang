@@ -70,6 +70,17 @@ public partial interface IVendorService
     Task<IPagedList<Vendor>> GetAllVendorsAsync(string name = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
 
     /// <summary>
+    /// Gets descendant vendor identifiers for the specified vendor
+    /// </summary>
+    /// <param name="vendorId">Vendor identifier</param>
+    /// <param name="includeSelf">Whether to include the specified vendor identifier in result</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains descendant vendor identifiers
+    /// </returns>
+    Task<IList<int>> GetDescendantVendorIdsAsync(int vendorId, bool includeSelf = false);
+
+    /// <summary>
     /// Inserts a vendor
     /// </summary>
     /// <param name="vendor">Vendor</param>

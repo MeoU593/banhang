@@ -49,14 +49,6 @@
             Render = new RenderDate(),
             ClassName = NopColumnClassDefaults.CenterAll
         });
-        columns.Add(new ColumnProperty(nameof(OrderModel.Id))
-        {
-            Title = T("Admin.Common.View").Text,
-            Width = "100",
-            ClassName = NopColumnClassDefaults.Button,
-            Render = new RenderButtonView(new DataUrl("~/Admin/Order/Edit/"))
-        });
-
         table.ColumnCollection = columns;
     }
 

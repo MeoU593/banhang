@@ -22,7 +22,6 @@ public partial class CheckoutAttributeModelFactory : ICheckoutAttributeModelFact
     protected readonly CurrencySettings _currencySettings;
     protected readonly IAttributeParser<CheckoutAttribute, CheckoutAttributeValue> _checkoutAttributeParser;
     protected readonly IAttributeService<CheckoutAttribute, CheckoutAttributeValue> _checkoutAttributeService;
-    protected readonly IBaseAdminModelFactory _baseAdminModelFactory;
     protected readonly ICurrencyService _currencyService;
     protected readonly ILocalizationService _localizationService;
     protected readonly ILocalizedModelFactory _localizedModelFactory;
@@ -37,7 +36,6 @@ public partial class CheckoutAttributeModelFactory : ICheckoutAttributeModelFact
     public CheckoutAttributeModelFactory(CurrencySettings currencySettings,
         IAttributeParser<CheckoutAttribute, CheckoutAttributeValue> checkoutAttributeParser,
         IAttributeService<CheckoutAttribute, CheckoutAttributeValue> checkoutAttributeService,
-        IBaseAdminModelFactory baseAdminModelFactory,
         ICurrencyService currencyService,
         ILocalizationService localizationService,
         ILocalizedModelFactory localizedModelFactory,
@@ -48,7 +46,6 @@ public partial class CheckoutAttributeModelFactory : ICheckoutAttributeModelFact
         _currencySettings = currencySettings;
         _checkoutAttributeParser = checkoutAttributeParser;
         _checkoutAttributeService = checkoutAttributeService;
-        _baseAdminModelFactory = baseAdminModelFactory;
         _currencyService = currencyService;
         _localizationService = localizationService;
         _localizedModelFactory = localizedModelFactory;
@@ -208,10 +205,6 @@ public partial class CheckoutAttributeModelFactory : ICheckoutAttributeModelFact
                 locale.DefaultValue = await _localizationService.GetLocalizedAsync(checkoutAttribute, entity => entity.DefaultValue, languageId, false, false);
             };
 
-            //whether to fill in some of properties
-            if (!excludeProperties)
-                model.TaxCategoryId = checkoutAttribute.TaxCategoryId;
-
             //prepare condition attributes model
             await PrepareConditionAttributesModelAsync(model.ConditionModel, checkoutAttribute);
         }
@@ -222,9 +215,6 @@ public partial class CheckoutAttributeModelFactory : ICheckoutAttributeModelFact
         //prepare localized models
         if (!excludeProperties)
             model.Locales = await _localizedModelFactory.PrepareLocalizedModelsAsync(localizedModelConfiguration);
-
-        //prepare available tax categories
-        await _baseAdminModelFactory.PrepareTaxCategoriesAsync(model.AvailableTaxCategories);
 
         //prepare model stores
         await _storeMappingSupportedModelFactory.PrepareModelStoresAsync(model, checkoutAttribute, excludeProperties);

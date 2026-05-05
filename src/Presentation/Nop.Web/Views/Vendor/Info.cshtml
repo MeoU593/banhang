@@ -1,10 +1,8 @@
-﻿@model VendorInfoModel
+@model VendorInfoModel
 @{
     Layout = "_ColumnsTwo";
 
-    //title
     NopHtml.AddTitleParts(T("PageTitle.VendorInfo").Text);
-    //page class
     NopHtml.AppendPageCssClassParts("html-account-page");
     NopHtml.AppendPageCssClassParts("html-vendorinfo-page");
 }
@@ -13,56 +11,224 @@
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent), new { selectedTabId = CustomerNavigationEnum.VendorInfo })
 }
 
-<div class="page account-page vendorinfo-page">
-    <div class="page-title">
-        <h1>@T("Account.MyAccount") - @T("Account.VendorInfo")</h1>
-    </div>
-    <div class="page-body">
+<style>
+    .vendor-command-page .vendor-hero {
+        overflow: hidden;
+        border: 1px solid rgba(214, 185, 90, 0.28);
+        border-radius: 16px;
+        padding: 24px;
+        color: #ffffff;
+        background-color: rgba(33, 45, 27, 0.92);
+        background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 14px);
+        box-shadow: 0 24px 60px -35px rgba(15, 23, 42, 0.85);
+    }
+
+    .vendor-command-page .vendor-label {
+        margin: 0;
+        color: #f6dc9a;
+        font-size: var(--public-font-meta);
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .vendor-command-page .vendor-title {
+        margin: 8px 0 0;
+        color: #ffffff;
+        font-size: var(--public-font-hero-title);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    .vendor-command-page .vendor-subtitle {
+        margin: 10px 0 0;
+        color: #e2e8f0;
+        font-size: var(--public-font-body);
+    }
+
+    .vendor-command-page .vendor-card {
+        margin-top: 20px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 20px 40px -34px rgba(20, 28, 36, 0.25);
+    }
+
+    .vendor-command-page .vendor-section {
+        padding: 20px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .vendor-command-page .vendor-section:last-child {
+        border-bottom: 0;
+    }
+
+    .vendor-command-page .vendor-section-title {
+        margin: 0 0 14px;
+        color: #0f172a;
+        font-size: var(--public-font-control);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .vendor-command-page .inputs {
+        margin-bottom: 14px;
+    }
+
+    .vendor-command-page .inputs label {
+        display: block;
+        margin-bottom: 6px;
+        color: #475569;
+        font-size: var(--public-font-meta);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .vendor-command-page .inputs input[type="text"],
+    .vendor-command-page .inputs input[type="email"],
+    .vendor-command-page .inputs textarea,
+    .vendor-command-page .inputs select,
+    .vendor-command-page .inputs input[type="file"] {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 11px 12px;
+        color: #0f172a;
+        font-size: var(--public-font-control);
+        background: #f8fafc;
+        box-sizing: border-box;
+    }
+
+    .vendor-command-page .inputs textarea {
+        min-height: 140px;
+    }
+
+    .vendor-command-page .inputs input:focus,
+    .vendor-command-page .inputs textarea:focus,
+    .vendor-command-page .inputs select:focus {
+        outline: none;
+        border-color: #2d3a22;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(45, 58, 34, 0.12);
+    }
+
+    .vendor-command-page .vendor-picture {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .vendor-command-page .vendor-picture img {
+        width: 72px;
+        height: 72px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+
+    .vendor-command-page .remove-picture-button {
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #b91c1c;
+        background: #fef2f2;
+        font-size: var(--public-font-control);
+        font-weight: 600;
+    }
+
+    .vendor-command-page .save-vendorinfo-button {
+        display: inline-flex;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #2d3a22 !important;
+        border-radius: 12px;
+        background: #2d3a22 !important;
+        padding: 0 26px;
+        color: #ffffff !important;
+        font-size: var(--public-font-control);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .vendor-command-page .save-vendorinfo-button:hover {
+        background: #24301a !important;
+        border-color: #24301a !important;
+    }
+</style>
+
+<div class="page account-page vendor-command-page px-4 pb-8 lg:px-0">
+    <section class="vendor-hero">
+        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
+            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
+            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+            <span>Tài khoản</span>
+            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
+            <span class="text-white">Thông tin đơn vị</span>
+        </nav>
+        <p class="vendor-label">Thông tin đơn vị</p>
+        <h1 class="vendor-title">Cập nhật hồ sơ đơn vị</h1>
+        <p class="vendor-subtitle">Cập nhật tên, liên hệ, mô tả và hình ảnh đại diện của đơn vị.</p>
+    </section>
+
+    <div class="vendor-card">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.VendorInfoTop, additionalData = Model })
         <form asp-route="@NopRouteNames.Standard.CUSTOMER_VENDOR_INFO" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="message-error"></div>
-            <section class="fieldset">
+
+            <section class="vendor-section">
+                <h2 class="vendor-section-title">Thông tin cơ bản</h2>
                 <div class="form-fields">
                     <div class="inputs">
-                        <label asp-for="Name" asp-postfix=":"></label>
-                        <input asp-for="Name"/>
+                        <label asp-for="Name" asp-postfix=":" ></label>
+                        <input asp-for="Name" />
                         <nop-required />
                         <span asp-validation-for="Name"></span>
                     </div>
                     <div class="inputs">
-                        <label asp-for="Email" asp-postfix=":"></label>
-                        <input asp-for="Email"/>
+                        <label asp-for="Email" asp-postfix=":" ></label>
+                        <input asp-for="Email" />
                         <nop-required />
                         <span asp-validation-for="Email"></span>
                     </div>
                     <div class="inputs">
-                        <label asp-for="Description" asp-postfix=":"></label>
+                        <label asp-for="Description" asp-postfix=":" ></label>
                         <textarea asp-for="Description"></textarea>
                         <span asp-validation-for="Description"></span>
                     </div>
                     <div class="inputs">
-                        <label asp-for="PictureUrl" asp-postfix=":"></label>
+                        <label asp-for="PictureUrl" asp-postfix=":" ></label>
                         <input name="uploadedFile" type="file" accept="image/*" />
                         @if (!string.IsNullOrEmpty(Model.PictureUrl))
                         {
                             <div class="vendor-picture">
                                 <img src="@(Model.PictureUrl)" alt="picture" />
-                                <button type="submit" name="remove-picture" class="button-2 remove-picture-button">@T("Account.VendorInfo.Picture.Remove")</button>
+                                <button type="submit" name="remove-picture" class="remove-picture-button">@T("Account.VendorInfo.Picture.Remove")</button>
                             </div>
                         }
                     </div>
                 </div>
             </section>
-        @if (Model.VendorAttributes.Count > 0)
-        {
-            <section class="fieldset">
-                <div class="form-fields">
-                    @await Html.PartialAsync("_VendorAttributes", Model.VendorAttributes)
-                </div>
-            </section>
-        }
-            <section class="buttons">
-                <button type="submit" name="save-info-button" class="button-1 save-vendorinfo-button">@T("Common.Save")</button>
+
+            @if (Model.VendorAttributes.Count > 0)
+            {
+                <section class="vendor-section">
+                    <h2 class="vendor-section-title">Thông tin mở rộng</h2>
+                    <div class="form-fields">
+                        @await Html.PartialAsync("_VendorAttributes", Model.VendorAttributes)
+                    </div>
+                </section>
+            }
+
+            <section class="vendor-section">
+                <button type="submit" name="save-info-button" class="save-vendorinfo-button">@T("Common.Save")</button>
             </section>
         </form>
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.VendorInfoBottom, additionalData = Model })

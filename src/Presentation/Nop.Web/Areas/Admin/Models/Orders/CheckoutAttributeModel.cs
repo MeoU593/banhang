@@ -17,7 +17,6 @@ public partial record CheckoutAttributeModel : BaseNopEntityModel,
     public CheckoutAttributeModel()
     {
         Locales = new List<CheckoutAttributeLocalizedModel>();
-        AvailableTaxCategories = new List<SelectListItem>();
         ConditionModel = new ConditionModel();
         SelectedStoreIds = new List<int>();
         AvailableStores = new List<SelectListItem>();
@@ -36,16 +35,6 @@ public partial record CheckoutAttributeModel : BaseNopEntityModel,
 
     [NopResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.IsRequired")]
     public bool IsRequired { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.ShippableProductRequired")]
-    public bool ShippableProductRequired { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.IsTaxExempt")]
-    public bool IsTaxExempt { get; set; }
-
-    [NopResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.TaxCategory")]
-    public int TaxCategoryId { get; set; }
-    public IList<SelectListItem> AvailableTaxCategories { get; set; }
 
     [NopResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.AttributeControlType")]
     public int AttributeControlTypeId { get; set; }

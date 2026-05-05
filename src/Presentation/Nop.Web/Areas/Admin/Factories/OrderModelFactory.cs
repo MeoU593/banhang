@@ -916,9 +916,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         //prepare available vendors
         await _baseAdminModelFactory.PrepareVendorsAsync(searchModel.AvailableVendors);
 
-        //prepare available warehouses
-        await _baseAdminModelFactory.PrepareWarehousesAsync(searchModel.AvailableWarehouses);
-
         //prepare available payment methods
         searchModel.AvailablePaymentMethods = (await _paymentPluginManager.LoadAllPluginsAsync()).Select(method =>
             new SelectListItem { Text = method.PluginDescriptor.FriendlyName, Value = method.PluginDescriptor.SystemName }).ToList();
@@ -968,7 +965,7 @@ public partial class OrderModelFactory : IOrderModelFactory
         var orders = await _orderService.SearchOrdersAsync(storeId: searchModel.StoreId,
             vendorId: searchModel.VendorId,
             productId: filterByProductId,
-            warehouseId: searchModel.WarehouseId,
+            warehouseId: 0,
             paymentMethodSystemName: searchModel.PaymentMethodSystemName,
             createdFromUtc: startDateValue,
             createdToUtc: endDateValue,
@@ -1054,7 +1051,7 @@ public partial class OrderModelFactory : IOrderModelFactory
         var reportSummary = await _orderReportService.GetOrderAverageReportLineAsync(storeId: searchModel.StoreId,
             vendorId: searchModel.VendorId,
             productId: filterByProductId,
-            warehouseId: searchModel.WarehouseId,
+            warehouseId: 0,
             paymentMethodSystemName: searchModel.PaymentMethodSystemName,
             osIds: orderStatusIds,
             psIds: paymentStatusIds,
@@ -1070,7 +1067,7 @@ public partial class OrderModelFactory : IOrderModelFactory
         var profit = await _orderReportService.ProfitReportAsync(storeId: searchModel.StoreId,
             vendorId: searchModel.VendorId,
             productId: filterByProductId,
-            warehouseId: searchModel.WarehouseId,
+            warehouseId: 0,
             paymentMethodSystemName: searchModel.PaymentMethodSystemName,
             osIds: orderStatusIds,
             psIds: paymentStatusIds,
@@ -1360,9 +1357,6 @@ public partial class OrderModelFactory : IOrderModelFactory
         //prepare available states and provinces
         await _baseAdminModelFactory.PrepareStatesAndProvincesAsync(searchModel.AvailableStates, searchModel.CountryId);
 
-        //prepare available warehouses
-        await _baseAdminModelFactory.PrepareWarehousesAsync(searchModel.AvailableWarehouses);
-
         //prepare nested search model
         PrepareShipmentItemSearchModel(searchModel.ShipmentItemSearchModel);
 
@@ -1394,7 +1388,7 @@ public partial class OrderModelFactory : IOrderModelFactory
 
         //get shipments
         var shipments = await _shipmentService.GetAllShipmentsAsync(vendorId,
-            searchModel.WarehouseId,
+            0,
             searchModel.CountryId,
             searchModel.StateProvinceId,
             searchModel.County,

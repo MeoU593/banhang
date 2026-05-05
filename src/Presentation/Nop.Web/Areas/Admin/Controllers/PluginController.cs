@@ -4,8 +4,6 @@ using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Cms;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Payments;
-using Nop.Core.Domain.Shipping;
-using Nop.Core.Domain.Tax;
 using Nop.Core.Events;
 using Nop.Services.Authentication.External;
 using Nop.Services.Authentication.MultiFactor;
@@ -18,9 +16,6 @@ using Nop.Services.Messages;
 using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Security;
-using Nop.Services.Shipping;
-using Nop.Services.Shipping.Pickup;
-using Nop.Services.Tax;
 using Nop.Services.Themes;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Models.Common;
@@ -46,19 +41,15 @@ public partial class PluginController : BaseAdminController
     protected readonly INotificationService _notificationService;
     protected readonly IPermissionService _permissionService;
     protected readonly IPaymentPluginManager _paymentPluginManager;
-    protected readonly IPickupPluginManager _pickupPluginManager;
     protected readonly IPluginModelFactory _pluginModelFactory;
     protected readonly IPluginService _pluginService;
     protected readonly ISearchPluginManager _searchPluginManager;
     protected readonly ISettingService _settingService;
-    protected readonly IShippingPluginManager _shippingPluginManager;
     protected readonly IUploadService _uploadService;
     protected readonly IWidgetPluginManager _widgetPluginManager;
     protected readonly IWorkContext _workContext;
     protected readonly MultiFactorAuthenticationSettings _multiFactorAuthenticationSettings;
     protected readonly PaymentSettings _paymentSettings;
-    protected readonly ShippingSettings _shippingSettings;
-    protected readonly TaxSettings _taxSettings;
     protected readonly WidgetSettings _widgetSettings;
 
     #endregion
@@ -76,19 +67,15 @@ public partial class PluginController : BaseAdminController
         INotificationService notificationService,
         IPermissionService permissionService,
         IPaymentPluginManager paymentPluginManager,
-        IPickupPluginManager pickupPluginManager,
         IPluginModelFactory pluginModelFactory,
         IPluginService pluginService,
         ISearchPluginManager searchPluginManager,
         ISettingService settingService,
-        IShippingPluginManager shippingPluginManager,
         IUploadService uploadService,
         IWidgetPluginManager widgetPluginManager,
         IWorkContext workContext,
         MultiFactorAuthenticationSettings multiFactorAuthenticationSettings,
         PaymentSettings paymentSettings,
-        ShippingSettings shippingSettings,
-        TaxSettings taxSettings,
         WidgetSettings widgetSettings)
     {
         _catalogSettings = catalogSettings;
@@ -102,19 +89,15 @@ public partial class PluginController : BaseAdminController
         _notificationService = notificationService;
         _permissionService = permissionService;
         _paymentPluginManager = paymentPluginManager;
-        _pickupPluginManager = pickupPluginManager;
         _pluginModelFactory = pluginModelFactory;
         _pluginService = pluginService;
         _searchPluginManager = searchPluginManager;
         _settingService = settingService;
-        _shippingPluginManager = shippingPluginManager;
         _uploadService = uploadService;
         _widgetPluginManager = widgetPluginManager;
         _workContext = workContext;
         _multiFactorAuthenticationSettings = multiFactorAuthenticationSettings;
         _paymentSettings = paymentSettings;
-        _shippingSettings = shippingSettings;
-        _taxSettings = taxSettings;
         _widgetSettings = widgetSettings;
     }
 
@@ -430,55 +413,6 @@ public partial class PluginController : BaseAdminController
                         await _settingService.SaveSettingAsync(_paymentSettings);
                     }
 
-                    break;
-                case IShippingRateComputationMethod shippingRateComputationMethod:
-                    pluginIsActive = _shippingPluginManager.IsPluginActive(shippingRateComputationMethod);
-                    if (pluginIsActive && !model.IsEnabled)
-                    {
-                        //mark as disabled
-                        _shippingSettings.ActiveShippingRateComputationMethodSystemNames.Remove(pluginDescriptor.SystemName);
-                        await _settingService.SaveSettingAsync(_shippingSettings);
-                        break;
-                    }
-
-                    if (!pluginIsActive && model.IsEnabled)
-                    {
-                        //mark as enabled
-                        _shippingSettings.ActiveShippingRateComputationMethodSystemNames.Add(pluginDescriptor.SystemName);
-                        await _settingService.SaveSettingAsync(_shippingSettings);
-                    }
-
-                    break;
-                case IPickupPointProvider pickupPointProvider:
-                    pluginIsActive = _pickupPluginManager.IsPluginActive(pickupPointProvider);
-                    if (pluginIsActive && !model.IsEnabled)
-                    {
-                        //mark as disabled
-                        _shippingSettings.ActivePickupPointProviderSystemNames.Remove(pluginDescriptor.SystemName);
-                        await _settingService.SaveSettingAsync(_shippingSettings);
-                        break;
-                    }
-
-                    if (!pluginIsActive && model.IsEnabled)
-                    {
-                        //mark as enabled
-                        _shippingSettings.ActivePickupPointProviderSystemNames.Add(pluginDescriptor.SystemName);
-                        await _settingService.SaveSettingAsync(_shippingSettings);
-                    }
-
-                    break;
-                case ITaxProvider taxProvider:
-                    if (!model.IsEnabled)
-                    {
-                        //mark as disabled
-                        _taxSettings.ActiveTaxProviderSystemName = string.Empty;
-                        await _settingService.SaveSettingAsync(_taxSettings);
-                        break;
-                    }
-
-                    //mark as enabled
-                    _taxSettings.ActiveTaxProviderSystemName = model.SystemName;
-                    await _settingService.SaveSettingAsync(_taxSettings);
                     break;
                 case IExternalAuthenticationMethod externalAuthenticationMethod:
                     pluginIsActive = _authenticationPluginManager.IsPluginActive(externalAuthenticationMethod);

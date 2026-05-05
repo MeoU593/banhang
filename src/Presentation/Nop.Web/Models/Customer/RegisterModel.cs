@@ -16,7 +16,6 @@ public partial record RegisterModel : BaseNopModel
         AvailableStates = new List<SelectListItem>();
         CustomerAttributes = new List<CustomerAttributeModel>();
         GdprConsents = new List<GdprConsentModel>();
-        NewsLetterSubscriptions = new List<NewsLetterSubscriptionModel>();
     }
 
     [DataType(DataType.EmailAddress)]
@@ -126,10 +125,6 @@ public partial record RegisterModel : BaseNopModel
     [DataType(DataType.PhoneNumber)]
     [NopResourceDisplayName("Account.Fields.Fax")]
     public string Fax { get; set; }
-
-    public bool NewsletterEnabled { get; set; }
-
-    public IList<NewsLetterSubscriptionModel> NewsLetterSubscriptions { get; set; }
 
     public bool AcceptPrivacyPolicyEnabled { get; set; }
     public bool AcceptPrivacyPolicyPopup { get; set; }

@@ -1,127 +1,127 @@
-﻿@model DashboardModel
+@model DashboardModel
+@inject Nop.Core.IWorkContext workContext
 @{
-    //page title
-    ViewBag.PageTitle = T("Admin.Dashboard").Text;
-
-    var canManageOrders = await permissionService.AuthorizeAsync(StandardPermission.Orders.ORDERS_VIEW);
-    var canManageCustomers = await permissionService.AuthorizeAsync(StandardPermission.Customers.CUSTOMERS_VIEW);
-    var canManageProducts = await permissionService.AuthorizeAsync(StandardPermission.Catalog.PRODUCTS_VIEW);
-    var canManageReturnRequests = await permissionService.AuthorizeAsync(StandardPermission.Orders.RETURN_REQUESTS_VIEW);
-
-    //close configuration steps value
-    const string closeCardAttributeName = "CloseConfigurationSteps";
-    var closeConfigurationStepsCard = await genericAttributeService.GetAttributeAsync<bool>(await workContext.GetCurrentCustomerAsync(), closeCardAttributeName);
-
-     //active menu item (system name)
+    ViewBag.PageTitle = "Trang chủ quản trị";
     NopHtml.SetActiveMenuItemSystemName("Dashboard");
+
+    var isAdmin = await permissionService.AuthorizeAsync(StandardPermission.Customers.CUSTOMERS_VIEW);
+    var currentCustomer = await workContext.GetCurrentCustomerAsync();
+    var currentVendor = await workContext.GetCurrentVendorAsync();
+    var isUnitLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
 }
 
-<link rel="stylesheet" href="~/lib_npm/ionicons/css/ionicons.min.css" />
-<script src="~/js/admin.table.js" asp-location="Footer"></script>
-
 <div class="content-header">
-    <h1>
-        @T("Admin.Dashboard")
-    </h1>
+    <h1>Hệ thống quản lý hậu cần Binh chủng Tăng Thiết Giáp</h1>
 </div>
+
 <section class="content">
     <div class="container-fluid">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    @if (!closeConfigurationStepsCard)
-                    {
-                        <div class="row">
-                            <div class="col-md-12">
-                                @await Html.PartialAsync("_ConfigurationSteps")
-                            </div>
-                        </div>
-                    }
 
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardTop, additionalData = Model })
-                    @if (!Model.IsLoggedInAsVendor)
-                    {
-                        <div class="row">
-                            <div class="col-md-12">
-                                @await Component.InvokeAsync(typeof(NopCommerceNewsViewComponent))
-                            </div>
-                        </div>
-                    }
-
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardNewsAfter, additionalData = Model })
-                    @if (!Model.IsLoggedInAsVendor && canManageOrders && canManageCustomers && canManageProducts && canManageReturnRequests)
-                    {
-                        <div class="row">
-                            <div class="col-md-12">
-                                @await Component.InvokeAsync(typeof(CommonStatisticsViewComponent))
-                            </div>
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardCommonstatisticsAfter, additionalData = Model })
-                    @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageCustomers))
-                    {
-                        <div class="row">
-                            @if (!Model.IsLoggedInAsVendor && canManageOrders)
-                            {
-                                <div class="col-md-6">
-                                    @await Html.PartialAsync("_OrderStatistics")
-                                </div>
-                            }
-                            @if (!Model.IsLoggedInAsVendor && canManageCustomers)
-                            {
-                                <div class="col-md-6">
-                                    @await Html.PartialAsync("_CustomerStatistics")
-                                </div>
-                            }
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardCustomerorderchartsAfter, additionalData = Model })
-                    @if (!Model.IsLoggedInAsVendor && canManageOrders)
-                    {
-                        <div class="row">
-                            <div class="col-md-8">
-                                @await Html.PartialAsync("_OrderAverageReport")
-                            </div>
-                            <div class="col-md-4">
-                                @await Html.PartialAsync("_OrderIncompleteReport")
-                            </div>
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardOrderreportsAfter, additionalData = Model })
-                    @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageProducts))
-                    {
-                        <div class="row">
-                            @if (canManageOrders)
-                            {
-                                <div class="col-md-8">
-                                    @await Html.PartialAsync("_LatestOrders")
-                                </div>
-                            }
-                            <div class="col-md-4">
-                                @if (canManageProducts)
-                                {
-                                    @await Html.PartialAsync("_PopularSearchTermsReport")
-                                }
-                            </div>
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardLatestordersSearchtermsAfter, additionalData = Model })
-                    @if (canManageOrders)
-                    {
-                        <div class="row">
-                            <div class="col-md-6">
-                                @await Html.PartialAsync("_BestsellersBriefReportByQuantity")
-                            </div>
-                            <div class="col-md-6">
-                                @await Html.PartialAsync("_BestsellersBriefReportByAmount")
-                            </div>
-                        </div>
-                    }
-                    @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.DashboardBottom, additionalData = Model })
-                </div>
+        <div class="card card-default mb-4">
+            <div class="card-body">
+                <p class="mb-0" style="font-size:1.05rem;">
+                    Chào mừng đến với <strong>Hệ thống quản lý hậu cần Binh chủng Tăng Thiết Giáp</strong>.
+                    Hệ thống hỗ trợ quản lý đơn vị, người dùng, báo cáo hậu cần và phân quyền truy cập
+                    cho toàn bộ các đơn vị trực thuộc binh chủng.
+                </p>
             </div>
         </div>
+
+        @if (isAdmin)
+        {
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-sitemap mr-2"></i>Quản lý đơn vị</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Quản lý danh sách các đơn vị trực thuộc, cấu trúc phân cấp, thông tin trưởng đơn vị và mã định danh.</p>
+                            <a href="@Url.Action("List", "Vendor")" class="btn btn-primary btn-sm">Xem danh sách đơn vị</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-users mr-2"></i>Quản lý người dùng</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Tạo, chỉnh sửa và phân quyền tài khoản người dùng. Mỗi người dùng phải thuộc một đơn vị.</p>
+                            <a href="@Url.Action("List", "Customer")" class="btn btn-primary btn-sm">Xem danh sách người dùng</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Báo cáo hậu cần</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Quản lý mẫu báo cáo, kỳ báo cáo và theo dõi báo cáo từ các đơn vị trực thuộc.</p>
+                            <a href="@Url.Action("Index", "UnitReportAdmin")" class="btn btn-primary btn-sm">Xem báo cáo đơn vị</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-box-open mr-2"></i>Danh mục hàng hóa</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Quản lý danh mục, sản phẩm, nhà cung cấp phục vụ công tác hậu cần binh chủng.</p>
+                            <a href="@Url.Action("List", "Product")" class="btn btn-primary btn-sm">Xem sản phẩm</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-cog mr-2"></i>Cài đặt hệ thống</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Cấu hình các thông số vận hành hệ thống, email, ngôn ngữ và các tích hợp liên quan.</p>
+                            <a href="@Url.Action("AllSettings", "Setting")" class="btn btn-primary btn-sm">Vào cài đặt</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card card-default h-100">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Báo cáo đơn vị</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Xem và cập nhật báo cáo hậu cần của đơn vị theo từng kỳ báo cáo.</p>
+                            <a href="@Url.Action("Index", "UnitReportAdmin")" class="btn btn-primary btn-sm">Xem báo cáo</a>
+                        </div>
+                    </div>
+                </div>
+
+                @if (isUnitLeader)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card card-default h-100">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="fas fa-user-shield mr-2"></i>Cấp quyền nhân viên</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Quản lý quyền truy cập của nhân viên trong đơn vị (chỉ dành cho trưởng đơn vị).</p>
+                                <a href="@Url.Action("Index", "VendorStaffAccess")" class="btn btn-primary btn-sm">Quản lý quyền</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
     </div>
 </section>
-    <nop-alert asp-alert-id="loadOrderStatisticsAlert" asp-alert-message="@T("Admin.SalesReport.OrderStatistics.Alert.FailedLoad")" />
-    <nop-alert asp-alert-id="loadCustomerStatisticsAlert" asp-alert-message="@T("Admin.Reports.Customers.CustomerStatistics.Alert.FailedLoad")" />

@@ -22,6 +22,7 @@ public partial class PrivateMessageBuilder : NopEntityBuilder<PrivateMessage>
         table
             .WithColumn(nameof(PrivateMessage.Subject)).AsString(450).NotNullable()
             .WithColumn(nameof(PrivateMessage.Text)).AsString(int.MaxValue).NotNullable()
+            .WithColumn(nameof(PrivateMessage.UnitContactVendorId)).AsInt32().Nullable()
             .WithColumn(nameof(PrivateMessage.FromCustomerId)).AsInt32().ForeignKey<Customer>().OnDelete(Rule.None)
             .WithColumn(nameof(PrivateMessage.ToCustomerId)).AsInt32().ForeignKey<Customer>().OnDelete(Rule.None);
     }

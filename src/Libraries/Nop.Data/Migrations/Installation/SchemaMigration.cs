@@ -70,6 +70,7 @@ public class SchemaMigration : ForwardOnlyMigration
         this.CreateTableIfNotExists<PredefinedProductAttributeValue>();
         this.CreateTableIfNotExists<ProductTag>();
         this.CreateTableIfNotExists<Product>();
+        this.CreateTableIfNotExists<ProductFavorite>();
         this.CreateTableIfNotExists<ProductTemplate>();
         this.CreateTableIfNotExists<BackInStockSubscription>();
         this.CreateTableIfNotExists<RelatedProduct>();

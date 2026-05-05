@@ -18,6 +18,7 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         GiftCard = new GiftCardModel();
         ProductPrice = new ProductPriceModel();
         AddToCart = new AddToCartModel();
+        ProductPoster = new ProductPosterModel();
         ProductAttributes = new List<ProductAttributeModel>();
         AssociatedProducts = new List<ProductDetailsModel>();
         VendorModel = new VendorBriefInfoModel();
@@ -62,6 +63,8 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
     public bool ShowVendor { get; set; }
     public VendorBriefInfoModel VendorModel { get; set; }
 
+    public ProductPosterModel ProductPoster { get; set; }
+
     public bool HasSampleDownload { get; set; }
 
     public GiftCardModel GiftCard { get; set; }
@@ -85,7 +88,6 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
 
     public bool DisplayAttributeCombinationImagesOnly { get; set; }
 
-    public bool EmailAFriendEnabled { get; set; }
     public bool CompareProductsEnabled { get; set; }
 
     public string PageShareCode { get; set; }
@@ -173,6 +175,18 @@ public partial record ProductDetailsModel : BaseNopEntityModel, IMetaTagsSupport
         //updating existing shopping cart or wishlist item?
         public int UpdatedShoppingCartItemId { get; set; }
         public ShoppingCartType? UpdateShoppingCartItemType { get; set; }
+    }
+
+    public partial record ProductPosterModel : BaseNopModel
+    {
+        public int CustomerId { get; set; }
+        public string Name { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Email { get; set; }
+        public string Rank { get; set; }
+        public string PositionTitle { get; set; }
+
+        public bool HasData => !string.IsNullOrWhiteSpace(Name);
     }
     
     public partial record GiftCardModel : BaseNopModel

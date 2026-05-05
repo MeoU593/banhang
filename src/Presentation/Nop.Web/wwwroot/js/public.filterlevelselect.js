@@ -93,15 +93,21 @@
     }
 
     if ($(document).has('[data-trigger="filter-level1-select"]')) {
-        $('select[data-trigger="filter-level1-select"]').change(filterLevel1SelectHandler);
+        $('select[data-trigger="filter-level1-select"]')
+            .off('change.filterLevelSelect')
+            .on('change.filterLevelSelect', filterLevel1SelectHandler);
     }
     if ($(document).has('[data-trigger="filter-level2-select"]')) {
-        $('select[data-trigger="filter-level2-select"]').change(filterLevel2SelectHandler);
+        $('select[data-trigger="filter-level2-select"]')
+            .off('change.filterLevelSelect')
+            .on('change.filterLevelSelect', filterLevel2SelectHandler);
     }
 
     $.fn.filterLevelSelect = function () {
         this.each(function () {
-            $(this).change(filterLevel1SelectHandler);
+            $(this)
+                .off('change.filterLevelSelect')
+                .on('change.filterLevelSelect', filterLevel1SelectHandler);
         });
     }
 }(jQuery);

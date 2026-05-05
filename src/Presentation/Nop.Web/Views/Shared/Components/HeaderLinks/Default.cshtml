@@ -7,7 +7,7 @@
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HeaderLinksBefore, additionalData = Model })
         @if (Model.IsAuthenticated)
         {
-            <li><a href="@Url.RouteUrl(NopRouteNames.General.CUSTOMER_INFO)" class="ico-account">@T("Account.MyAccount")@*@Model.CustomerName*@</a></li>
+            <li><a href="@Url.RouteUrl(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT)" class="ico-account">@T("Account.MyAccount")@*@Model.CustomerName*@</a></li>
             <li><a href="@Url.RouteUrl(NopRouteNames.Standard.LOGOUT)" class="ico-logout">@T("Account.Logout")</a></li>
         }
         else

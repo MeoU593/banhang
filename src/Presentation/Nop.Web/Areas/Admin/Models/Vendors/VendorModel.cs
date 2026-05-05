@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
 using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Framework.Models;
@@ -79,6 +80,17 @@ public partial record VendorModel : BaseNopEntityModel, ILocalizedModel<VendorLo
     [NopResourceDisplayName("Admin.Vendors.Fields.PmCustomerId")]
     public int? PmCustomerId { get; set; }
     public string PmCustomerInfo { get; set; }
+
+    [NopResourceDisplayName("Admin.Vendors.Fields.Code")]
+    public string Code { get; set; }
+
+    [NopResourceDisplayName("Admin.Vendors.Fields.ParentId")]
+    public int? ParentId { get; set; }
+
+    public int Level { get; set; }
+    public string Path { get; set; }
+
+    public IList<SelectListItem> AvailableParents { get; set; } = new List<SelectListItem>();
 
     [NopResourceDisplayName("Admin.Vendors.Fields.PriceRangeFiltering")]
     public bool PriceRangeFiltering { get; set; }

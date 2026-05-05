@@ -22,7 +22,6 @@
         NopHtml.AppendScriptParts(ResourceLocation.Footer, "~/js/public.filterlevelselect.js");
     }
     NopHtml.AppendScriptParts(ResourceLocation.Footer, "~/js/public.countryselect.js");
-    NopHtml.AppendScriptParts(ResourceLocation.Footer, "~/js/public.ajaxcart.js");
     NopHtml.AppendScriptParts(ResourceLocation.Footer, "~/js/public.common.js");
     //when jQuery migrate script logging is active you will see the log in the browser console
     if (commonSettings.JqueryMigrateScriptLoggingActive)
@@ -43,11 +42,11 @@
     {
         NopHtml.AppendHeadCustomParts(seoSettings.CustomHeadTags);
     }
-    
+
     //event
     await eventPublisher.PublishAsync(new PageRenderingEvent(NopHtml));
 
-    var title = await NopHtml.GenerateTitleAsync();
+    var title = await NopHtml.GenerateTitleAsync(false);
     var description = await @NopHtml.GenerateMetaDescriptionAsync();
     var keywords = await NopHtml.GenerateMetaKeywordsAsync();
 }
@@ -64,65 +63,141 @@
     @NopHtml.GenerateHeadCustom()
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <script id="tailwind-config">
+    <script id="tailwind-config" asp-location="None">
         tailwind.config = {
+            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
                         "military-green": "#2d3a22",
-                        "military-red": "#b91c1c",
-                        "military-gold": "#FFD700",
-                        "sidebar-bg": "#0f172a",
-                        "primary": "#2e0001",
+                        "military-red": "#b22222",
+                        "military-gold": "#d4af37",
+                        "sidebar-bg": "#29313a",
+                        "primary": "#2d3a22",
                         "on-primary": "#ffffff",
-                        "primary-container": "#550005",
-                        "on-primary-container": "#fb4f48",
+                        "primary-container": "#3d4f2d",
+                        "on-primary-container": "#dfe8d4",
+                        "primary-fixed": "#dfe8d4",
+                        "primary-fixed-dim": "#bcc9aa",
+                        "on-primary-fixed": "#1f2918",
+                        "on-primary-fixed-variant": "#3d4f2d",
                         "secondary": "#735c00",
-                        "secondary-container": "#fed65b",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#f0d27b",
                         "on-secondary-container": "#745c00",
-                        "surface": "#f7f9ff",
-                        "surface-dim": "#d3dbe6",
-                        "surface-bright": "#f7f9ff",
+                        "secondary-fixed": "#ffe2a0",
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-secondary-fixed": "#241a00",
+                        "on-secondary-fixed-variant": "#574500",
+                        "tertiary": "#0f1300",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#232900",
+                        "on-tertiary-container": "#899258",
+                        "tertiary-fixed": "#dfe8a6",
+                        "tertiary-fixed-dim": "#c3cc8c",
+                        "on-tertiary-fixed": "#191e00",
+                        "on-tertiary-fixed-variant": "#434b18",
+                        "surface": "#f7f7f6",
+                        "surface-dim": "#e7e7e2",
+                        "surface-bright": "#f7f7f6",
                         "surface-container-lowest": "#ffffff",
-                        "surface-container-low": "#edf4ff",
-                        "surface-container": "#e7eefa",
-                        "surface-container-high": "#e1e9f4",
-                        "surface-container-highest": "#dbe3ef",
-                        "surface-variant": "#dbe3ef",
+                        "surface-container-low": "#f4f5f2",
+                        "surface-container": "#f0f1ed",
+                        "surface-container-high": "#ebece7",
+                        "surface-container-highest": "#e4e6df",
+                        "surface-variant": "#e6e8e0",
+                        "surface-tint": "#2d3a22",
+                        "inverse-surface": "#29313a",
+                        "inverse-on-surface": "#e9f1fd",
+                        "inverse-primary": "#bcc9aa",
+                        "background": "#f7f7f6",
+                        "on-background": "#141c24",
                         "on-surface": "#141c24",
                         "on-surface-variant": "#44474c",
                         "outline": "#75777c",
                         "outline-variant": "#c4c6cc",
-                        "inverse-surface": "#29313a",
-                        "inverse-on-surface": "#e9f1fd",
-                        "tertiary-container": "#232900",
-                        "background": "#f7f9ff",
-                        "on-background": "#141c24",
                         "error": "#ba1a1a",
-                        "error-container": "#ffdad6"
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
                     },
                     fontFamily: {
-                        "sans": ["Public Sans", "sans-serif"]
+                        "sans": ["Inter", "sans-serif"],
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
                     }
                 }
             }
         }
     </script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" asp-location="None"></script>
     @*This is used so that themes can inject content into the header*@
     @await Html.PartialAsync("Head")
 
     @NopHtml.GenerateCssFiles()
     <style>
         :root {
-            --app-font-family: 'Public Sans', Arial, Helvetica, sans-serif;
+            --app-font-family: 'Inter', Arial, Helvetica, sans-serif;
             --app-font-size-base: 15px;
             --app-font-size-small: 14px;
             --app-font-size-button: 14px;
             --app-line-height-base: 1.55;
             --app-control-height: 40px;
+            --app-content-max-width: 1440px;
+            --display-lg: 3.5rem;
+            --headline-sm: 1.5rem;
+            --title-sm: 1rem;
+            --label-sm: 0.6875rem;
+            --public-font-body: 15px;
+            --public-font-control: 14px;
+            --public-font-page-title: clamp(1.75rem, 2.4vw, 2.375rem);
+            --public-font-hero-title: clamp(1.375rem, 1.8vw, 1.75rem);
+            --public-font-section-title: clamp(1.375rem, 1.8vw, 1.75rem);
+            --public-font-card-title: 1.125rem;
+            --public-font-list-title: 1rem;
+            --public-font-meta: 0.75rem;
+            --public-font-label: 0.6875rem;
+            --primary: #2d3a22;
+            --on-primary: #ffffff;
+            --primary-container: #3d4f2d;
+            --on-primary-container: #dfe8d4;
+            --secondary: #735c00;
+            --secondary-container: #f0d27b;
+            --on-secondary-container: #745c00;
+            --surface: #f7f7f6;
+            --surface-dim: #e7e7e2;
+            --surface-bright: #f7f7f6;
+            --surface-container-lowest: #ffffff;
+            --surface-container-low: #f4f5f2;
+            --surface-container: #f0f1ed;
+            --surface-container-high: #ebece7;
+            --surface-container-highest: #e4e6df;
+            --surface-variant: #e6e8e0;
+            --surface-tint: #2d3a22;
+            --on-surface: #141c24;
+            --on-surface-variant: #44474c;
+            --outline: #75777c;
+            --outline-variant: #c4c6cc;
+            --inverse-surface: #29313a;
+            --inverse-on-surface: #e9f1fd;
+            --tertiary-container: #232900;
+            --error: #ba1a1a;
+            --error-container: #ffdad6;
+            --app-radius-md: 0.5rem;
+            --app-radius-lg: 0.75rem;
+            --app-border-soft: rgba(148, 163, 184, 0.25);
+            --app-border-focus: rgba(45, 58, 34, 0.4);
+            --app-shadow-soft: 0 16px 32px -26px rgba(20, 28, 36, 0.2);
+            --app-shadow-ambient: 0 24px 40px -28px rgba(20, 28, 36, 0.24);
         }
 
         /* Universal font override – beats all element-level Arial rules in styles.css */
@@ -138,10 +213,11 @@
         }
 
         body {
-            background: #edf4ff;
-            color: #141c24;
+            background: var(--surface-container-low);
+            color: var(--on-surface);
             font-size: var(--app-font-size-base);
             line-height: var(--app-line-height-base);
+            letter-spacing: 0.01em;
         }
 
         button,
@@ -173,6 +249,16 @@
         aside::-webkit-scrollbar-track { background: transparent; }
         aside::-webkit-scrollbar-thumb { background: #44474c; border-radius: 10px; }
 
+        .master-wrapper-page > aside {
+            background: #0f172a;
+        }
+
+        .master-wrapper-page > div > .sticky {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: none;
+            backdrop-filter: blur(10px);
+        }
+
         .master-wrapper-page,
         .master-wrapper-content,
         .master-column-wrapper,
@@ -197,9 +283,211 @@
             margin-bottom: 0;
         }
 
+        .center-1 {
+            max-width: var(--app-content-max-width);
+            margin-inline: auto;
+        }
+
+        .auth-standalone-shell {
+            max-width: none !important;
+            margin-inline: 0;
+        }
+
+        .app-content-shell {
+            max-width: var(--app-content-max-width);
+            margin-inline: auto;
+            width: 100%;
+        }
+
         .page {
             text-align: left;
             min-height: auto;
+        }
+
+        .page h1,
+        .page h2,
+        .page h3,
+        .page h4 {
+            letter-spacing: -0.02em;
+        }
+
+        .page h1 {
+            font-size: var(--public-font-page-title);
+            line-height: 1.15;
+        }
+
+        .page h2 {
+            font-size: var(--public-font-section-title);
+            line-height: 1.2;
+        }
+
+        .page h3 {
+            font-size: var(--public-font-card-title);
+            line-height: 1.25;
+        }
+
+        .public-hero-title {
+            font-size: var(--public-font-hero-title) !important;
+            line-height: 1.12 !important;
+            letter-spacing: -0.03em;
+        }
+
+        .public-page-title {
+            font-size: var(--public-font-page-title) !important;
+            line-height: 1.15 !important;
+            letter-spacing: -0.025em;
+        }
+
+        .public-section-title {
+            font-size: var(--public-font-section-title) !important;
+            line-height: 1.2 !important;
+            letter-spacing: -0.02em;
+        }
+
+        .public-card-title {
+            font-size: var(--public-font-card-title) !important;
+            line-height: 1.3 !important;
+        }
+
+        .public-list-title {
+            font-size: var(--public-font-list-title) !important;
+            line-height: 1.45 !important;
+        }
+
+        .public-body-text {
+            font-size: var(--public-font-body) !important;
+            line-height: 1.65 !important;
+        }
+
+        .public-meta-text {
+            font-size: var(--public-font-meta) !important;
+            line-height: 1.45 !important;
+        }
+
+        .public-label-text {
+            font-size: var(--public-font-label) !important;
+            line-height: 1.35 !important;
+        }
+
+        .page .rounded-xl {
+            border-radius: var(--app-radius-md);
+        }
+
+        .page .rounded-2xl,
+        .page .rounded-3xl {
+            border-radius: var(--app-radius-lg);
+        }
+
+        .page .shadow-sm {
+            box-shadow: var(--app-shadow-soft) !important;
+        }
+
+        .page .shadow-lg {
+            box-shadow: var(--app-shadow-ambient) !important;
+        }
+
+        .page input:not([type="checkbox"]):not([type="radio"]),
+        .page select,
+        .page textarea {
+            min-height: var(--app-control-height);
+            border-radius: var(--app-radius-md);
+            background: var(--surface-container-lowest);
+            border: 1px solid var(--app-border-soft);
+            color: var(--on-surface);
+        }
+
+        .page input:focus,
+        .page select:focus,
+        .page textarea:focus {
+            border-color: var(--app-border-focus);
+            box-shadow: 0 0 0 3px rgba(45, 58, 34, 0.12);
+            outline: 0;
+        }
+
+        .page .button-1,
+        .page .button-2 {
+            min-height: var(--app-control-height);
+            border-radius: var(--app-radius-md);
+            font-weight: 700;
+            background-image: linear-gradient(135deg, rgba(185, 29, 32, 0.2), rgba(185, 29, 32, 0));
+            box-shadow: var(--app-shadow-soft);
+            transition: box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .page .button-1:hover,
+        .page .button-2:hover {
+            box-shadow: var(--app-shadow-ambient);
+        }
+
+        .page .text-xs.uppercase,
+        .page .text-[11px].uppercase,
+        .page .text-[10px].uppercase {
+            font-size: var(--label-sm);
+            letter-spacing: 0.11em;
+            font-weight: 700;
+        }
+
+        /* ── Required * trước label — pattern .inputs (nopCommerce standard) ── */
+        .inputs {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: baseline;
+            column-gap: 4px;
+            row-gap: 5px;
+        }
+        .inputs > label {
+            order: 2;
+            flex-shrink: 0;
+            margin: 0 !important;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        .inputs > span.required {
+            order: 1;
+            flex-shrink: 0;
+            color: #e11d48;
+            font-weight: 700;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .inputs > input:not([type=checkbox]):not([type=radio]),
+        .inputs > select,
+        .inputs > textarea,
+        .inputs > div,
+        .inputs > .form-input-wrapper {
+            order: 3;
+            flex-basis: 100%;
+            margin-top: 2px !important;
+        }
+        .inputs > span:not(.required),
+        .inputs > a,
+        .inputs > .please-wait,
+        .inputs > .change-password-recovery-link {
+            order: 4;
+            flex-basis: 100%;
+        }
+
+        /* ── Required * trước label — pattern .account-field ── */
+        .account-field {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: baseline;
+            column-gap: 4px;
+            row-gap: 5px;
+            margin-bottom: 1rem;
+        }
+        .account-field:last-child { margin-bottom: 0; }
+        .account-field > label { order: 2; flex-shrink: 0; margin: 0 !important; }
+        .account-field > span.required { order: 1; flex-shrink: 0; color: #e11d48; font-weight: 700; font-size: 13px; line-height: 1.5; }
+        .account-field > input, .account-field > select,
+        .account-field > textarea, .account-field > div {
+            order: 3; flex-basis: 100%; margin-top: 2px !important;
+        }
+        .account-field > span:not(.required), .account-field > a {
+            order: 4; flex-basis: 100%;
         }
 
         .page-title,
@@ -236,81 +524,355 @@
             color: #b91c1c;
         }
 
-        .registration-page .fieldset,
-        .registration-page .section {
-            border: 1px solid rgb(226 232 240);
-            border-radius: 1.75rem;
+        .auth-red-text {
+            color: #b22222 !important;
+        }
+
+        .auth-red-action {
+            background: #b22222 !important;
+            border-color: #b22222 !important;
+            color: #d4af37 !important;
+        }
+
+        .auth-red-action:hover,
+        .auth-red-action:focus {
+            background: #991b1b !important;
+            border-color: #991b1b !important;
+        }
+
+        /* ── Account pages (ChangePassword, Addresses…) ── */
+        .account-page .page-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .account-card {
             background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
             padding: 1.5rem;
-            box-shadow: 0 20px 45px -30px rgba(15, 23, 42, 0.28);
+            box-shadow: 0 12px 28px -22px rgba(15,23,42,0.18);
         }
 
-        .registration-page .title {
-            margin: 0 0 1rem;
-            padding: 0;
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: #0f172a;
+        .account-card-title {
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #94a3b8;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.625rem;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .registration-page .form-fields {
-            border: 0;
-            background: transparent;
-            padding: 0;
-        }
-
-        .registration-page .inputs {
+        .account-field {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: baseline;
+            column-gap: 0.25rem;
+            row-gap: 0.375rem;
             margin-bottom: 1rem;
         }
 
-        .registration-page label:not(.forcheckbox),
-        .login-page label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #334155;
+        .account-field:last-child { margin-bottom: 0; }
+
+        .account-field label {
+            order: 2;
+            flex-shrink: 0;
+            font-size: 0.8125rem !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            margin: 0 !important;
         }
 
-        .registration-page input:not([type="checkbox"]):not([type="radio"]),
-        .registration-page select,
-        .registration-page textarea {
-            width: 100%;
-            min-height: 3rem;
-            border-radius: 1rem;
-            border: 1px solid rgb(226 232 240);
-            background: #f8fafc;
-            padding: 0.75rem 1rem;
-            color: #334155;
-            box-shadow: none;
+        .account-field > span.required {
+            order: 1;
+            flex-shrink: 0;
+            margin: 0;
+            line-height: 1;
         }
 
-        .registration-page input:focus,
-        .registration-page select:focus,
-        .registration-page textarea:focus {
-            border-color: rgb(148 163 184);
-            background: #fff;
-            outline: 0;
+        .account-field > input,
+        .account-field > select,
+        .account-field > textarea,
+        .account-field > div,
+        .account-field > .form-input-wrapper {
+            order: 3;
+            flex-basis: 100%;
+            margin-top: 2px !important;
         }
 
-        .registration-page .gender,
-        .registration-page .attributes ul {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
+        .account-field > span:not(.required),
+        .account-field > a,
+        .account-field > .please-wait,
+        .account-field > .change-password-recovery-link {
+            order: 4;
+            flex-basis: 100%;
         }
 
-        .registration-page .gender span,
-        .registration-page .attributes li,
-        .registration-page .accept-consent {
+        .account-field input,
+        .account-field select,
+        .account-field textarea {
+            height: 40px !important;
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #f8fafc !important;
+            padding: 0 0.875rem !important;
+            font-size: 13px !important;
+            color: #334155 !important;
+        }
+
+        .account-field input:focus,
+        .account-field select:focus,
+        .account-field textarea:focus {
+            border-color: rgba(45,58,34,0.5) !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 3px rgba(45,58,34,0.10) !important;
+            outline: none !important;
+        }
+
+        /* ── Pager ── */
+        .pager { margin: 0; }
+        .pager ul {
             display: flex;
             align-items: center;
-            gap: 0.625rem;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.8125rem;
+            flex-wrap: wrap;
+        }
+        .pager li { display: inline-flex; }
+        .pager li a,
+        .pager li span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            border: 1px solid #e2e8f0;
+            background: transparent;
+            color: #374151;
+            background-image: none !important;
+        }
+        .pager li a:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+        .pager li.current-page span {
+            background: #b22222;
+            border-color: #b22222;
+            color: #d4af37;
+            font-weight: 700;
+        }
+        .pager li.previous-page a,
+        .pager li.next-page a,
+        .pager li.first-page a,
+        .pager li.last-page a {
+            background: #f8fafc;
+            color: #475569;
+            min-width: unset;
+            padding: 0 12px;
+        }
+        .pager li.previous-page a:hover,
+        .pager li.next-page a:hover,
+        .pager li.first-page a:hover,
+        .pager li.last-page a:hover {
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
-        .registration-page .buttons {
-            margin: 0;
+        /* ── Buttons toàn site ── */
+        .page .button-1,
+        .page button.button-1 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 1.25rem;
+            background: #b22222 !important;
+            color: #d4af37 !important;
+            border-radius: 10px !important;
+            font-size: 0.8125rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none !important;
+            box-shadow: 0 12px 28px -16px rgba(178,34,34,0.6) !important;
+            transition: box-shadow 0.2s, transform 0.15s !important;
+            background-image: none !important;
+        }
+
+        .page .button-1:hover {
+            box-shadow: 0 16px 32px -14px rgba(178,34,34,0.7) !important;
+            transform: translateY(-1px);
+        }
+
+        .page .button-2,
+        .page button.button-2 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 1rem;
+            background: #f8fafc !important;
+            color: #374151 !important;
+            border-radius: 8px !important;
+            font-size: 0.8125rem !important;
+            font-weight: 600 !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: none !important;
+            transition: background 0.15s, border-color 0.15s !important;
+            background-image: none !important;
+        }
+
+        .page .button-2:hover {
+            background: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        /* Tailwind compatibility layer: legacy DefaultClean selectors are more specific than utility classes. */
+        .page input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select,
+        .page textarea {
+            box-sizing: border-box !important;
+            max-width: 100% !important;
+        }
+
+        .page input[class~="w-full"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select[class~="w-full"],
+        .page textarea[class~="w-full"] {
+            width: 100% !important;
+        }
+
+        .page input[class~="h-10"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select[class~="h-10"] {
+            height: 2.5rem !important;
+            min-height: 2.5rem !important;
+        }
+
+        .page input[class~="h-11"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select[class~="h-11"] {
+            height: 2.75rem !important;
+            min-height: 2.75rem !important;
+        }
+
+        .page input[class~="px-3"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select[class~="px-3"] {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        .page input[class~="px-4"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page textarea[class~="px-4"] {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        .page input[class~="py-0"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .page input[class~="py-2"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+
+        .page textarea[class~="py-3"] {
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+
+        .page input[class~="pl-12"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-left: 3rem !important;
+        }
+
+        .page input[class~="pr-3"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-right: 0.75rem !important;
+        }
+
+        .page input[class~="pr-4"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-right: 1rem !important;
+        }
+
+        .page input[class~="bg-slate-50"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page select[class~="bg-slate-50"],
+        .page textarea[class~="bg-slate-50"] {
+            background: #f8fafc !important;
+        }
+
+        .page .form-fields {
+            border-top: 0 !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .page .inputs {
+            text-align: left !important;
+            white-space: normal !important;
+            font-size: inherit !important;
+        }
+
+        .page .inputs > label {
+            width: 100% !important;
+            text-align: left !important;
+            line-height: normal !important;
+        }
+
+        .page .inputs input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page .inputs select,
+        .page .inputs textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .forum-edit-page .forum-post-text,
+        .move-topic-page select {
+            display: block !important;
+            margin: 0 !important;
+        }
+
+        .forum-edit-page .buttons button,
+        .move-topic-page .buttons button {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 0 !important;
+            height: 2.75rem !important;
+            min-height: 2.75rem !important;
+            padding: 0 1.25rem !important;
+            border-radius: 0.75rem !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            background-image: none !important;
+        }
+
+        .forum-edit-page .buttons .button-1,
+        .move-topic-page .buttons .button-1 {
+            border: 0 !important;
+            background: #2d3a22 !important;
+            color: #ffffff !important;
+        }
+
+        .forum-edit-page .buttons .button-2,
+        .move-topic-page .buttons .button-2 {
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            color: #334155 !important;
+            box-shadow: none !important;
         }
 
         .ui-helper-hidden-accessible {
@@ -334,7 +896,7 @@
     @NopHtml.GenerateScripts(ResourceLocation.Head)
     @NopHtml.GenerateInlineScripts(ResourceLocation.Head)
     <!--Powered by nopCommerce - https://www.nopCommerce.com-->
-    
+
     @Html.Raw(commonSettings.HeaderCustomHtml)
 </head>
 <body>
@@ -343,7 +905,7 @@
 
     @NopHtml.GenerateScripts(ResourceLocation.Footer)
     @NopHtml.GenerateInlineScripts(ResourceLocation.Footer)
-    
+
     @Html.Raw(commonSettings.FooterCustomHtml)
 </body>
 </html>

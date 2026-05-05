@@ -1,0 +1,83 @@
+@model IList<ForumTopicCardModel>
+
+@if (Model.Count == 0)
+{
+    <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+        Chưa có bài viết nào trong thời điểm hiện tại.
+    </div>
+}
+else
+{
+    <div class="space-y-4">
+        @foreach (var topic in Model)
+        {
+            var customerInitial = !string.IsNullOrWhiteSpace(topic.CustomerName)
+                ? topic.CustomerName.Substring(0, 1).ToUpperInvariant()
+                : "?";
+            var topicUrl = Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName });
+
+            <article class="forum-topic-card group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-military-green/50 hover:shadow-md" data-topic-id="@topic.Id">
+                <div class="flex items-start gap-4">
+                    @if (!string.IsNullOrWhiteSpace(topic.CustomerAvatarUrl))
+                    {
+                        <img src="@topic.CustomerAvatarUrl" alt="avatar" class="h-12 w-12 rounded-xl object-cover ring-1 ring-slate-200" />
+                    }
+                    else
+                    {
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-sm font-bold text-amber-300">@customerInitial</div>
+                    }
+                    
+                    <div class="min-w-0 flex-1">
+                        <div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                            @if (!string.IsNullOrWhiteSpace(topic.ForumName))
+                            {
+                                <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="rounded-full bg-emerald-50 px-2.5 py-1 font-bold uppercase tracking-wide text-emerald-700">@topic.ForumName</a>
+                            }
+                            <span class="text-slate-400">@topic.CreatedOnStr</span>
+                        </div>
+
+                        <h3 class="public-card-title font-bold text-slate-900 transition group-hover:text-military-green">
+                            <a href="@topicUrl">@topic.Subject</a>
+                        </h3>
+
+                        @if (!string.IsNullOrWhiteSpace(topic.Excerpt))
+                        {
+                            <p class="mt-2 text-sm leading-6 text-slate-600">@topic.Excerpt</p>
+                        }
+
+                        <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                @if (topic.AllowViewingProfiles)
+                                {
+                                    @Html.RouteLink(topic.CustomerName, NopRouteNames.Standard.CUSTOMER_PROFILE, new { id = topic.CustomerId }, new { @class = "hover:text-military-green" })
+                                }
+                                else
+                                {
+                                    @topic.CustomerName
+                                }
+                            </span>
+                            @if (!string.IsNullOrWhiteSpace(topic.Rank))
+                            {
+                                <span class="rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">@topic.Rank</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(topic.UnitName))
+                            {
+                                    <span class="rounded bg-slate-100 px-2 py-0.5 text-slate-500">@topic.UnitName</span>
+                                }
+                        </div>
+
+                        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
+                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                <span class="inline-flex items-center gap-1 rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600"><span class="material-symbols-outlined text-[14px]">forum</span>@topic.NumReplies phản hồi</span>
+                                <span class="inline-flex items-center gap-1 rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600"><span class="material-symbols-outlined text-[14px]">visibility</span>@topic.Views lượt xem</span>
+                            </div>
+                            <a href="@topicUrl" class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                                Xem chủ đề
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}

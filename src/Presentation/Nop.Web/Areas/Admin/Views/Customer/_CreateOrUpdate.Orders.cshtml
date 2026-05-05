@@ -47,13 +47,6 @@
                 Title = T("Admin.System.Log.Fields.CreatedOn").Text,
                 Width = "200",
                 Render = new RenderDate()
-            },
-            new ColumnProperty(nameof(CustomerOrderModel.Id))
-            {
-                Title = T("Admin.Common.View").Text,
-                Width = "100",
-                ClassName = NopColumnClassDefaults.Button,
-                Render = new RenderButtonView(new DataUrl("~/Admin/Order/Edit/"))
             }
         }
     })

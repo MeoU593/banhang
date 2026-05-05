@@ -7,7 +7,7 @@
 
 @if (isAuthStandalone)
 {
-    <section class="center-1 min-h-[100dvh] bg-slate-100">
+    <section class="center-1 auth-standalone-shell min-h-[100dvh] bg-slate-100">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
         @RenderBody()
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })
@@ -15,7 +15,7 @@
 }
 else
 {
-    <section class="center-1 min-h-screen px-6 py-8 lg:px-8">
+    <section class="center-1 min-h-screen w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
         @RenderBody()
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })

@@ -319,9 +319,9 @@ public partial class ProductReviewService : IProductReviewService
         var product = await _productService.GetProductByIdAsync(productReview.ProductId);
         await UpdateProductReviewTotalsAsync(product);
 
-        //notify store owner
-        if (_catalogSettings.NotifyStoreOwnerAboutNewProductReviews)
-            await _workflowMessageService.SendProductReviewStoreOwnerNotificationMessageAsync(productReview, _localizationSettings.DefaultAdminLanguageId);
+        ////notify store owner
+        //if (_catalogSettings.NotifyStoreOwnerAboutNewProductReviews)
+        //    await _workflowMessageService.SendProductReviewStoreOwnerNotificationMessageAsync(productReview, _localizationSettings.DefaultAdminLanguageId);
 
         //activity log
         await _customerActivityService.InsertActivityAsync("PublicStore.AddProductReview",
