@@ -41,8 +41,7 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
     protected readonly IStoreContext _storeContext;
     protected readonly IUrlHelperFactory _urlHelperFactory;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
-    protected readonly RewardPointsSettings _rewardPointsSettings;
+        protected readonly RewardPointsSettings _rewardPointsSettings;
 
     #endregion
 
@@ -66,7 +65,6 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
         IStoreContext storeContext,
         IUrlHelperFactory urlHelperFactory,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         RewardPointsSettings rewardPointsSettings)
     {
         _customerSettings = customerSettings;
@@ -87,8 +85,7 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
         _storeContext = storeContext;
         _urlHelperFactory = urlHelperFactory;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
-        _rewardPointsSettings = rewardPointsSettings;
+                _rewardPointsSettings = rewardPointsSettings;
     }
 
     #endregion

@@ -304,7 +304,7 @@ public class SeedGeneratedDemoPortalContentMigration : MigrationBase
             entity.Deleted = false;
             entity.CreatedOnUtc = seed.CreatedOnUtc;
             entity.UpdatedOnUtc = DateTime.UtcNow;
-            entity.AllowBackInStockSubscriptions = false;
+            //entity.AllowBackInStockSubscriptions = false;
 
             if (isNew)
                 productService.InsertProductAsync(entity).GetAwaiter().GetResult();

@@ -1,0 +1,148 @@
+@model Nop.Plugin.Misc.LogisticsReports.Models.UnitProfile.UnitProfileModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewBag.PageTitle = "Hồ sơ đơn vị";
+    NopHtml.SetActiveMenuItemSystemName("UnitManagement.Profile");
+}
+
+<form asp-controller="UnitProfileAdmin" asp-action="Save" method="post" enctype="multipart/form-data">
+    <div class="content-header clearfix">
+        <h1 class="float-left">Hồ sơ đơn vị</h1>
+        <div class="float-right">
+            @if (Model.CanEdit)
+            {
+                <button type="submit" class="btn btn-primary">
+                    <i class="far fa-save"></i>
+                    Lưu hồ sơ
+                </button>
+            }
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">Thông tin định danh</h3>
+                        </div>
+                        <div class="card-body">
+                            <dl class="mb-0">
+                                <dt>Mã đơn vị</dt>
+                                <dd>@(string.IsNullOrWhiteSpace(Model.Code) ? "Chưa cập nhật" : Model.Code)</dd>
+                                <dt>Cấp đơn vị</dt>
+                                <dd>Cấp @Model.Level</dd>
+                                <dt>Đơn vị cấp trên</dt>
+                                <dd>@(string.IsNullOrWhiteSpace(Model.ParentName) ? "Không có" : Model.ParentName)</dd>
+                                <dt>Trạng thái</dt>
+                                <dd>@(Model.Active ? "Hoạt động" : "Tạm dừng")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">Thống kê vận hành</h3>
+                        </div>
+                        <div class="card-body">
+                            <dl class="mb-0">
+                                <dt>Đơn vị trực thuộc</dt>
+                                <dd>@Model.ChildUnitCount</dd>
+                                <dt>Hàng hóa quản lý</dt>
+                                <dd>@Model.ProductCount</dd>
+                                <dt>Nhân sự trong đơn vị</dt>
+                                <dd>@Model.StaffCount</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">Thông tin hồ sơ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group row">
+                                <label class="col-md-3 col-form-label" asp-for="Name">Tên đơn vị</label>
+                                <div class="col-md-9">
+                                    <input asp-for="Name" class="form-control" readonly="@(!Model.CanEdit)" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-md-3 col-form-label" asp-for="Email">Email liên hệ</label>
+                                <div class="col-md-9">
+                                    <input asp-for="Email" class="form-control" readonly="@(!Model.CanEdit)" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-md-3 col-form-label">Ảnh đại diện</label>
+                                <div class="col-md-9">
+                                    @if (!string.IsNullOrWhiteSpace(Model.PictureUrl))
+                                    {
+                                        <div class="mb-3">
+                                            <img src="@Model.PictureUrl" alt="@Model.Name" class="img-thumbnail" style="max-width: 160px" />
+                                        </div>
+                                    }
+                                    @if (Model.CanEdit)
+                                    {
+                                        <input name="uploadedFile" type="file" accept="image/*" class="form-control-file" />
+                                    }
+                                    else
+                                    {
+                                        <p class="form-text text-muted mb-0">Bạn chỉ có quyền xem hồ sơ đơn vị.</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-md-3 col-form-label" asp-for="Description">Nội dung công khai</label>
+                                <div class="col-md-9">
+                                    <p class="form-text text-muted">Nội dung này hiển thị trên trang chi tiết đơn vị công khai.</p>
+                                    @if (Model.CanEdit)
+                                    {
+                                        <nop-editor asp-for="Description" asp-template="RichEditor" />
+                                        <span asp-validation-for="Description" class="text-danger"></span>
+                                    }
+                                    else
+                                    {
+                                        <div class="border rounded bg-light p-3">
+                                            @if (string.IsNullOrWhiteSpace(Model.Description))
+                                            {
+                                                <span class="text-muted">Nội dung giới thiệu chưa được cập nhật.</span>
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(Model.Description)
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</form>
+
+@if (Model.CanEdit && !string.IsNullOrWhiteSpace(Model.PictureUrl))
+{
+    <form asp-controller="UnitProfileAdmin" asp-action="RemovePicture" method="post" class="d-none" id="remove-unit-picture-form"></form>
+    <script>
+        $(function () {
+            $('<button type="button" class="btn btn-danger ml-2"><i class="far fa-trash-alt"></i> Xóa ảnh</button>')
+                .appendTo('.content-header .float-right')
+                .on('click', function () {
+                    if (confirm('Xóa ảnh đại diện của đơn vị?')) {
+                        $('#remove-unit-picture-form').trigger('submit');
+                    }
+                });
+        });
+    </script>
+}

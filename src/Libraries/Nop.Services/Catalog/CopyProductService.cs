@@ -745,7 +745,7 @@ public partial class CopyProductService : ICopyProductService
             LowStockActivityId = product.LowStockActivityId,
             NotifyAdminForQuantityBelow = product.NotifyAdminForQuantityBelow,
             BackorderMode = product.BackorderMode,
-            AllowBackInStockSubscriptions = product.AllowBackInStockSubscriptions,
+            //AllowBackInStockSubscriptions = product.AllowBackInStockSubscriptions,
             OrderMinimumQuantity = product.OrderMinimumQuantity,
             OrderMaximumQuantity = product.OrderMaximumQuantity,
             AllowedQuantities = product.AllowedQuantities,

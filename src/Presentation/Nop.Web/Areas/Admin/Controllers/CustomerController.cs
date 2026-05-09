@@ -1212,23 +1212,23 @@ public partial class CustomerController : BaseAdminController
 
     #endregion
 
-    #region Back in stock subscriptions
-
-    [HttpPost]
-    [CheckPermission(StandardPermission.Customers.CUSTOMERS_VIEW)]
-    public virtual async Task<IActionResult> BackInStockSubscriptionList(CustomerBackInStockSubscriptionSearchModel searchModel)
-    {
-        //try to get a customer with the specified id
-        var customer = await _customerService.GetCustomerByIdAsync(searchModel.CustomerId)
-            ?? throw new ArgumentException("No customer found with the specified id");
-
-        //prepare model
-        var model = await _customerModelFactory.PrepareCustomerBackInStockSubscriptionListModelAsync(searchModel, customer);
-
-        return Json(model);
-    }
-
-    #endregion
+    //#region Back in stock subscriptions
+    //
+    //[HttpPost]
+    //[CheckPermission(StandardPermission.Customers.CUSTOMERS_VIEW)]
+    //public virtual async Task<IActionResult> BackInStockSubscriptionList(CustomerBackInStockSubscriptionSearchModel searchModel)
+    //{
+    //    //try to get a customer with the specified id
+    //    var customer = await _customerService.GetCustomerByIdAsync(searchModel.CustomerId)
+    //        ?? throw new ArgumentException("No customer found with the specified id");
+    //
+    //    //prepare model
+    //    var model = await _customerModelFactory.PrepareCustomerBackInStockSubscriptionListModelAsync(searchModel, customer);
+    //
+    //    return Json(model);
+    //}
+    //
+    //#endregion
 
     #region GDPR
 

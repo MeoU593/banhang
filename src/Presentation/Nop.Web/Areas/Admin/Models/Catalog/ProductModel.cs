@@ -246,8 +246,8 @@ public partial record ProductModel : BaseNopEntityModel,
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.BackorderMode")]
     public int BackorderModeId { get; set; }
 
-    [NopResourceDisplayName("Admin.Catalog.Products.Fields.AllowBackInStockSubscriptions")]
-    public bool AllowBackInStockSubscriptions { get; set; }
+    //[NopResourceDisplayName("Admin.Catalog.Products.Fields.AllowBackInStockSubscriptions")]
+    //public bool AllowBackInStockSubscriptions { get; set; }
 
     [NopResourceDisplayName("Admin.Catalog.Products.Fields.OrderMinimumQuantity")]
     public int OrderMinimumQuantity { get; set; }

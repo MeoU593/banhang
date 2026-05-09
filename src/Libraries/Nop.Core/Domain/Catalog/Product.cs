@@ -346,11 +346,6 @@ public partial class Product : BaseEntity, ILocalizedEntity, ISlugSupported, IAc
     public int BackorderModeId { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to back in stock subscriptions are allowed
-    /// </summary>
-    public bool AllowBackInStockSubscriptions { get; set; }
-
-    /// <summary>
     /// Gets or sets the order minimum quantity
     /// </summary>
     public int OrderMinimumQuantity { get; set; }

@@ -1510,7 +1510,7 @@ public partial class ProductModelFactory : IProductModelFactory
             case ManageInventoryMethod.ManageStock:
                 model.InStock = product.BackorderMode != BackorderMode.NoBackorders
                                 || await _productService.GetTotalStockQuantityAsync(product) > 0;
-                model.DisplayBackInStockSubscription = !model.InStock && product.AllowBackInStockSubscriptions;
+                //model.DisplayBackInStockSubscription = !model.InStock && product.AllowBackInStockSubscriptions;
                 break;
 
             case ManageInventoryMethod.ManageStockByAttributes:

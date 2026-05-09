@@ -8,8 +8,6 @@
     const string hideCustomersBlockAttributeName = "AffiliatePage.HideCustomersBlock";
     var hideCustomersBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideCustomersBlockAttributeName, defaultValue: true);
 
-    const string hideOrdersBlockAttributeName = "AffiliatePage.HideOrdersBlock";
-    var hideOrdersBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideOrdersBlockAttributeName, defaultValue: true);
 }
 
 <div asp-validation-summary="All"></div>
@@ -23,7 +21,6 @@
                 @if (Model.Id > 0)
                 {
                     <nop-card asp-name="affiliate-customers" asp-icon="fas fa-user" asp-title="@T("Admin.Affiliates.Customers")" asp-hide-block-attribute-name="@hideCustomersBlockAttributeName" asp-hide="@hideCustomersBlock">@await Html.PartialAsync("_CreateOrUpdate.Customers", Model)</nop-card>
-                    <nop-card asp-name="affiliate-orders" asp-icon="fas fa-cart-plus" asp-title="@T("Admin.Affiliates.Orders")" asp-hide-block-attribute-name="@hideOrdersBlockAttributeName" asp-hide="@hideOrdersBlock">@await Html.PartialAsync("_CreateOrUpdate.Orders", Model)</nop-card>
                 }
 
                 @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.AffiliateDetailsBlock, additionalData = Model })

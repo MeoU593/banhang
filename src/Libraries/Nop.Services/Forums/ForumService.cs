@@ -34,7 +34,6 @@ public partial class ForumService : IForumService
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
     protected readonly SeoSettings _seoSettings;
 
     #endregion
@@ -56,7 +55,6 @@ public partial class ForumService : IForumService
         IStaticCacheManager staticCacheManager,
         IUrlRecordService urlRecordService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         SeoSettings seoSettings)
     {
         _forumSettings = forumSettings;
@@ -74,7 +72,6 @@ public partial class ForumService : IForumService
         _staticCacheManager = staticCacheManager;
         _urlRecordService = urlRecordService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
         _seoSettings = seoSettings;
     }
 

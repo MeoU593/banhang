@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.Internal;
 using Nop.Core.Configuration;
 using Nop.Core.Domain.Affiliates;
@@ -46,7 +46,7 @@ using Nop.Web.Areas.Admin.Models.Localization;
 using Nop.Web.Areas.Admin.Models.Logging;
 using Nop.Web.Areas.Admin.Models.Menus;
 using Nop.Web.Areas.Admin.Models.MultiFactorAuthentication;
-using Nop.Web.Areas.Admin.Models.Orders;
+//using Nop.Web.Areas.Admin.Models.Orders;
 using Nop.Web.Areas.Admin.Models.Payments;
 using Nop.Web.Areas.Admin.Models.Plugins;
 using Nop.Web.Areas.Admin.Models.Settings;
@@ -1110,114 +1110,114 @@ public partial class AdminMapperConfiguration : Profile, IOrderedMapperProfile
             .ForMember(model => model.OrderTotal, options => options.Ignore())
             .ForMember(model => model.StoreName, options => options.Ignore());
 
-        CreateMap<OrderNote, OrderNoteModel>()
-            .ForMember(model => model.DownloadGuid, options => options.Ignore())
-            .ForMember(model => model.CreatedOn, options => options.Ignore());
+        //CreateMap<OrderNote, OrderNoteModel>()
+        //    .ForMember(model => model.DownloadGuid, options => options.Ignore())
+        //    .ForMember(model => model.CreatedOn, options => options.Ignore());
 
-        CreateMap<CheckoutAttribute, CheckoutAttributeModel>()
-            .ForMember(model => model.AttributeControlTypeName, options => options.Ignore())
-            .ForMember(model => model.CheckoutAttributeValueSearchModel, options => options.Ignore())
-            .ForMember(model => model.ConditionAllowed, options => options.Ignore())
-            .ForMember(model => model.ConditionModel, options => options.Ignore());
-        CreateMap<CheckoutAttributeModel, CheckoutAttribute>()
-            .ForMember(entity => entity.AttributeControlType, options => options.Ignore())
-            .ForMember(entity => entity.ConditionAttributeXml, options => options.Ignore());
+        //CreateMap<CheckoutAttribute, CheckoutAttributeModel>()
+        //    .ForMember(model => model.AttributeControlTypeName, options => options.Ignore())
+        //    .ForMember(model => model.CheckoutAttributeValueSearchModel, options => options.Ignore())
+        //    .ForMember(model => model.ConditionAllowed, options => options.Ignore())
+        //    .ForMember(model => model.ConditionModel, options => options.Ignore());
+        //CreateMap<CheckoutAttributeModel, CheckoutAttribute>()
+        //    .ForMember(entity => entity.AttributeControlType, options => options.Ignore())
+        //    .ForMember(entity => entity.ConditionAttributeXml, options => options.Ignore());
 
-        CreateMap<CheckoutAttributeValue, CheckoutAttributeValueModel>()
-            .ForMember(model => model.BaseWeightIn, options => options.Ignore())
-            .ForMember(model => model.DisplayColorSquaresRgb, options => options.Ignore())
-            .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore());
-        CreateMap<CheckoutAttributeValueModel, CheckoutAttributeValue>();
+        //CreateMap<CheckoutAttributeValue, CheckoutAttributeValueModel>()
+        //    .ForMember(model => model.BaseWeightIn, options => options.Ignore())
+        //    .ForMember(model => model.DisplayColorSquaresRgb, options => options.Ignore())
+        //    .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore());
+        //CreateMap<CheckoutAttributeValueModel, CheckoutAttributeValue>();
 
-        CreateMap<GiftCard, GiftCardModel>()
-            .ForMember(model => model.AmountStr, options => options.Ignore())
-            .ForMember(model => model.CreatedOn, options => options.Ignore())
-            .ForMember(model => model.GiftCardUsageHistorySearchModel, options => options.Ignore())
-            .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore())
-            .ForMember(model => model.PurchasedWithOrderId, options => options.Ignore())
-            .ForMember(model => model.PurchasedWithOrderNumber, options => options.Ignore())
-            .ForMember(model => model.RemainingAmountStr, options => options.Ignore());
-        CreateMap<GiftCardModel, GiftCard>()
-            .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
-            .ForMember(entity => entity.GiftCardType, options => options.Ignore())
-            .ForMember(entity => entity.IsRecipientNotified, options => options.Ignore())
-            .ForMember(entity => entity.PurchasedWithOrderItemId, options => options.Ignore());
+        //CreateMap<GiftCard, GiftCardModel>()
+        //    .ForMember(model => model.AmountStr, options => options.Ignore())
+        //    .ForMember(model => model.CreatedOn, options => options.Ignore())
+        //    .ForMember(model => model.GiftCardUsageHistorySearchModel, options => options.Ignore())
+        //    .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore())
+        //    .ForMember(model => model.PurchasedWithOrderId, options => options.Ignore())
+        //    .ForMember(model => model.PurchasedWithOrderNumber, options => options.Ignore())
+        //    .ForMember(model => model.RemainingAmountStr, options => options.Ignore());
+        //CreateMap<GiftCardModel, GiftCard>()
+        //    .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
+        //    .ForMember(entity => entity.GiftCardType, options => options.Ignore())
+        //    .ForMember(entity => entity.IsRecipientNotified, options => options.Ignore())
+        //    .ForMember(entity => entity.PurchasedWithOrderItemId, options => options.Ignore());
 
-        CreateMap<GiftCardUsageHistory, GiftCardUsageHistoryModel>()
-            .ForMember(model => model.OrderId, options => options.Ignore())
-            .ForMember(model => model.CustomOrderNumber, options => options.Ignore())
-            .ForMember(entity => entity.CreatedOn, options => options.Ignore())
-            .ForMember(entity => entity.UsedValue, options => options.Ignore());
+        //CreateMap<GiftCardUsageHistory, GiftCardUsageHistoryModel>()
+        //    .ForMember(model => model.OrderId, options => options.Ignore())
+        //    .ForMember(model => model.CustomOrderNumber, options => options.Ignore())
+        //    .ForMember(entity => entity.CreatedOn, options => options.Ignore())
+        //    .ForMember(entity => entity.UsedValue, options => options.Ignore());
 
-        CreateMap<OrderSettings, OrderSettingsModel>()
-            .ForMember(model => model.AllowAdminsToBuyCallForPriceProducts_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AllowCustomersCancelOrders_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.ShowProductThumbnailInOrderDetailsPage_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AnonymousCheckoutAllowed_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AttachPdfInvoiceToOrderProcessingEmail_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AttachPdfInvoiceToOrderCompletedEmail_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AttachPdfInvoiceToOrderPaidEmail_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AttachPdfInvoiceToOrderPlacedEmail_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.AutoUpdateOrderTotalsOnEditingOrder_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.CheckoutDisabled_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.CustomOrderNumberMask_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.DeleteGiftCardUsageHistory_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.DisableBillingAddressCheckoutStep_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.DisableOrderCompletedPage_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.DisplayPickupInStoreOnShippingMethodPage_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.ExportWithProducts_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.IsReOrderAllowed_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.MinOrderSubtotalAmountIncludingTax_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.MinOrderSubtotalAmount_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.MinOrderTotalAmount_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.NumberOfDaysReturnRequestAvailable_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.OnePageCheckoutEnabled_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.OrderIdent, options => options.Ignore())
-            .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestActionSearchModel, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestNumberMask_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestReasonSearchModel, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestsAllowFiles_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestsEnabled_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.TermsOfServiceOnOrderConfirmPage_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.TermsOfServiceOnShoppingCartPage_OverrideForStore, options => options.Ignore())
-            .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore());
-        CreateMap<OrderSettingsModel, OrderSettings>()
-            .ForMember(settings => settings.GeneratePdfInvoiceInCustomerLanguage, options => options.Ignore())
-            .ForMember(settings => settings.MinimumOrderPlacementInterval, options => options.Ignore())
-            .ForMember(settings => settings.DisplayCustomerCurrencyOnOrders, options => options.Ignore())
-            .ForMember(settings => settings.ReturnRequestsFileMaximumSize, options => options.Ignore())
-            .ForMember(settings => settings.DisplayOrderSummary, options => options.Ignore())
-            .ForMember(settings => settings.PlaceOrderWithLock, options => options.Ignore())
-            .ForMember(settings => settings.CustomerOrdersPageSize, options => options.Ignore());
+        //CreateMap<OrderSettings, OrderSettingsModel>()
+        //    .ForMember(model => model.AllowAdminsToBuyCallForPriceProducts_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AllowCustomersCancelOrders_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.ShowProductThumbnailInOrderDetailsPage_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AnonymousCheckoutAllowed_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AttachPdfInvoiceToOrderProcessingEmail_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AttachPdfInvoiceToOrderCompletedEmail_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AttachPdfInvoiceToOrderPaidEmail_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AttachPdfInvoiceToOrderPlacedEmail_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.AutoUpdateOrderTotalsOnEditingOrder_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.CheckoutDisabled_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.CustomOrderNumberMask_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.DeleteGiftCardUsageHistory_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.DisableBillingAddressCheckoutStep_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.DisableOrderCompletedPage_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.DisplayPickupInStoreOnShippingMethodPage_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.ExportWithProducts_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.IsReOrderAllowed_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.MinOrderSubtotalAmountIncludingTax_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.MinOrderSubtotalAmount_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.MinOrderTotalAmount_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.NumberOfDaysReturnRequestAvailable_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.OnePageCheckoutEnabled_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.OrderIdent, options => options.Ignore())
+        //    .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestActionSearchModel, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestNumberMask_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestReasonSearchModel, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestsAllowFiles_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestsEnabled_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.TermsOfServiceOnOrderConfirmPage_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.TermsOfServiceOnShoppingCartPage_OverrideForStore, options => options.Ignore())
+        //    .ForMember(model => model.PrimaryStoreCurrencyCode, options => options.Ignore());
+        //CreateMap<OrderSettingsModel, OrderSettings>()
+        //    .ForMember(settings => settings.GeneratePdfInvoiceInCustomerLanguage, options => options.Ignore())
+        //    .ForMember(settings => settings.MinimumOrderPlacementInterval, options => options.Ignore())
+        //    .ForMember(settings => settings.DisplayCustomerCurrencyOnOrders, options => options.Ignore())
+        //    .ForMember(settings => settings.ReturnRequestsFileMaximumSize, options => options.Ignore())
+        //    .ForMember(settings => settings.DisplayOrderSummary, options => options.Ignore())
+        //    .ForMember(settings => settings.PlaceOrderWithLock, options => options.Ignore())
+        //    .ForMember(settings => settings.CustomerOrdersPageSize, options => options.Ignore());
 
-        CreateMap<ReturnRequestAction, ReturnRequestActionModel>();
-        CreateMap<ReturnRequestActionModel, ReturnRequestAction>();
+        //CreateMap<ReturnRequestAction, ReturnRequestActionModel>();
+        //CreateMap<ReturnRequestActionModel, ReturnRequestAction>();
 
-        CreateMap<ReturnRequestReason, ReturnRequestReasonModel>();
-        CreateMap<ReturnRequestReasonModel, ReturnRequestReason>();
+        //CreateMap<ReturnRequestReason, ReturnRequestReasonModel>();
+        //CreateMap<ReturnRequestReasonModel, ReturnRequestReason>();
 
-        CreateMap<ReturnRequest, ReturnRequestModel>()
-            .ForMember(model => model.CreatedOn, options => options.Ignore())
-            .ForMember(model => model.CustomerInfo, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestStatusStr, options => options.Ignore())
-            .ForMember(model => model.ProductId, options => options.Ignore())
-            .ForMember(model => model.ProductName, options => options.Ignore())
-            .ForMember(model => model.OrderId, options => options.Ignore())
-            .ForMember(model => model.AttributeInfo, options => options.Ignore())
-            .ForMember(model => model.CustomOrderNumber, options => options.Ignore())
-            .ForMember(model => model.UploadedFileGuid, options => options.Ignore())
-            .ForMember(model => model.ReturnRequestStatusStr, options => options.Ignore());
-        CreateMap<ReturnRequestModel, ReturnRequest>()
-            .ForMember(entity => entity.CustomNumber, options => options.Ignore())
-            .ForMember(entity => entity.StoreId, options => options.Ignore())
-            .ForMember(entity => entity.OrderItemId, options => options.Ignore())
-            .ForMember(entity => entity.UploadedFileId, options => options.Ignore())
-            .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
-            .ForMember(entity => entity.ReturnRequestStatus, options => options.Ignore())
-            .ForMember(entity => entity.CustomerId, options => options.Ignore())
-            .ForMember(entity => entity.UpdatedOnUtc, options => options.Ignore());
+        //CreateMap<ReturnRequest, ReturnRequestModel>()
+        //    .ForMember(model => model.CreatedOn, options => options.Ignore())
+        //    .ForMember(model => model.CustomerInfo, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestStatusStr, options => options.Ignore())
+        //    .ForMember(model => model.ProductId, options => options.Ignore())
+        //    .ForMember(model => model.ProductName, options => options.Ignore())
+        //    .ForMember(model => model.OrderId, options => options.Ignore())
+        //    .ForMember(model => model.AttributeInfo, options => options.Ignore())
+        //    .ForMember(model => model.CustomOrderNumber, options => options.Ignore())
+        //    .ForMember(model => model.UploadedFileGuid, options => options.Ignore())
+        //    .ForMember(model => model.ReturnRequestStatusStr, options => options.Ignore());
+        //CreateMap<ReturnRequestModel, ReturnRequest>()
+        //    .ForMember(entity => entity.CustomNumber, options => options.Ignore())
+        //    .ForMember(entity => entity.StoreId, options => options.Ignore())
+        //    .ForMember(entity => entity.OrderItemId, options => options.Ignore())
+        //    .ForMember(entity => entity.UploadedFileId, options => options.Ignore())
+        //    .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
+        //    .ForMember(entity => entity.ReturnRequestStatus, options => options.Ignore())
+        //    .ForMember(entity => entity.CustomerId, options => options.Ignore())
+        //    .ForMember(entity => entity.UpdatedOnUtc, options => options.Ignore());
 
     }
 
@@ -1229,31 +1229,31 @@ public partial class AdminMapperConfiguration : Profile, IOrderedMapperProfile
         CreateMap<IPaymentMethod, PaymentMethodModel>()
             .ForMember(model => model.RecurringPaymentType, options => options.Ignore());
 
-        CreateMap<RecurringPayment, RecurringPaymentModel>()
-            .ForMember(model => model.CustomerId, options => options.Ignore())
-            .ForMember(model => model.InitialOrderId, options => options.Ignore())
-            .ForMember(model => model.NextPaymentDate, options => options.Ignore())
-            .ForMember(model => model.StartDate, options => options.Ignore())
-            .ForMember(model => model.CyclePeriodStr, options => options.Ignore())
-            .ForMember(model => model.PaymentType, options => options.Ignore())
-            .ForMember(model => model.CanCancelRecurringPayment, options => options.Ignore())
-            .ForMember(model => model.CustomerEmail, options => options.Ignore())
-            .ForMember(model => model.RecurringPaymentHistorySearchModel, options => options.Ignore())
-            .ForMember(model => model.CyclesRemaining, options => options.Ignore());
+        //CreateMap<RecurringPayment, RecurringPaymentModel>()
+        //    .ForMember(model => model.CustomerId, options => options.Ignore())
+        //    .ForMember(model => model.InitialOrderId, options => options.Ignore())
+        //    .ForMember(model => model.NextPaymentDate, options => options.Ignore())
+        //    .ForMember(model => model.StartDate, options => options.Ignore())
+        //    .ForMember(model => model.CyclePeriodStr, options => options.Ignore())
+        //    .ForMember(model => model.PaymentType, options => options.Ignore())
+        //    .ForMember(model => model.CanCancelRecurringPayment, options => options.Ignore())
+        //    .ForMember(model => model.CustomerEmail, options => options.Ignore())
+        //    .ForMember(model => model.RecurringPaymentHistorySearchModel, options => options.Ignore())
+        //    .ForMember(model => model.CyclesRemaining, options => options.Ignore());
 
-        CreateMap<RecurringPaymentModel, RecurringPayment>()
-            .ForMember(entity => entity.StartDateUtc, options => options.Ignore())
-            .ForMember(entity => entity.Deleted, options => options.Ignore())
-            .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
-            .ForMember(entity => entity.CyclePeriod, options => options.Ignore())
-            .ForMember(entity => entity.InitialOrderId, options => options.Ignore());
+        //CreateMap<RecurringPaymentModel, RecurringPayment>()
+        //    .ForMember(entity => entity.StartDateUtc, options => options.Ignore())
+        //    .ForMember(entity => entity.Deleted, options => options.Ignore())
+        //    .ForMember(entity => entity.CreatedOnUtc, options => options.Ignore())
+        //    .ForMember(entity => entity.CyclePeriod, options => options.Ignore())
+        //    .ForMember(entity => entity.InitialOrderId, options => options.Ignore());
 
-        CreateMap<RecurringPaymentHistory, RecurringPaymentHistoryModel>()
-            .ForMember(model => model.CreatedOn, options => options.Ignore())
-            .ForMember(model => model.OrderStatus, options => options.Ignore())
-            .ForMember(model => model.PaymentStatus, options => options.Ignore())
-            .ForMember(model => model.ShippingStatus, options => options.Ignore())
-            .ForMember(model => model.CustomOrderNumber, options => options.Ignore());
+        //CreateMap<RecurringPaymentHistory, RecurringPaymentHistoryModel>()
+        //    .ForMember(model => model.CreatedOn, options => options.Ignore())
+        //    .ForMember(model => model.OrderStatus, options => options.Ignore())
+        //    .ForMember(model => model.PaymentStatus, options => options.Ignore())
+        //    .ForMember(model => model.ShippingStatus, options => options.Ignore())
+        //    .ForMember(model => model.CustomOrderNumber, options => options.Ignore());
     }
 
     /// <summary>
@@ -1464,3 +1464,4 @@ public partial class AdminMapperConfiguration : Profile, IOrderedMapperProfile
 
     #endregion
 }
+

@@ -2324,9 +2324,9 @@ public partial class ImportManager : IImportManager
                     case "BackorderMode":
                         product.BackorderModeId = property.IntValue;
                         break;
-                    case "AllowBackInStockSubscriptions":
-                        product.AllowBackInStockSubscriptions = property.BooleanValue;
-                        break;
+                    //case "AllowBackInStockSubscriptions":
+                    //    product.AllowBackInStockSubscriptions = property.BooleanValue;
+                    //    break;
                     case "OrderMinimumQuantity":
                         product.OrderMinimumQuantity = property.IntValue;
                         break;
@@ -2478,17 +2478,17 @@ public partial class ImportManager : IImportManager
                 await _productService.AddStockQuantityHistoryEntryAsync(product, product.StockQuantity, product.StockQuantity, product.WarehouseId, message);
             }
 
-            if (!isNew &&
-                product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
-                product.BackorderMode == BackorderMode.NoBackorders &&
-                product.AllowBackInStockSubscriptions &&
-                await _productService.GetTotalStockQuantityAsync(product) > 0 &&
-                prevTotalStockQuantity <= 0 &&
-                product.Published &&
-                !product.Deleted)
-            {
-                await _backInStockSubscriptionService.SendNotificationsToSubscribersAsync(product);
-            }
+            //if (!isNew &&
+            //    product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
+            //    product.BackorderMode == BackorderMode.NoBackorders &&
+            //    product.AllowBackInStockSubscriptions &&
+            //    await _productService.GetTotalStockQuantityAsync(product) > 0 &&
+            //    prevTotalStockQuantity <= 0 &&
+            //    product.Published &&
+            //    !product.Deleted)
+            //{
+            //    await _backInStockSubscriptionService.SendNotificationsToSubscribersAsync(product);
+            //}
 
             var tempProperty = metadata.Manager.GetDefaultProperty("SeName");
 

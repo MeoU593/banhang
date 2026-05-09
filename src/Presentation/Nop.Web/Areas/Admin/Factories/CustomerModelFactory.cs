@@ -907,48 +907,48 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         return model;
     }
 
-    /// <summary>
-    /// Prepare paged customer back in stock subscriptions list model
-    /// </summary>
-    /// <param name="searchModel">Customer back in stock subscriptions search model</param>
-    /// <param name="customer">Customer</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the customer back in stock subscriptions list model
-    /// </returns>
-    public virtual async Task<CustomerBackInStockSubscriptionListModel> PrepareCustomerBackInStockSubscriptionListModelAsync(
-        CustomerBackInStockSubscriptionSearchModel searchModel, Customer customer)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-
-        ArgumentNullException.ThrowIfNull(customer);
-
-        //get customer back in stock subscriptions
-        var subscriptions = await _backInStockSubscriptionService.GetAllSubscriptionsByCustomerIdAsync(customer.Id,
-            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
-
-        //prepare list model
-        var model = await new CustomerBackInStockSubscriptionListModel().PrepareToGridAsync(searchModel, subscriptions, () =>
-        {
-            return subscriptions.SelectAwait(async subscription =>
-            {
-                //fill in model values from the entity
-                var subscriptionModel = subscription.ToModel<CustomerBackInStockSubscriptionModel>();
-
-                //convert dates to the user time
-                subscriptionModel.CreatedOn =
-                    await _dateTimeHelper.ConvertToUserTimeAsync(subscription.CreatedOnUtc, DateTimeKind.Utc);
-
-                //fill in additional values (not existing in the entity)
-                subscriptionModel.StoreName = (await _storeService.GetStoreByIdAsync(subscription.StoreId))?.Name ?? "Unknown";
-                subscriptionModel.ProductName = (await _productService.GetProductByIdAsync(subscription.ProductId))?.Name ?? "Unknown";
-
-                return subscriptionModel;
-            });
-        });
-
-        return model;
-    }
+    ///// <summary>
+    ///// Prepare paged customer back in stock subscriptions list model
+    ///// </summary>
+    ///// <param name="searchModel">Customer back in stock subscriptions search model</param>
+    ///// <param name="customer">Customer</param>
+    ///// <returns>
+    ///// A task that represents the asynchronous operation
+    ///// The task result contains the customer back in stock subscriptions list model
+    ///// </returns>
+    //public virtual async Task<CustomerBackInStockSubscriptionListModel> PrepareCustomerBackInStockSubscriptionListModelAsync(
+    //    CustomerBackInStockSubscriptionSearchModel searchModel, Customer customer)
+    //{
+    //    ArgumentNullException.ThrowIfNull(searchModel);
+    //
+    //    ArgumentNullException.ThrowIfNull(customer);
+    //
+    //    //get customer back in stock subscriptions
+    //    var subscriptions = await _backInStockSubscriptionService.GetAllSubscriptionsByCustomerIdAsync(customer.Id,
+    //        pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
+    //
+    //    //prepare list model
+    //    var model = await new CustomerBackInStockSubscriptionListModel().PrepareToGridAsync(searchModel, subscriptions, () =>
+    //    {
+    //        return subscriptions.SelectAwait(async subscription =>
+    //        {
+    //            //fill in model values from the entity
+    //            var subscriptionModel = subscription.ToModel<CustomerBackInStockSubscriptionModel>();
+    //
+    //            //convert dates to the user time
+    //            subscriptionModel.CreatedOn =
+    //                await _dateTimeHelper.ConvertToUserTimeAsync(subscription.CreatedOnUtc, DateTimeKind.Utc);
+    //
+    //            //fill in additional values (not existing in the entity)
+    //            subscriptionModel.StoreName = (await _storeService.GetStoreByIdAsync(subscription.StoreId))?.Name ?? "Unknown";
+    //            subscriptionModel.ProductName = (await _productService.GetProductByIdAsync(subscription.ProductId))?.Name ?? "Unknown";
+    //
+    //            return subscriptionModel;
+    //        });
+    //    });
+    //
+    //    return model;
+    //}
 
     /// <summary>
     /// Prepare online customer search model

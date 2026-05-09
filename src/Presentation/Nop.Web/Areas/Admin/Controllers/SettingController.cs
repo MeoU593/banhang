@@ -14,7 +14,7 @@ using Nop.Core.Domain.Forums;
 using Nop.Core.Domain.Gdpr;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Media;
-using Nop.Core.Domain.Orders;
+//using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
 using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Translation;
@@ -33,7 +33,7 @@ using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Media;
 using Nop.Services.Messages;
-using Nop.Services.Orders;
+//using Nop.Services.Orders;
 using Nop.Services.Plugins;
 using Nop.Services.Security;
 using Nop.Services.Stores;
@@ -68,9 +68,9 @@ public partial class SettingController : BaseAdminController
     protected readonly IMultiFactorAuthenticationPluginManager _multiFactorAuthenticationPluginManager;
     protected readonly INopFileProvider _fileProvider;
     protected readonly INotificationService _notificationService;
-    protected readonly IOrderService _orderService;
+    //protected readonly IOrderService _orderService;
     protected readonly IPictureService _pictureService;
-    protected readonly ISettingModelFactory _settingModelFactory;
+    //protected readonly ISettingModelFactory _settingModelFactory;
     protected readonly ISettingService _settingService;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreService _storeService;
@@ -97,9 +97,9 @@ public partial class SettingController : BaseAdminController
         IMultiFactorAuthenticationPluginManager multiFactorAuthenticationPluginManager,
         INopFileProvider fileProvider,
         INotificationService notificationService,
-        IOrderService orderService,
+        //IOrderService orderService,
         IPictureService pictureService,
-        ISettingModelFactory settingModelFactory,
+        //ISettingModelFactory settingModelFactory,
         ISettingService settingService,
         IStoreContext storeContext,
         IStoreService storeService,
@@ -121,9 +121,9 @@ public partial class SettingController : BaseAdminController
         _multiFactorAuthenticationPluginManager = multiFactorAuthenticationPluginManager;
         _fileProvider = fileProvider;
         _notificationService = notificationService;
-        _orderService = orderService;
+        //_orderService = orderService;
         _pictureService = pictureService;
-        _settingModelFactory = settingModelFactory;
+        //_settingModelFactory = settingModelFactory;
         _settingService = settingService;
         _storeContext = storeContext;
         _storeService = storeService;
@@ -198,7 +198,8 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AppSettings()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareAppSettingsModel();
+        //var model = new AppSettingsModel();
+        var model = new AppSettingsModel();
 
         return View(model);
     }
@@ -236,7 +237,8 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareAppSettingsModel(model);
+        //model = new AppSettingsModel();
+        model = new AppSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -246,7 +248,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Blog()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareBlogSettingsModelAsync();
+        var model = new BlogSettingsModel();
 
         return View(model);
     }
@@ -286,7 +288,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareBlogSettingsModelAsync(model);
+        model = new BlogSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -296,7 +298,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Vendor()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareVendorSettingsModelAsync();
+        var model = new VendorSettingsModel();
 
         return View(model);
     }
@@ -339,7 +341,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareVendorSettingsModelAsync(model);
+        model = new VendorSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -349,7 +351,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Forum()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareForumSettingsModelAsync();
+        var model = new ForumSettingsModel();
 
         return View(model);
     }
@@ -404,7 +406,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareForumSettingsModelAsync(model);
+        model = new ForumSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -414,7 +416,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Catalog()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareCatalogSettingsModelAsync();
+        var model = new CatalogSettingsModel();
 
         return View(model);
     }
@@ -568,7 +570,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareCatalogSettingsModelAsync(model);
+        model = new CatalogSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -580,7 +582,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> FilterLevel()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareFilterLevelSettingsModelAsync();
+        var model = new FilterLevelSettingsModel();
 
         return View(model);
     }
@@ -611,7 +613,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareFilterLevelSettingsModelAsync(model);
+        model = new FilterLevelSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -622,7 +624,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> FilterLevelList(FilterLevelSearchModel searchModel)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareFilterLevelListModelAsync(searchModel);
+        var model = new FilterLevelSearchModel();
 
         return Json(model);
     }
@@ -631,7 +633,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> EditFilterLevel(int id)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareFilterLevelModelAsync(null, (FilterLevelEnum)id);
+        var model = new FilterLevelModel();
 
         return View(model);
     }
@@ -699,7 +701,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareFilterLevelModelAsync(model, (FilterLevelEnum)model.Id, true);
+        model = new FilterLevelModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -712,7 +714,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> SortOptionsList(SortOptionSearchModel searchModel)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareSortOptionListModelAsync(searchModel);
+        var model = new SortOptionSearchModel();
 
         return Json(model);
     }
@@ -739,98 +741,98 @@ public partial class SettingController : BaseAdminController
         return new NullJsonResult();
     }
 
-    [CheckPermission(StandardPermission.Configuration.MANAGE_SETTINGS)]
-    public virtual async Task<IActionResult> Order()
-    {
-        //prepare model
-        var model = await _settingModelFactory.PrepareOrderSettingsModelAsync();
-
-        return View(model);
-    }
-
-    [HttpPost]
-    [CheckPermission(StandardPermission.Configuration.MANAGE_SETTINGS)]
-    public virtual async Task<IActionResult> Order(OrderSettingsModel model)
-    {
-        if (ModelState.IsValid)
-        {
-            //load settings for a chosen store scope
-            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
-            var orderSettings = await _settingService.LoadSettingAsync<OrderSettings>(storeScope);
-            orderSettings = model.ToSettings(orderSettings);
-
-            //we do not clear cache after each setting update.
-            //this behavior can increase performance because cached settings will not be cleared 
-            //and loaded from database after each update
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.IsReOrderAllowed, model.IsReOrderAllowed_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderSubtotalAmount, model.MinOrderSubtotalAmount_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderSubtotalAmountIncludingTax, model.MinOrderSubtotalAmountIncludingTax_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderTotalAmount, model.MinOrderTotalAmount_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AutoUpdateOrderTotalsOnEditingOrder, model.AutoUpdateOrderTotalsOnEditingOrder_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AnonymousCheckoutAllowed, model.AnonymousCheckoutAllowed_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.CheckoutDisabled, model.CheckoutDisabled_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.TermsOfServiceOnShoppingCartPage, model.TermsOfServiceOnShoppingCartPage_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.TermsOfServiceOnOrderConfirmPage, model.TermsOfServiceOnOrderConfirmPage_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.OnePageCheckoutEnabled, model.OnePageCheckoutEnabled_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab, model.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisableBillingAddressCheckoutStep, model.DisableBillingAddressCheckoutStep_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisableOrderCompletedPage, model.DisableOrderCompletedPage_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisplayPickupInStoreOnShippingMethodPage, model.DisplayPickupInStoreOnShippingMethodPage_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPlacedEmail, model.AttachPdfInvoiceToOrderPlacedEmail_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPaidEmail, model.AttachPdfInvoiceToOrderPaidEmail_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderProcessingEmail, model.AttachPdfInvoiceToOrderProcessingEmail_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderCompletedEmail, model.AttachPdfInvoiceToOrderCompletedEmail_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestsEnabled, model.ReturnRequestsEnabled_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestsAllowFiles, model.ReturnRequestsAllowFiles_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestNumberMask, model.ReturnRequestNumberMask_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.NumberOfDaysReturnRequestAvailable, model.NumberOfDaysReturnRequestAvailable_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.CustomOrderNumberMask, model.CustomOrderNumberMask_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ExportWithProducts, model.ExportWithProducts_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AllowAdminsToBuyCallForPriceProducts, model.AllowAdminsToBuyCallForPriceProducts_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AllowCustomersCancelOrders, model.AllowCustomersCancelOrders_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ShowProductThumbnailInOrderDetailsPage, model.ShowProductThumbnailInOrderDetailsPage_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DeleteGiftCardUsageHistory, model.DeleteGiftCardUsageHistory_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingAsync(orderSettings, x => x.ActivateGiftCardsAfterCompletingOrder, 0, false);
-            await _settingService.SaveSettingAsync(orderSettings, x => x.DeactivateGiftCardsAfterCancellingOrder, 0, false);
-            await _settingService.SaveSettingAsync(orderSettings, x => x.DeactivateGiftCardsAfterDeletingOrder, 0, false);
-            await _settingService.SaveSettingAsync(orderSettings, x => x.CompleteOrderWhenDelivered, 0, false);
-
-            //now clear settings cache
-            await _settingService.ClearCacheAsync();
-
-            //order ident
-            if (model.OrderIdent.HasValue)
-            {
-                try
-                {
-                    await _dataProvider.SetTableIdentAsync<Order>(model.OrderIdent.Value);
-                }
-                catch (Exception exc)
-                {
-                    _notificationService.ErrorNotification(exc.Message);
-                }
-            }
-
-            //activity log
-            await _customerActivityService.InsertActivityAsync("EditSettings", await _localizationService.GetResourceAsync("ActivityLog.EditSettings"));
-
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Configuration.Updated"));
-
-            return RedirectToAction("Order");
-        }
-
-        //prepare model
-        model = await _settingModelFactory.PrepareOrderSettingsModelAsync(model);
-
-        //if we got this far, something failed, redisplay form
-        return View(model);
-    }
+    //[CheckPermission(StandardPermission.Configuration.MANAGE_SETTINGS)]
+    //public virtual async Task<IActionResult> Order()
+    //{
+    //    //prepare model
+    //    var model = await _settingModelFactory.PrepareOrderSettingsModelAsync();
+    //
+    //    return View(model);
+    //}
+    //
+    //[HttpPost]
+    //[CheckPermission(StandardPermission.Configuration.MANAGE_SETTINGS)]
+    //public virtual async Task<IActionResult> Order(OrderSettingsModel model)
+    //{
+    //    if (ModelState.IsValid)
+    //    {
+    //        //load settings for a chosen store scope
+    //        var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
+    //        var orderSettings = await _settingService.LoadSettingAsync<OrderSettings>(storeScope);
+    //        orderSettings = model.ToSettings(orderSettings);
+    //
+    //        //we do not clear cache after each setting update.
+    //        //this behavior can increase performance because cached settings will not be cleared
+    //        //and loaded from database after each update
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.IsReOrderAllowed, model.IsReOrderAllowed_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderSubtotalAmount, model.MinOrderSubtotalAmount_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderSubtotalAmountIncludingTax, model.MinOrderSubtotalAmountIncludingTax_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.MinOrderTotalAmount, model.MinOrderTotalAmount_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AutoUpdateOrderTotalsOnEditingOrder, model.AutoUpdateOrderTotalsOnEditingOrder_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AnonymousCheckoutAllowed, model.AnonymousCheckoutAllowed_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.CheckoutDisabled, model.CheckoutDisabled_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.TermsOfServiceOnShoppingCartPage, model.TermsOfServiceOnShoppingCartPage_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.TermsOfServiceOnOrderConfirmPage, model.TermsOfServiceOnOrderConfirmPage_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.OnePageCheckoutEnabled, model.OnePageCheckoutEnabled_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab, model.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisableBillingAddressCheckoutStep, model.DisableBillingAddressCheckoutStep_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisableOrderCompletedPage, model.DisableOrderCompletedPage_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DisplayPickupInStoreOnShippingMethodPage, model.DisplayPickupInStoreOnShippingMethodPage_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPlacedEmail, model.AttachPdfInvoiceToOrderPlacedEmail_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPaidEmail, model.AttachPdfInvoiceToOrderPaidEmail_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderProcessingEmail, model.AttachPdfInvoiceToOrderProcessingEmail_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AttachPdfInvoiceToOrderCompletedEmail, model.AttachPdfInvoiceToOrderCompletedEmail_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestsEnabled, model.ReturnRequestsEnabled_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestsAllowFiles, model.ReturnRequestsAllowFiles_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ReturnRequestNumberMask, model.ReturnRequestNumberMask_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.NumberOfDaysReturnRequestAvailable, model.NumberOfDaysReturnRequestAvailable_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.CustomOrderNumberMask, model.CustomOrderNumberMask_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ExportWithProducts, model.ExportWithProducts_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AllowAdminsToBuyCallForPriceProducts, model.AllowAdminsToBuyCallForPriceProducts_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.AllowCustomersCancelOrders, model.AllowCustomersCancelOrders_OverrideForStore, storeScope, false);
+    //        await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.ShowProductThumbnailInOrderDetailsPage, model.ShowProductThumbnailInOrderDetailsPage_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingOverridablePerStoreAsync(orderSettings, x => x.DeleteGiftCardUsageHistory, model.DeleteGiftCardUsageHistory_OverrideForStore, storeScope, false);
+    //        //await _settingService.SaveSettingAsync(orderSettings, x => x.ActivateGiftCardsAfterCompletingOrder, 0, false);
+    //        //await _settingService.SaveSettingAsync(orderSettings, x => x.DeactivateGiftCardsAfterCancellingOrder, 0, false);
+    //        //await _settingService.SaveSettingAsync(orderSettings, x => x.DeactivateGiftCardsAfterDeletingOrder, 0, false);
+    //        await _settingService.SaveSettingAsync(orderSettings, x => x.CompleteOrderWhenDelivered, 0, false);
+    //
+    //        //now clear settings cache
+    //        await _settingService.ClearCacheAsync();
+    //
+    //        //order ident
+    //        if (model.OrderIdent.HasValue)
+    //        {
+    //            try
+    //            {
+    //                await _dataProvider.SetTableIdentAsync<Order>(model.OrderIdent.Value);
+    //            }
+    //            catch (Exception exc)
+    //            {
+    //                _notificationService.ErrorNotification(exc.Message);
+    //            }
+    //        }
+    //
+    //        //activity log
+    //        await _customerActivityService.InsertActivityAsync("EditSettings", await _localizationService.GetResourceAsync("ActivityLog.EditSettings"));
+    //
+    //        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Configuration.Updated"));
+    //
+    //        return RedirectToAction("Order");
+    //    }
+    //
+    //    //prepare model
+    //    model = await _settingModelFactory.PrepareOrderSettingsModelAsync(model);
+    //
+    //    //if we got this far, something failed, redisplay form
+    //    return View(model);
+    //}
 
     [CheckPermission(StandardPermission.Configuration.MANAGE_SETTINGS)]
     public virtual async Task<IActionResult> Media()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareMediaSettingsModelAsync();
+        var model = new MediaSettingsModel();
 
         return View(model);
     }
@@ -881,7 +883,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareMediaSettingsModelAsync(model);
+        model = new MediaSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -949,7 +951,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> CustomerUser()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareCustomerUserSettingsModelAsync();
+        var model = new CustomerUserSettingsModel();
 
         return View(model);
     }
@@ -1039,7 +1041,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareCustomerUserSettingsModelAsync(model);
+        model = new CustomerUserSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1051,7 +1053,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Gdpr()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareGdprSettingsModelAsync();
+        var model = new GdprSettingsModel();
 
         return View(model);
     }
@@ -1088,7 +1090,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareGdprSettingsModelAsync(model);
+        model = new GdprSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1099,7 +1101,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> GdprConsentList(GdprConsentSearchModel searchModel)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareGdprConsentListModelAsync(searchModel);
+        var model = new GdprConsentSearchModel();
 
         return Json(model);
     }
@@ -1108,7 +1110,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> CreateGdprConsent()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareGdprConsentModelAsync(new GdprConsentModel(), null);
+        var model = new GdprConsentModel();
 
         return View(model);
     }
@@ -1131,7 +1133,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareGdprConsentModelAsync(model, null, true);
+        model = new GdprConsentModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1146,7 +1148,7 @@ public partial class SettingController : BaseAdminController
             return RedirectToAction("Gdpr");
 
         //prepare model
-        var model = await _settingModelFactory.PrepareGdprConsentModelAsync(null, gdprConsent);
+        var model = new GdprConsentModel();
 
         return View(model);
     }
@@ -1174,7 +1176,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareGdprConsentModelAsync(model, gdprConsent, true);
+        model = new GdprConsentModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1202,7 +1204,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> GeneralCommon()
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareGeneralCommonSettingsModelAsync();
+        var model = new GeneralCommonSettingsModel();
 
         return View(model);
     }
@@ -1368,8 +1370,8 @@ public partial class SettingController : BaseAdminController
             captchaSettings.ShowOnForgotPasswordPage = model.CaptchaSettings.ShowOnForgotPasswordPage;
             captchaSettings.ShowOnApplyVendorPage = model.CaptchaSettings.ShowOnApplyVendorPage;
             captchaSettings.ShowOnForum = model.CaptchaSettings.ShowOnForum;
-            captchaSettings.ShowOnCheckoutPageForGuests = model.CaptchaSettings.ShowOnCheckoutPageForGuests;
-            captchaSettings.ShowOnCheckGiftCardBalance = model.CaptchaSettings.ShowOnCheckGiftCardBalance;
+            //captchaSettings.ShowOnCheckoutPageForGuests = model.CaptchaSettings.ShowOnCheckoutPageForGuests;
+            //captchaSettings.ShowOnCheckGiftCardBalance = model.CaptchaSettings.ShowOnCheckGiftCardBalance;
             captchaSettings.ReCaptchaPublicKey = model.CaptchaSettings.ReCaptchaPublicKey;
             captchaSettings.ReCaptchaPrivateKey = model.CaptchaSettings.ReCaptchaPrivateKey;
             captchaSettings.CaptchaType = (CaptchaType)model.CaptchaSettings.CaptchaType;
@@ -1390,8 +1392,8 @@ public partial class SettingController : BaseAdminController
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnApplyVendorPage, model.CaptchaSettings.ShowOnApplyVendorPage_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnForgotPasswordPage, model.CaptchaSettings.ShowOnForgotPasswordPage_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnForum, model.CaptchaSettings.ShowOnForum_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnCheckoutPageForGuests, model.CaptchaSettings.ShowOnCheckoutPageForGuests_OverrideForStore, storeScope, false);
-            await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnCheckGiftCardBalance, model.CaptchaSettings.ShowOnCheckGiftCardBalance_OverrideForStore, storeScope, false);
+            //await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnCheckoutPageForGuests, model.CaptchaSettings.ShowOnCheckoutPageForGuests_OverrideForStore, storeScope, false);
+            //await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ShowOnCheckGiftCardBalance, model.CaptchaSettings.ShowOnCheckGiftCardBalance_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ReCaptchaPublicKey, model.CaptchaSettings.ReCaptchaPublicKey_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ReCaptchaPrivateKey, model.CaptchaSettings.ReCaptchaPrivateKey_OverrideForStore, storeScope, false);
             await _settingService.SaveSettingOverridablePerStoreAsync(captchaSettings, x => x.ReCaptchaV3ScoreThreshold, model.CaptchaSettings.ReCaptchaV3ScoreThreshold_OverrideForStore, storeScope, false);
@@ -1473,7 +1475,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = await _settingModelFactory.PrepareGeneralCommonSettingsModelAsync(model);
+        model = new GeneralCommonSettingsModel();
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1501,34 +1503,34 @@ public partial class SettingController : BaseAdminController
                 throw new NopException(await _localizationService.GetResourceAsync("Admin.Configuration.Settings.GeneralCommon.EncryptionKey.TheSame"));
 
             //update encrypted order info
-            var orders = await _orderService.SearchOrdersAsync();
-            foreach (var order in orders)
-            {
-                var decryptedCardType = _encryptionService.DecryptText(order.CardType, oldEncryptionPrivateKey);
-                var decryptedCardName = _encryptionService.DecryptText(order.CardName, oldEncryptionPrivateKey);
-                var decryptedCardNumber = _encryptionService.DecryptText(order.CardNumber, oldEncryptionPrivateKey);
-                var decryptedMaskedCreditCardNumber = _encryptionService.DecryptText(order.MaskedCreditCardNumber, oldEncryptionPrivateKey);
-                var decryptedCardCvv2 = _encryptionService.DecryptText(order.CardCvv2, oldEncryptionPrivateKey);
-                var decryptedCardExpirationMonth = _encryptionService.DecryptText(order.CardExpirationMonth, oldEncryptionPrivateKey);
-                var decryptedCardExpirationYear = _encryptionService.DecryptText(order.CardExpirationYear, oldEncryptionPrivateKey);
+            //var orders = await _orderService.SearchOrdersAsync();
+            //foreach (var order in orders)
+            //{
+            //    var decryptedCardType = _encryptionService.DecryptText(order.CardType, oldEncryptionPrivateKey);
+            //    var decryptedCardName = _encryptionService.DecryptText(order.CardName, oldEncryptionPrivateKey);
+            //    var decryptedCardNumber = _encryptionService.DecryptText(order.CardNumber, oldEncryptionPrivateKey);
+            //    var decryptedMaskedCreditCardNumber = _encryptionService.DecryptText(order.MaskedCreditCardNumber, oldEncryptionPrivateKey);
+            //    var decryptedCardCvv2 = _encryptionService.DecryptText(order.CardCvv2, oldEncryptionPrivateKey);
+            //    var decryptedCardExpirationMonth = _encryptionService.DecryptText(order.CardExpirationMonth, oldEncryptionPrivateKey);
+            //    var decryptedCardExpirationYear = _encryptionService.DecryptText(order.CardExpirationYear, oldEncryptionPrivateKey);
 
-                var encryptedCardType = _encryptionService.EncryptText(decryptedCardType, newEncryptionPrivateKey);
-                var encryptedCardName = _encryptionService.EncryptText(decryptedCardName, newEncryptionPrivateKey);
-                var encryptedCardNumber = _encryptionService.EncryptText(decryptedCardNumber, newEncryptionPrivateKey);
-                var encryptedMaskedCreditCardNumber = _encryptionService.EncryptText(decryptedMaskedCreditCardNumber, newEncryptionPrivateKey);
-                var encryptedCardCvv2 = _encryptionService.EncryptText(decryptedCardCvv2, newEncryptionPrivateKey);
-                var encryptedCardExpirationMonth = _encryptionService.EncryptText(decryptedCardExpirationMonth, newEncryptionPrivateKey);
-                var encryptedCardExpirationYear = _encryptionService.EncryptText(decryptedCardExpirationYear, newEncryptionPrivateKey);
+            //    var encryptedCardType = _encryptionService.EncryptText(decryptedCardType, newEncryptionPrivateKey);
+            //    var encryptedCardName = _encryptionService.EncryptText(decryptedCardName, newEncryptionPrivateKey);
+            //    var encryptedCardNumber = _encryptionService.EncryptText(decryptedCardNumber, newEncryptionPrivateKey);
+            //    var encryptedMaskedCreditCardNumber = _encryptionService.EncryptText(decryptedMaskedCreditCardNumber, newEncryptionPrivateKey);
+            //    var encryptedCardCvv2 = _encryptionService.EncryptText(decryptedCardCvv2, newEncryptionPrivateKey);
+            //    var encryptedCardExpirationMonth = _encryptionService.EncryptText(decryptedCardExpirationMonth, newEncryptionPrivateKey);
+            //    var encryptedCardExpirationYear = _encryptionService.EncryptText(decryptedCardExpirationYear, newEncryptionPrivateKey);
 
-                order.CardType = encryptedCardType;
-                order.CardName = encryptedCardName;
-                order.CardNumber = encryptedCardNumber;
-                order.MaskedCreditCardNumber = encryptedMaskedCreditCardNumber;
-                order.CardCvv2 = encryptedCardCvv2;
-                order.CardExpirationMonth = encryptedCardExpirationMonth;
-                order.CardExpirationYear = encryptedCardExpirationYear;
-                await _orderService.UpdateOrderAsync(order);
-            }
+            //    order.CardType = encryptedCardType;
+            //    order.CardName = encryptedCardName;
+            //    order.CardNumber = encryptedCardNumber;
+            //    order.MaskedCreditCardNumber = encryptedMaskedCreditCardNumber;
+            //    order.CardCvv2 = encryptedCardCvv2;
+            //    order.CardExpirationMonth = encryptedCardExpirationMonth;
+            //    order.CardExpirationYear = encryptedCardExpirationYear;
+            //    await _orderService.UpdateOrderAsync(order);
+            //}
 
             //update password information
             //optimization - load only passwords with PasswordFormat.Encrypted
@@ -1636,7 +1638,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AllSettings(string settingName)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareSettingSearchModelAsync(new SettingSearchModel { SearchSettingName = WebUtility.HtmlEncode(settingName) });
+        var model = new SettingSearchModel();
 
         return View(model);
     }
@@ -1646,7 +1648,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AllSettings(SettingSearchModel searchModel)
     {
         //prepare model
-        var model = await _settingModelFactory.PrepareSettingListModelAsync(searchModel);
+        var model = new SettingListModel();
 
         return Json(model);
     }
@@ -1814,3 +1816,6 @@ public partial class SettingController : BaseAdminController
 
     #endregion
 }
+
+
+

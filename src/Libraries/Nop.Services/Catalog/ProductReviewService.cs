@@ -35,8 +35,7 @@ public partial class ProductReviewService : IProductReviewService
     protected readonly IReviewTypeService _reviewTypeService;
     protected readonly IStoreMappingService _storeMappingService;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
-    protected readonly LocalizationSettings _localizationSettings;
+        protected readonly LocalizationSettings _localizationSettings;
 
     #endregion
 
@@ -56,7 +55,6 @@ public partial class ProductReviewService : IProductReviewService
         IReviewTypeService reviewTypeService,
         IStoreMappingService storeMappingService,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings)
     {
         _catalogSettings = catalogSettings;
@@ -73,8 +71,7 @@ public partial class ProductReviewService : IProductReviewService
         _reviewTypeService = reviewTypeService;
         _storeMappingService = storeMappingService;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
-        _localizationSettings = localizationSettings;
+                _localizationSettings = localizationSettings;
     }
 
     #endregion

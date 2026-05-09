@@ -37,8 +37,7 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
     protected readonly IStoreContext _storeContext;
     protected readonly IUrlHelperFactory _urlHelperFactory;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
-    protected readonly LocalizationSettings _localizationSettings;
+        protected readonly LocalizationSettings _localizationSettings;
 
     #endregion
 
@@ -58,7 +57,6 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
         IStoreContext storeContext,
         IUrlHelperFactory urlHelperFactory,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings)
     {
         _customerSettings = customerSettings;
@@ -75,8 +73,7 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
         _storeContext = storeContext;
         _urlHelperFactory = urlHelperFactory;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
-        _localizationSettings = localizationSettings;
+                _localizationSettings = localizationSettings;
     }
 
     #endregion

@@ -83,16 +83,16 @@ public partial class BackInStockSubscriptionController : BasePublicController
                     .GetAllSubscriptionsByCustomerIdAsync(customer.Id, store.Id, 0, 1))
                 .TotalCount
         };
-        if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
-            product.BackorderMode == BackorderMode.NoBackorders &&
-            product.AllowBackInStockSubscriptions &&
-            await _productService.GetTotalStockQuantityAsync(product) <= 0)
-        {
-            //out of stock
-            model.SubscriptionAllowed = true;
-            model.AlreadySubscribed = await _backInStockSubscriptionService
-                .FindSubscriptionAsync(customer.Id, product.Id, store.Id) != null;
-        }
+        //if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
+        //    product.BackorderMode == BackorderMode.NoBackorders &&
+        //    product.AllowBackInStockSubscriptions &&
+        //    await _productService.GetTotalStockQuantityAsync(product) <= 0)
+        //{
+        //    //out of stock
+        //    model.SubscriptionAllowed = true;
+        //    model.AlreadySubscribed = await _backInStockSubscriptionService
+        //        .FindSubscriptionAsync(customer.Id, product.Id, store.Id) != null;
+        //}
 
         return PartialView(model);
     }
@@ -108,48 +108,48 @@ public partial class BackInStockSubscriptionController : BasePublicController
         if (!await _customerService.IsRegisteredAsync(customer))
             return Content(await _localizationService.GetResourceAsync("BackInStockSubscriptions.OnlyRegistered"));
 
-        if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
-            product.BackorderMode == BackorderMode.NoBackorders &&
-            product.AllowBackInStockSubscriptions &&
-            await _productService.GetTotalStockQuantityAsync(product) <= 0)
-        {
-            //out of stock
-            var store = await _storeContext.GetCurrentStoreAsync();
-            var subscription = await _backInStockSubscriptionService
-                .FindSubscriptionAsync(customer.Id, product.Id, store.Id);
-            if (subscription != null)
-            {
-                //subscription already exists
-                //unsubscribe
-                await _backInStockSubscriptionService.DeleteSubscriptionAsync(subscription);
-
-                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("BackInStockSubscriptions.Notification.Unsubscribed"));
-                return new OkResult();
-            }
-
-            //subscription does not exist
-            //subscribe
-            if ((await _backInStockSubscriptionService
-                    .GetAllSubscriptionsByCustomerIdAsync(customer.Id, store.Id, 0, 1))
-                .TotalCount >= _catalogSettings.MaximumBackInStockSubscriptions)
-            {
-                return Json(new
-                {
-                    result = string.Format(await _localizationService.GetResourceAsync("BackInStockSubscriptions.MaxSubscriptions"), _catalogSettings.MaximumBackInStockSubscriptions)
-                });
-            }
-            subscription = new BackInStockSubscription
-            {
-                CustomerId = customer.Id,
-                ProductId = product.Id,
-                StoreId = store.Id,
-                CreatedOnUtc = DateTime.UtcNow
-            };
-            await _backInStockSubscriptionService.InsertSubscriptionAsync(subscription);
-
-            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("BackInStockSubscriptions.Notification.Subscribed"));
-            return new OkResult();
-        }
+        //if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
+        //    product.BackorderMode == BackorderMode.NoBackorders &&
+        //    product.AllowBackInStockSubscriptions &&
+        //    await _productService.GetTotalStockQuantityAsync(product) <= 0)
+        //{
+        //    //out of stock
+        //    var store = await _storeContext.GetCurrentStoreAsync();
+        //    var subscription = await _backInStockSubscriptionService
+        //        .FindSubscriptionAsync(customer.Id, product.Id, store.Id);
+        //    if (subscription != null)
+        //    {
+        //        //subscription already exists
+        //        //unsubscribe
+        //        await _backInStockSubscriptionService.DeleteSubscriptionAsync(subscription);
+        //
+        //        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("BackInStockSubscriptions.Notification.Unsubscribed"));
+        //        return new OkResult();
+        //    }
+        //
+        //    //subscription does not exist
+        //    //subscribe
+        //    if ((await _backInStockSubscriptionService
+        //            .GetAllSubscriptionsByCustomerIdAsync(customer.Id, store.Id, 0, 1))
+        //        .TotalCount >= _catalogSettings.MaximumBackInStockSubscriptions)
+        //    {
+        //        return Json(new
+        //        {
+        //            result = string.Format(await _localizationService.GetResourceAsync("BackInStockSubscriptions.MaxSubscriptions"), _catalogSettings.MaximumBackInStockSubscriptions)
+        //        });
+        //    }
+        //    subscription = new BackInStockSubscription
+        //    {
+        //        CustomerId = customer.Id,
+        //        ProductId = product.Id,
+        //        StoreId = store.Id,
+        //        CreatedOnUtc = DateTime.UtcNow
+        //    };
+        //    await _backInStockSubscriptionService.InsertSubscriptionAsync(subscription);
+        //
+        //    _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("BackInStockSubscriptions.Notification.Subscribed"));
+        //    return new OkResult();
+        //}
 
         //subscription not possible
         return Content(await _localizationService.GetResourceAsync("BackInStockSubscriptions.NotAllowed"));

@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -997,7 +997,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> List()
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductSearchModelAsync(new ProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareProductSearchModelAsync(new ProductSearchModel());
 
         return View(model);
     }
@@ -1006,7 +1006,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> BulkEdit()
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductSearchModelAsync(new ProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareProductSearchModelAsync(new ProductSearchModel());
         model.Length = _adminAreaSettings.ProductsBulkEditGridPageSize;
 
         return View(model);
@@ -1025,7 +1025,7 @@ public partial class ProductController : BaseAdminController
         await _productService.InsertProductsAsync(productsToInsert.Select(d => d.CreateProduct(selected)).ToList());
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductSearchModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareProductSearchModelAsync(searchModel);
         model.Length = _adminAreaSettings.ProductsBulkEditGridPageSize;
 
         return View(model);
@@ -1036,7 +1036,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> ProductList(ProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -1046,7 +1046,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> BulkEditProducts(ProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareProductListModelAsync(searchModel);
         var html = await RenderPartialViewToStringAsync("_BulkEdit.Products", model.Data.ToList());
 
         return Json(new Dictionary<string, object> { { "Html", html }, { "Products", model } });
@@ -1102,7 +1102,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductModelAsync(new ProductModel(), null);
+        var model = (dynamic) await _productModelFactory.PrepareProductModelAsync(new ProductModel(), null);
 
         return View(model);
     }
@@ -1186,7 +1186,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductModelAsync(model, null, true);
+        model = (dynamic) await _productModelFactory.PrepareProductModelAsync(model, null, true);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1205,7 +1205,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductModelAsync(null, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductModelAsync(null, product);
 
         return View(model);
     }
@@ -1226,7 +1226,7 @@ public partial class ProductController : BaseAdminController
             return Json(translationModel);
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductModelAsync(null, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductModelAsync(null, product);
 
         translationModel = await _translationModelFactory.PrepareTranslationModelAsync(model,
             (nameof(ProductLocalizedModel.Name), false),
@@ -1357,16 +1357,16 @@ public partial class ProductController : BaseAdminController
             await UpdatePictureSeoNamesAsync(product);
 
             //back in stock notifications
-            if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
-                product.BackorderMode == BackorderMode.NoBackorders &&
-                product.AllowBackInStockSubscriptions &&
-                await _productService.GetTotalStockQuantityAsync(product) > 0 &&
-                prevTotalStockQuantity <= 0 &&
-                product.Published &&
-                !product.Deleted)
-            {
-                await _backInStockSubscriptionService.SendNotificationsToSubscribersAsync(product);
-            }
+            //if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock &&
+            //    product.BackorderMode == BackorderMode.NoBackorders &&
+            //    product.AllowBackInStockSubscriptions &&
+            //    await _productService.GetTotalStockQuantityAsync(product) > 0 &&
+            //    prevTotalStockQuantity <= 0 &&
+            //    product.Published &&
+            //    !product.Deleted)
+            //{
+            //    await _backInStockSubscriptionService.SendNotificationsToSubscribersAsync(product);
+            //}
 
             //delete an old "download" file (if deleted or updated)
             if (prevDownloadId > 0 && prevDownloadId != product.DownloadId)
@@ -1400,7 +1400,7 @@ public partial class ProductController : BaseAdminController
                 _notificationService.ErrorNotification(requireOtherProductsError);
 
                 //prepare model
-                model = await _productModelFactory.PrepareProductModelAsync(model, product, true);
+                model = (dynamic) await _productModelFactory.PrepareProductModelAsync(model, product, true);
 
                 return View(model);
             }
@@ -1412,7 +1412,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductModelAsync(model, product, true);
+        model = (dynamic) await _productModelFactory.PrepareProductModelAsync(model, product, true);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1637,7 +1637,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> RequiredProductAddPopup()
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddRequiredProductSearchModelAsync(new AddRequiredProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareAddRequiredProductSearchModelAsync(new AddRequiredProductSearchModel());
 
         return View(model);
     }
@@ -1647,7 +1647,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> RequiredProductAddPopupList(AddRequiredProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddRequiredProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareAddRequiredProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -1668,7 +1668,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareRelatedProductListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareRelatedProductListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -1714,7 +1714,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> RelatedProductAddPopup(int productId)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddRelatedProductSearchModelAsync(new AddRelatedProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareAddRelatedProductSearchModelAsync(new AddRelatedProductSearchModel());
 
         return View(model);
     }
@@ -1724,7 +1724,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> RelatedProductAddPopupList(AddRelatedProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddRelatedProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareAddRelatedProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -1777,7 +1777,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareCrossSellProductListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareCrossSellProductListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -1803,7 +1803,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> CrossSellProductAddPopup(int productId)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddCrossSellProductSearchModelAsync(new AddCrossSellProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareAddCrossSellProductSearchModelAsync(new AddCrossSellProductSearchModel());
 
         return View(model);
     }
@@ -1813,7 +1813,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> CrossSellProductAddPopupList(AddCrossSellProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddCrossSellProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareAddCrossSellProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -1865,7 +1865,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareFilterLevelValueListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareFilterLevelValueListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -1952,7 +1952,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareAssociatedProductListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareAssociatedProductListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -1995,7 +1995,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> AssociatedProductAddPopup(int productId)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddAssociatedProductSearchModelAsync(new AddAssociatedProductSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareAddAssociatedProductSearchModelAsync(new AddAssociatedProductSearchModel());
 
         return View(model);
     }
@@ -2005,7 +2005,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> AssociatedProductAddPopupList(AddAssociatedProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAddAssociatedProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareAddAssociatedProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -2040,7 +2040,7 @@ public partial class ProductController : BaseAdminController
         {
             _notificationService.WarningNotification(await _localizationService.GetResourceAsync("Admin.Catalog.Products.AssociatedProducts.TryToAddSelfGroupedProduct"));
 
-            var addAssociatedProductSearchModel = await _productModelFactory.PrepareAddAssociatedProductSearchModelAsync(new AddAssociatedProductSearchModel());
+            var addAssociatedProductSearchModel = (dynamic) await _productModelFactory.PrepareAddAssociatedProductSearchModelAsync(new AddAssociatedProductSearchModel());
             //set current product id
             addAssociatedProductSearchModel.ProductId = model.ProductId;
 
@@ -2135,7 +2135,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductPictureListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductPictureListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -2275,7 +2275,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductVideoListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductVideoListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -2432,7 +2432,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductSpecificationAttributeListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductSpecificationAttributeListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -2528,7 +2528,7 @@ public partial class ProductController : BaseAdminController
         //try to get a product specification attribute with the specified id
         try
         {
-            var model = await _productModelFactory.PrepareAddSpecificationAttributeModelAsync(productId, specificationId);
+            var model = (dynamic) await _productModelFactory.PrepareAddSpecificationAttributeModelAsync(productId, specificationId);
             return View(model);
         }
         catch (Exception ex)
@@ -2578,7 +2578,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> ProductTags()
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductTagSearchModelAsync(new ProductTagSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareProductTagSearchModelAsync(new ProductTagSearchModel());
 
         return View(model);
     }
@@ -2588,7 +2588,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> ProductTags(ProductTagSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareProductTagListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareProductTagListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -2630,7 +2630,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List");
 
         //prepare tag model
-        var model = await _productModelFactory.PrepareProductTagModelAsync(null, productTag);
+        var model = (dynamic) await _productModelFactory.PrepareProductTagModelAsync(null, productTag);
 
         return View(model);
     }
@@ -2661,7 +2661,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductTagModelAsync(model, productTag, true);
+        model = (dynamic) await _productModelFactory.PrepareProductTagModelAsync(model, productTag, true);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -2672,7 +2672,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> TaggedProducts(ProductTagProductSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareTaggedProductListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareTaggedProductListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -2693,7 +2693,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductOrderListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductOrderListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -2950,7 +2950,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeMappingListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -2969,7 +2969,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeMappingModelAsync(new ProductAttributeMappingModel(), product, null);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingModelAsync(new ProductAttributeMappingModel(), product, null);
 
         return View(model);
     }
@@ -2995,7 +2995,7 @@ public partial class ProductController : BaseAdminController
             //redisplay form
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("Admin.Catalog.Products.ProductAttributes.Attributes.AlreadyExists"));
 
-            model = await _productModelFactory.PrepareProductAttributeMappingModelAsync(model, product, null, true);
+            model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingModelAsync(model, product, null, true);
 
             return View(model);
         }
@@ -3066,7 +3066,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeMappingModelAsync(null, product, productAttributeMapping);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingModelAsync(null, product, productAttributeMapping);
 
         return View(model);
     }
@@ -3096,7 +3096,7 @@ public partial class ProductController : BaseAdminController
             //redisplay form
             _notificationService.ErrorNotification(await _localizationService.GetResourceAsync("Admin.Catalog.Products.ProductAttributes.Attributes.AlreadyExists"));
 
-            model = await _productModelFactory.PrepareProductAttributeMappingModelAsync(model, product, productAttributeMapping, true);
+            model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingModelAsync(model, product, productAttributeMapping, true);
 
             return View(model);
         }
@@ -3137,7 +3137,7 @@ public partial class ProductController : BaseAdminController
         if (product == null)
             return Json(translationModel);
 
-        var model = await _productModelFactory.PrepareProductAttributeMappingModelAsync(null, product, productAttributeMapping);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeMappingModelAsync(null, product, productAttributeMapping);
 
         translationModel = await _translationModelFactory.PrepareTranslationModelAsync(model, nameof(ProductAttributeMappingModel.TextPrompt));
 
@@ -3204,7 +3204,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeValueListModelAsync(searchModel, productAttributeMapping);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeValueListModelAsync(searchModel, productAttributeMapping);
 
         return Json(model);
     }
@@ -3224,7 +3224,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List", "Product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeValueModelAsync(new ProductAttributeValueModel(), productAttributeMapping, null);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeValueModelAsync(new ProductAttributeValueModel(), productAttributeMapping, null);
 
         return View(model);
     }
@@ -3282,7 +3282,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductAttributeValueModelAsync(model, productAttributeMapping, null, true);
+        model = (dynamic) await _productModelFactory.PrepareProductAttributeValueModelAsync(model, productAttributeMapping, null, true);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -3309,7 +3309,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List", "Product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeValueModelAsync(null, productAttributeMapping, productAttributeValue);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeValueModelAsync(null, productAttributeMapping, productAttributeValue);
 
         return View(model);
     }
@@ -3371,7 +3371,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductAttributeValueModelAsync(model, productAttributeMapping, productAttributeValue, true);
+        model = (dynamic) await _productModelFactory.PrepareProductAttributeValueModelAsync(model, productAttributeMapping, productAttributeValue, true);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -3422,7 +3422,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> AssociateProductToAttributeValuePopup()
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAssociateProductToAttributeValueSearchModelAsync(new AssociateProductToAttributeValueSearchModel());
+        var model = (dynamic) await _productModelFactory.PrepareAssociateProductToAttributeValueSearchModelAsync(new AssociateProductToAttributeValueSearchModel());
 
         return View(model);
     }
@@ -3433,7 +3433,7 @@ public partial class ProductController : BaseAdminController
     public virtual async Task<IActionResult> AssociateProductToAttributeValuePopupList(AssociateProductToAttributeValueSearchModel searchModel)
     {
         //prepare model
-        var model = await _productModelFactory.PrepareAssociateProductToAttributeValueListModelAsync(searchModel);
+        var model = (dynamic) await _productModelFactory.PrepareAssociateProductToAttributeValueListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -3502,7 +3502,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeCombinationListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -3539,7 +3539,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List", "Product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(new ProductAttributeCombinationModel(), product, null);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(new ProductAttributeCombinationModel(), product, null);
 
         return View(model);
     }
@@ -3594,7 +3594,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, null, true);
+        model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, null, true);
         model.Warnings = warnings;
 
         //if we got this far, something failed, redisplay form
@@ -3614,7 +3614,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List", "Product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(new ProductAttributeCombinationModel(), product, null);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(new ProductAttributeCombinationModel(), product, null);
 
         return View(model);
     }
@@ -3640,7 +3640,7 @@ public partial class ProductController : BaseAdminController
 
         if (requiredAttributeNames.Any())
         {
-            model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, null, true);
+            model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, null, true);
             var pavModels = model.ProductAttributes.SelectMany(pa => pa.Values)
                 .Where(v => allowedAttributeIds.Any(id => id == v.Id))
                 .ToList();
@@ -3677,7 +3677,7 @@ public partial class ProductController : BaseAdminController
             return RedirectToAction("List", "Product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(null, product, combination);
+        var model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(null, product, combination);
 
         return View(model);
     }
@@ -3739,7 +3739,7 @@ public partial class ProductController : BaseAdminController
         }
 
         //prepare model
-        model = await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, combination, true);
+        model = (dynamic) await _productModelFactory.PrepareProductAttributeCombinationModelAsync(model, product, combination, true);
         model.Warnings = warnings;
 
         //if we got this far, something failed, redisplay form
@@ -3805,7 +3805,7 @@ public partial class ProductController : BaseAdminController
             return Content("This is not your product");
 
         //prepare model
-        var model = await _productModelFactory.PrepareStockQuantityHistoryListModelAsync(searchModel, product);
+        var model = (dynamic) await _productModelFactory.PrepareStockQuantityHistoryListModelAsync(searchModel, product);
 
         return Json(model);
     }
@@ -3928,3 +3928,4 @@ public partial class ProductController : BaseAdminController
 
     #endregion
 }
+

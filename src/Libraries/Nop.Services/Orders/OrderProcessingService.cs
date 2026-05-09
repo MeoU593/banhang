@@ -81,8 +81,7 @@ public partial class OrderProcessingService : IOrderProcessingService
     protected readonly IVendorService _vendorService;
     protected readonly IWebHelper _webHelper;
     protected readonly IWorkContext _workContext;
-    protected readonly IWorkflowMessageService _workflowMessageService;
-    protected readonly LocalizationSettings _localizationSettings;
+        protected readonly LocalizationSettings _localizationSettings;
     protected readonly OrderSettings _orderSettings;
     protected readonly PaymentSettings _paymentSettings;
     protected readonly RewardPointsSettings _rewardPointsSettings;
@@ -134,7 +133,6 @@ public partial class OrderProcessingService : IOrderProcessingService
         IVendorService vendorService,
         IWebHelper webHelper,
         IWorkContext workContext,
-        IWorkflowMessageService workflowMessageService,
         LocalizationSettings localizationSettings,
         OrderSettings orderSettings,
         PaymentSettings paymentSettings,
@@ -183,8 +181,7 @@ public partial class OrderProcessingService : IOrderProcessingService
         _vendorService = vendorService;
         _webHelper = webHelper;
         _workContext = workContext;
-        _workflowMessageService = workflowMessageService;
-        _localizationSettings = localizationSettings;
+                _localizationSettings = localizationSettings;
         _orderSettings = orderSettings;
         _paymentSettings = paymentSettings;
         _rewardPointsSettings = rewardPointsSettings;
@@ -1034,11 +1031,11 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await _pdfService.SaveOrderPdfToDiskAsync(order) : null;
             var orderProcessingAttachmentFileName = _orderSettings.AttachPdfInvoiceToOrderProcessingEmail ?
                 (string.Format(await _localizationService.GetResourceAsync("PDFInvoice.FileName"), order.CustomOrderNumber) + ".pdf") : null;
-            var orderProcessingCustomerNotificationQueuedEmailIds = await _workflowMessageService
-                .SendOrderProcessingCustomerNotificationAsync(order, order.CustomerLanguageId, orderProcessingAttachmentFilePath,
-                    orderProcessingAttachmentFileName);
-            if (orderProcessingCustomerNotificationQueuedEmailIds.Any())
-                await AddOrderNoteAsync(order, $"\"Order processing\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderProcessingCustomerNotificationQueuedEmailIds)}.");
+            //var orderProcessingCustomerNotificationQueuedEmailIds = await _workflowMessageService
+            //    .SendOrderProcessingCustomerNotificationAsync(order, order.CustomerLanguageId, orderProcessingAttachmentFilePath,
+            //        orderProcessingAttachmentFileName);
+            //if (orderProcessingCustomerNotificationQueuedEmailIds.Any())
+            //    await AddOrderNoteAsync(order, $"\"Order processing\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderProcessingCustomerNotificationQueuedEmailIds)}.");
         }
 
         if (prevOrderStatus != OrderStatus.Complete &&
@@ -1050,11 +1047,11 @@ public partial class OrderProcessingService : IOrderProcessingService
                 await _pdfService.SaveOrderPdfToDiskAsync(order) : null;
             var orderCompletedAttachmentFileName = _orderSettings.AttachPdfInvoiceToOrderCompletedEmail ?
                 (string.Format(await _localizationService.GetResourceAsync("PDFInvoice.FileName"), order.CustomOrderNumber) + ".pdf") : null;
-            var orderCompletedCustomerNotificationQueuedEmailIds = await _workflowMessageService
-                .SendOrderCompletedCustomerNotificationAsync(order, order.CustomerLanguageId, orderCompletedAttachmentFilePath,
-                    orderCompletedAttachmentFileName);
-            if (orderCompletedCustomerNotificationQueuedEmailIds.Any())
-                await AddOrderNoteAsync(order, $"\"Order completed\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderCompletedCustomerNotificationQueuedEmailIds)}.");
+            //var orderCompletedCustomerNotificationQueuedEmailIds = await _workflowMessageService
+            //    .SendOrderCompletedCustomerNotificationAsync(order, order.CustomerLanguageId, orderCompletedAttachmentFilePath,
+            //        orderCompletedAttachmentFileName);
+            //if (orderCompletedCustomerNotificationQueuedEmailIds.Any())
+            //    await AddOrderNoteAsync(order, $"\"Order completed\" email (to customer) has been queued. Queued email identifiers: {string.Join(", ", orderCompletedCustomerNotificationQueuedEmailIds)}.");
 
             //notify store owner
             //await _workflowMessageService.SendOrderCompletedStoreOwnerNotificationAsync(order, _localizationSettings.DefaultAdminLanguageId);
@@ -2086,9 +2083,9 @@ public partial class OrderProcessingService : IOrderProcessingService
                 });
 
                 //notify a store owner
-                await _workflowMessageService
-                    .SendRecurringPaymentCancelledStoreOwnerNotificationAsync(recurringPayment,
-                        _localizationSettings.DefaultAdminLanguageId);
+                //await _workflowMessageService
+                //    .SendRecurringPaymentCancelledStoreOwnerNotificationAsync(recurringPayment,
+                //        _localizationSettings.DefaultAdminLanguageId);
             }
         }
         catch (Exception exc)

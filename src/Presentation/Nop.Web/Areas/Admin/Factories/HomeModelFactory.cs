@@ -4,11 +4,11 @@ using Nop.Core.Domain.Common;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
-using Nop.Services.Orders;
+//using Nop.Services.Orders;
 using Nop.Web.Areas.Admin.Infrastructure.Cache;
 using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Models.Home;
-using Nop.Web.Areas.Admin.Models.Orders;
+//using Nop.Web.Areas.Admin.Models.Orders;
 using Nop.Web.Areas.Admin.Models.Reports;
 using Nop.Web.Framework.Models.DataTables;
 using ILogger = Nop.Services.Logging.ILogger;
@@ -26,7 +26,7 @@ public partial class HomeModelFactory : IHomeModelFactory
     protected readonly ICommonModelFactory _commonModelFactory;
     protected readonly ILocalizationService _localizationService;
     protected readonly ILogger _logger;
-    protected readonly IOrderModelFactory _orderModelFactory;
+    //protected readonly IOrderModelFactory _orderModelFactory;
     protected readonly ISettingService _settingService;
     protected readonly IStaticCacheManager _staticCacheManager;
     protected readonly IWorkContext _workContext;
@@ -40,7 +40,7 @@ public partial class HomeModelFactory : IHomeModelFactory
         ICommonModelFactory commonModelFactory,
         ILocalizationService localizationService,
         ILogger logger,
-        IOrderModelFactory orderModelFactory,
+        //IOrderModelFactory orderModelFactory,
         ISettingService settingService,
         IStaticCacheManager staticCacheManager,
         IWorkContext workContext,
@@ -50,7 +50,7 @@ public partial class HomeModelFactory : IHomeModelFactory
         _commonModelFactory = commonModelFactory;
         _localizationService = localizationService;
         _logger = logger;
-        _orderModelFactory = orderModelFactory;
+        //_orderModelFactory = orderModelFactory;
         _settingService = settingService;
         _staticCacheManager = staticCacheManager;
         _workContext = workContext;

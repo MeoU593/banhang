@@ -199,7 +199,7 @@ public partial class InstallationService
                 ManageInventoryMethod = sample.ManageInventoryMethod,
                 StockQuantity = sample.StockQuantity,
                 NotifyAdminForQuantityBelow = sample.NotifyAdminForQuantityBelow,
-                AllowBackInStockSubscriptions = sample.AllowBackInStockSubscriptions,
+                //AllowBackInStockSubscriptions = sample.AllowBackInStockSubscriptions,
                 DisplayStockAvailability = sample.DisplayStockAvailability,
                 LowStockActivity = sample.LowStockActivity,
                 BackorderMode = sample.BackorderMode,

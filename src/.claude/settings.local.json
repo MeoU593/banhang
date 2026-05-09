@@ -52,7 +52,31 @@
       "PowerShell(Get-ChildItem -Path \"D:\\\\thayhai\\\\banhang\\\\src\" -Directory | Select-Object -First 20 | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem -Path \"D:\\\\thayhai\\\\banhang\\\\src\\\\Plugins\" -Directory | ForEach-Object { $_.Name })",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(Test-Path *)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(tee build.log)",
+      "Bash(dotnet run *)",
+      "Bash(curl -s https://localhost:7001)",
+      "Bash(curl -sk https://localhost:7001/)",
+      "Bash(Get-Process -Name dotnet)",
+      "Bash(Select-Object Id, Name, Handles)",
+      "Bash(Format-Table)",
+      "PowerShell(Get-Process *)",
+      "Bash(curl -sk https://localhost:7001/admin/)",
+      "Bash(curl -sk https://localhost:64260/)",
+      "Bash(curl -sk https://localhost:64260/admin/)",
+      "PowerShell($response = Invoke-WebRequest -Uri \"https://localhost:64260/admin/\" -SkipCertificateCheck -ErrorAction SilentlyContinue; if \\($response.StatusCode -eq 200\\) { Write-Host \"Admin page loads successfully\"; $response.Content.Substring\\(0, 500\\) } else { Write-Host \"Failed to load admin page: $\\($response.StatusCode\\)\" })",
+      "PowerShell([System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }; $response = Invoke-WebRequest -Uri \"https://localhost:64260/admin/\" -ErrorAction SilentlyContinue; if \\($response.StatusCode -eq 200\\) { Write-Host \"Admin page loads successfully\"; $response.Content.Substring\\(0, 300\\) } else { Write-Host \"Status: $\\($response.StatusCode\\)\" })",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\test_app.ps1)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\test_basic.ps1 2>&1)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\check_removed_features.ps1 2>&1)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\final_test.ps1 2>&1)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\comprehensive_test.ps1 2>&1)",
+      "Bash(git checkout *)",
+      "Bash(git commit -m 'Fix compilation errors after removing Orders functionality *)"
     ]
   }
 }

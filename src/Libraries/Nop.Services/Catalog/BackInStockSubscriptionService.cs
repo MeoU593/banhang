@@ -16,22 +16,18 @@ public partial class BackInStockSubscriptionService : IBackInStockSubscriptionSe
     protected readonly IRepository<BackInStockSubscription> _backInStockSubscriptionRepository;
     protected readonly IRepository<Customer> _customerRepository;
     protected readonly IRepository<Product> _productRepository;
-    protected readonly IWorkflowMessageService _workflowMessageService;
-
-    #endregion
+        #endregion
 
     #region Ctor
 
     public BackInStockSubscriptionService(IRepository<BackInStockSubscription> backInStockSubscriptionRepository,
         IRepository<Customer> customerRepository,
-        IRepository<Product> productRepository,
-        IWorkflowMessageService workflowMessageService)
+        IRepository<Product> productRepository)
     {
         _backInStockSubscriptionRepository = backInStockSubscriptionRepository;
         _customerRepository = customerRepository;
         _productRepository = productRepository;
-        _workflowMessageService = workflowMessageService;
-    }
+            }
 
     #endregion
 
