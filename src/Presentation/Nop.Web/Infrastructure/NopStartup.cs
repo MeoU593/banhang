@@ -63,7 +63,7 @@ public partial class NopStartup : INopStartup
         services.AddScoped<IReviewTypeModelFactory, ReviewTypeModelFactory>();
         services.AddScoped<IScheduleTaskModelFactory, ScheduleTaskModelFactory>();
         services.AddScoped<ISecurityModelFactory, SecurityModelFactory>();
-        //services.AddScoped<ISettingModelFactory, SettingModelFactory>();
+        services.AddScoped<ISettingModelFactory, SettingModelFactory>();
         services.AddScoped<ISpecificationAttributeModelFactory, SpecificationAttributeModelFactory>();
         services.AddScoped<IStoreModelFactory, StoreModelFactory>();
         services.AddScoped<ITemplateModelFactory, TemplateModelFactory>();

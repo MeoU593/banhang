@@ -19,7 +19,12 @@
     }
 }
 
-@await RenderSectionAsync("Breadcrumb", false)
+@if (IsSectionDefined("Breadcrumb"))
+{
+    <div class="center-1 w-full px-4 pt-4 sm:px-6 lg:px-8 xl:px-10">
+        @await RenderSectionAsync("Breadcrumb")
+    </div>
+}
 
 <div class="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
 <div class="app-content-shell flex flex-col gap-6 lg:flex-row">

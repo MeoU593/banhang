@@ -6,10 +6,11 @@
     htmlAttributes.TryAdd("class", "form-control select2");
     htmlAttributes.TryAdd("style", "width: 100%;");
     htmlAttributes.TryAdd("data-dropdown-css-class", "select2-blue");
+    var selectList = ViewData["SelectList"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="select2-blue">
-    @Html.DropDownList("", ViewData["SelectList"] as IEnumerable<SelectListItem>, htmlAttributes)
+    @Html.DropDownList("", selectList, htmlAttributes)
 </div>
 
 <script>

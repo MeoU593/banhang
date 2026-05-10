@@ -610,20 +610,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
 
 
-        // Commerce tables are removed in this application, so hide account tabs that query orders/returns.
-
-        if (!_customerSettings.HideBackInStockSubscriptionsTab)
-        {
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = NopRouteNames.Standard.CUSTOMER_BACK_IN_STOCK_SUBSCRIPTIONS,
-                Title = await _localizationService.GetResourceAsync("Account.BackInStockSubscriptions"),
-                Tab = (int)CustomerNavigationEnum.BackInStockSubscriptions,
-                ItemClass = "back-in-stock-subscriptions"
-            });
-        }
-
-
         model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
         {
             RouteName = NopRouteNames.Standard.CUSTOMER_CHANGE_PASSWORD,

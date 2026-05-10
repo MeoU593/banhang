@@ -32,6 +32,17 @@
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent), new { selectedTabId = CustomerNavigationEnum.Info })
 }
 
+@section Breadcrumb
+{
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span>Tài khoản</span>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Cập nhật hồ sơ</span>
+    </nav>
+}
+
 <style>
 .command-edit-page {
     padding: 0 0 32px;
@@ -450,16 +461,8 @@
 </style>
 
 <div class="page account-page command-edit-page customer-info-page">
-    <section class="command-header overflow-hidden rounded-2xl border p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6" style="border-color: rgba(214,185,90,.28); background-color: rgba(33,45,27,.92); background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent 14px);">
+    <section class="command-header overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
         <div class="space-y-1.5">
-            <nav class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-                <span>Tài khoản</span>
-                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-                <span class="text-white">Cập nhật hồ sơ</span>
-            </nav>
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#f6dc9a]">Tài khoản cá nhân</p>
             <h1 class="public-hero-title font-black tracking-tight text-white">Cập nhật hồ sơ quân nhân</h1>
             <p class="text-xs leading-5 text-slate-200 sm:text-sm">Điều chỉnh thông tin cơ bản, liên lạc, xác thực và tùy chọn bổ sung cho tài khoản.</p>
         </div>

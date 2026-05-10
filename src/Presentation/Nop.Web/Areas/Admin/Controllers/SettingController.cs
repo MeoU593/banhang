@@ -70,7 +70,7 @@ public partial class SettingController : BaseAdminController
     protected readonly INotificationService _notificationService;
     //protected readonly IOrderService _orderService;
     protected readonly IPictureService _pictureService;
-    //protected readonly ISettingModelFactory _settingModelFactory;
+    protected readonly ISettingModelFactory _settingModelFactory;
     protected readonly ISettingService _settingService;
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreService _storeService;
@@ -99,7 +99,7 @@ public partial class SettingController : BaseAdminController
         INotificationService notificationService,
         //IOrderService orderService,
         IPictureService pictureService,
-        //ISettingModelFactory settingModelFactory,
+        ISettingModelFactory settingModelFactory,
         ISettingService settingService,
         IStoreContext storeContext,
         IStoreService storeService,
@@ -123,7 +123,7 @@ public partial class SettingController : BaseAdminController
         _notificationService = notificationService;
         //_orderService = orderService;
         _pictureService = pictureService;
-        //_settingModelFactory = settingModelFactory;
+        _settingModelFactory = settingModelFactory;
         _settingService = settingService;
         _storeContext = storeContext;
         _storeService = storeService;
@@ -198,8 +198,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AppSettings()
     {
         //prepare model
-        //var model = new AppSettingsModel();
-        var model = new AppSettingsModel();
+        var model = await _settingModelFactory.PrepareAppSettingsModel();
 
         return View(model);
     }
@@ -237,8 +236,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        //model = new AppSettingsModel();
-        model = new AppSettingsModel();
+        model = await _settingModelFactory.PrepareAppSettingsModel(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -248,7 +246,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Blog()
     {
         //prepare model
-        var model = new BlogSettingsModel();
+        var model = await _settingModelFactory.PrepareBlogSettingsModelAsync();
 
         return View(model);
     }
@@ -288,7 +286,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new BlogSettingsModel();
+        model = await _settingModelFactory.PrepareBlogSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -298,7 +296,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Vendor()
     {
         //prepare model
-        var model = new VendorSettingsModel();
+        var model = await _settingModelFactory.PrepareVendorSettingsModelAsync();
 
         return View(model);
     }
@@ -341,7 +339,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new VendorSettingsModel();
+        model = await _settingModelFactory.PrepareVendorSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -351,7 +349,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Forum()
     {
         //prepare model
-        var model = new ForumSettingsModel();
+        var model = await _settingModelFactory.PrepareForumSettingsModelAsync();
 
         return View(model);
     }
@@ -406,7 +404,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new ForumSettingsModel();
+        model = await _settingModelFactory.PrepareForumSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -416,7 +414,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Catalog()
     {
         //prepare model
-        var model = new CatalogSettingsModel();
+        var model = await _settingModelFactory.PrepareCatalogSettingsModelAsync();
 
         return View(model);
     }
@@ -570,7 +568,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new CatalogSettingsModel();
+        model = await _settingModelFactory.PrepareCatalogSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -582,7 +580,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> FilterLevel()
     {
         //prepare model
-        var model = new FilterLevelSettingsModel();
+        var model = await _settingModelFactory.PrepareFilterLevelSettingsModelAsync();
 
         return View(model);
     }
@@ -613,7 +611,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new FilterLevelSettingsModel();
+        model = await _settingModelFactory.PrepareFilterLevelSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -624,7 +622,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> FilterLevelList(FilterLevelSearchModel searchModel)
     {
         //prepare model
-        var model = new FilterLevelSearchModel();
+        var model = await _settingModelFactory.PrepareFilterLevelListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -635,7 +633,7 @@ public partial class SettingController : BaseAdminController
         //prepare model
         var model = new FilterLevelModel();
 
-        return View(model);
+        return await Task.FromResult(View(model));
     }
 
     [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
@@ -716,7 +714,7 @@ public partial class SettingController : BaseAdminController
         //prepare model
         var model = new SortOptionSearchModel();
 
-        return Json(model);
+        return await Task.FromResult(Json(model));
     }
 
     [HttpPost]
@@ -832,7 +830,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Media()
     {
         //prepare model
-        var model = new MediaSettingsModel();
+        var model = await _settingModelFactory.PrepareMediaSettingsModelAsync();
 
         return View(model);
     }
@@ -883,7 +881,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new MediaSettingsModel();
+        model = await _settingModelFactory.PrepareMediaSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -951,7 +949,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> CustomerUser()
     {
         //prepare model
-        var model = new CustomerUserSettingsModel();
+        var model = await _settingModelFactory.PrepareCustomerUserSettingsModelAsync();
 
         return View(model);
     }
@@ -1041,7 +1039,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new CustomerUserSettingsModel();
+        model = await _settingModelFactory.PrepareCustomerUserSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1053,7 +1051,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> Gdpr()
     {
         //prepare model
-        var model = new GdprSettingsModel();
+        var model = await _settingModelFactory.PrepareGdprSettingsModelAsync();
 
         return View(model);
     }
@@ -1090,7 +1088,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new GdprSettingsModel();
+        model = await _settingModelFactory.PrepareGdprSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1101,7 +1099,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> GdprConsentList(GdprConsentSearchModel searchModel)
     {
         //prepare model
-        var model = new GdprConsentSearchModel();
+        var model = await _settingModelFactory.PrepareGdprConsentListModelAsync(searchModel);
 
         return Json(model);
     }
@@ -1112,7 +1110,7 @@ public partial class SettingController : BaseAdminController
         //prepare model
         var model = new GdprConsentModel();
 
-        return View(model);
+        return await Task.FromResult(View(model));
     }
 
     [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
@@ -1204,7 +1202,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> GeneralCommon()
     {
         //prepare model
-        var model = new GeneralCommonSettingsModel();
+        var model = await _settingModelFactory.PrepareGeneralCommonSettingsModelAsync();
 
         return View(model);
     }
@@ -1475,7 +1473,7 @@ public partial class SettingController : BaseAdminController
         }
 
         //prepare model
-        model = new GeneralCommonSettingsModel();
+        model = await _settingModelFactory.PrepareGeneralCommonSettingsModelAsync(model);
 
         //if we got this far, something failed, redisplay form
         return View(model);
@@ -1638,7 +1636,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AllSettings(string settingName)
     {
         //prepare model
-        var model = new SettingSearchModel();
+        var model = await _settingModelFactory.PrepareSettingSearchModelAsync(new SettingSearchModel { SearchSettingName = settingName });
 
         return View(model);
     }
@@ -1648,7 +1646,7 @@ public partial class SettingController : BaseAdminController
     public virtual async Task<IActionResult> AllSettings(SettingSearchModel searchModel)
     {
         //prepare model
-        var model = new SettingListModel();
+        var model = await _settingModelFactory.PrepareSettingListModelAsync(searchModel);
 
         return Json(model);
     }

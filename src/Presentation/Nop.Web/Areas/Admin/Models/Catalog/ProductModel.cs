@@ -60,7 +60,6 @@ public partial record ProductModel : BaseNopEntityModel,
         ProductPictureSearchModel = new ProductPictureSearchModel();
         ProductVideoSearchModel = new ProductVideoSearchModel();
         ProductSpecificationAttributeSearchModel = new ProductSpecificationAttributeSearchModel();
-        ProductOrderSearchModel = new ProductOrderSearchModel();
         StockQuantityHistorySearchModel = new StockQuantityHistorySearchModel();
         ProductAttributeMappingSearchModel = new ProductAttributeMappingSearchModel();
         ProductAttributeCombinationSearchModel = new ProductAttributeCombinationSearchModel();
@@ -426,8 +425,6 @@ public partial record ProductModel : BaseNopEntityModel,
     public ProductVideoSearchModel ProductVideoSearchModel { get; set; }
 
     public ProductSpecificationAttributeSearchModel ProductSpecificationAttributeSearchModel { get; set; }
-
-    public ProductOrderSearchModel ProductOrderSearchModel { get; set; }
 
     public StockQuantityHistorySearchModel StockQuantityHistorySearchModel { get; set; }
 

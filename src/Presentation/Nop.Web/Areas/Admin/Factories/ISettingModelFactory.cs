@@ -102,16 +102,6 @@ public partial interface ISettingModelFactory
     Task<SortOptionListModel> PrepareSortOptionListModelAsync(SortOptionSearchModel searchModel);
 
     /// <summary>
-    /// Prepare order settings model
-    /// </summary>
-    /// <param name="model">Order settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the order settings model
-    /// </returns>
-    Task<OrderSettingsModel> PrepareOrderSettingsModelAsync(OrderSettingsModel model = null);
-
-    /// <summary>
     /// Prepare media settings model
     /// </summary>
     /// <param name="model">Media settings model</param>

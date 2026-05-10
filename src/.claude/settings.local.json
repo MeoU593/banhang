@@ -76,7 +76,8 @@
       "PowerShell(Remove-Item *)",
       "PowerShell(powershell -ExecutionPolicy Bypass -File C:\\\\Temp\\\\comprehensive_test.ps1 2>&1)",
       "Bash(git checkout *)",
-      "Bash(git commit -m 'Fix compilation errors after removing Orders functionality *)"
+      "Bash(git commit -m 'Fix compilation errors after removing Orders functionality *)",
+      "Bash(curl -s https://localhost:7001/admin/ --insecure)"
     ]
   }
 }

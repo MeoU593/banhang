@@ -12,17 +12,19 @@
 {
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent),new { selectedTabId = CustomerNavigationEnum.ForumSubscriptions })
 }
+@section Breadcrumb
+{
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span>Tài khoản</span>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Theo dõi diễn đàn</span>
+    </nav>
+}
 <div class="page account-page forum-subscriptions-page">
-    <div class="page-title mb-5 overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-8" style="display:block !important;">
-        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span>Tài khoản</span>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span class="text-white">Theo dõi diễn đàn</span>
-        </nav>
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-container">Tài khoản cá nhân</p>
-        <h1 class="public-page-title mt-2 font-black tracking-tight">@T("Account.ForumSubscriptions")</h1>
+    <div class="page-title mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6" style="display:block !important;">
+        <h1 class="public-page-title font-black tracking-tight">@T("Account.ForumSubscriptions")</h1>
         <p class="mt-2 max-w-2xl text-sm text-white/80">Quản lý danh sách chủ đề và diễn đàn bạn đang theo dõi để cập nhật thông tin nhanh hơn.</p>
     </div>
     <div class="page-body space-y-5">

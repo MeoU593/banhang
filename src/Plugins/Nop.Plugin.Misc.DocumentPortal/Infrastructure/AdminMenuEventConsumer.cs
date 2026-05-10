@@ -30,20 +30,25 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
     public async Task HandleEventAsync(AdminMenuCreatedEvent eventMessage)
     {
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
         var canAccessDocuments = await _documentPortalService.CanAccessDocumentManagementAsync(currentCustomer);
         var canManage = await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENTS);
         var canManageSettings = await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENT_SETTINGS);
+        var isUnitLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
 
-        if (!canAccessDocuments && !canManageSettings)
+        if (!canAccessDocuments && !canManageSettings && currentVendor == null)
             return;
 
-        var root = new AdminMenuItem
+        var root = eventMessage.RootMenuItem.GetItemBySystemName("DocumentPortal.Root") ?? new AdminMenuItem
         {
             SystemName = "DocumentPortal.Root",
-            Title = await _localizationService.GetResourceAsync("Plugins.Misc.DocumentPortal.Menu.Root"),
-            IconClass = "far fa-folder-open",
+            Title = "Quản lý tài liệu",
+            IconClass = "fas fa-folder-open",
             Visible = true
         };
+
+        root.Title = "Quản lý tài liệu";
+        root.IconClass = "fas fa-folder-open";
 
         if (canAccessDocuments)
         {
@@ -104,6 +109,30 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
             });
         }
 
-        eventMessage.RootMenuItem.ChildNodes.Add(root);
+        if (currentVendor != null)
+        {
+            root.ChildNodes.Add(new AdminMenuItem
+            {
+                SystemName = "DocumentPortal.Blog",
+                Title = "Tin tức / Văn bản",
+                Url = "~/Admin/Blog/BlogPosts",
+                IconClass = "far fa-newspaper"
+            });
+        }
+
+        if (!eventMessage.RootMenuItem.ChildNodes.Contains(root))
+        {
+            var insertIndex = -1;
+            for (var i = 0; i < eventMessage.RootMenuItem.ChildNodes.Count; i++)
+            {
+                if (eventMessage.RootMenuItem.ChildNodes[i].SystemName == "ProductManagement")
+                {
+                    insertIndex = i;
+                    break;
+                }
+            }
+
+            eventMessage.RootMenuItem.ChildNodes.Insert(insertIndex >= 0 ? insertIndex + 1 : eventMessage.RootMenuItem.ChildNodes.Count, root);
+        }
     }
 }

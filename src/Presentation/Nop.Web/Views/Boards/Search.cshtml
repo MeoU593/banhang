@@ -11,6 +11,17 @@
     NopHtml.AppendPageCssClassParts("html-forum-search-page");
 }
 
+@section Breadcrumb
+{
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Tìm kiếm</span>
+    </nav>
+}
+
 <script asp-location="Footer">
     $(function () {
         toggleAdvancedSearch();
@@ -29,17 +40,17 @@
 </script>
 
 <div class="page forum-search-page px-4 pb-8 lg:px-0">
-    <div class="mb-5 overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-8">
-        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-white">Diễn đàn</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span class="text-white">Tìm kiếm</span>
-        </nav>
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-container">Tìm kiếm diễn đàn</p>
-        <h1 class="public-page-title mt-2 font-black tracking-tight">@T("Forum.Search")</h1>
-        <p class="mt-2 text-sm text-white/80">Lọc theo diễn đàn, thời gian và phạm vi để tìm nhanh chủ đề cần thiết.</p>
+    <div class="mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="space-y-1.5">
+                <h1 class="public-page-title font-black tracking-tight">@T("Forum.Search")</h1>
+                <p class="max-w-2xl text-sm text-white/80">Lọc theo diễn đàn, thời gian và phạm vi để tìm nhanh chủ đề cần thiết.</p>
+            </div>
+            <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
+                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Kết quả</p>
+                <p class="mt-1 text-base font-black sm:text-lg">@Model.TopicTotalRecords</p>
+            </div>
+        </div>
     </div>
 
     <div class="page-body space-y-5">

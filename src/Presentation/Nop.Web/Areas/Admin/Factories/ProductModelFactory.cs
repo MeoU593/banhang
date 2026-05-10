@@ -27,7 +27,6 @@ using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Areas.Admin.Models.Common;
-using Nop.Web.Areas.Admin.Models.Orders;
 using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Factories;
 using Nop.Web.Framework.Models.Extensions;
@@ -57,7 +56,6 @@ public partial class ProductModelFactory : IProductModelFactory
     protected readonly ILocalizedModelFactory _localizedModelFactory;
     protected readonly IManufacturerService _manufacturerService;
     protected readonly IMeasureService _measureService;
-    protected readonly IOrderService _orderService;
     protected readonly IPictureService _pictureService;
     protected readonly IPriceFormatter _priceFormatter;
     protected readonly IProductAttributeFormatter _productAttributeFormatter;
@@ -101,7 +99,6 @@ public partial class ProductModelFactory : IProductModelFactory
         ILocalizedModelFactory localizedModelFactory,
         IManufacturerService manufacturerService,
         IMeasureService measureService,
-        IOrderService orderService,
         IPictureService pictureService,
         IPriceFormatter priceFormatter,
         IProductAttributeFormatter productAttributeFormatter,
@@ -141,7 +138,6 @@ public partial class ProductModelFactory : IProductModelFactory
         _localizedModelFactory = localizedModelFactory;
         _manufacturerService = manufacturerService;
         _measureService = measureService;
-        _orderService = orderService;
         _pictureService = pictureService;
         _priceFormatter = priceFormatter;
         _productAttributeFormatter = productAttributeFormatter;
@@ -499,25 +495,6 @@ public partial class ProductModelFactory : IProductModelFactory
     }
 
     /// <summary>
-    /// Prepare product order search model
-    /// </summary>
-    /// <param name="searchModel">Product order search model</param>
-    /// <param name="product">Product</param>
-    /// <returns>Product order search model</returns>
-    protected virtual ProductOrderSearchModel PrepareProductOrderSearchModel(ProductOrderSearchModel searchModel, Product product)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-        ArgumentNullException.ThrowIfNull(product);
-
-        searchModel.ProductId = product.Id;
-
-        //prepare page parameters
-        searchModel.SetGridPageSize();
-
-        return searchModel;
-    }
-
-    /// <summary>
     /// <summary>
     /// Prepare stock quantity history search model
     /// </summary>
@@ -846,7 +823,6 @@ public partial class ProductModelFactory : IProductModelFactory
             PrepareProductPictureSearchModel(model.ProductPictureSearchModel, product);
             PrepareProductVideoSearchModel(model.ProductVideoSearchModel, product);
             PrepareProductSpecificationAttributeSearchModel(model.ProductSpecificationAttributeSearchModel, product);
-            PrepareProductOrderSearchModel(model.ProductOrderSearchModel, product);
             await PrepareStockQuantityHistorySearchModelAsync(model.StockQuantityHistorySearchModel, product);
             PrepareProductAttributeMappingSearchModel(model.ProductAttributeMappingSearchModel, product);
             PrepareProductAttributeCombinationSearchModel(model.ProductAttributeCombinationSearchModel, product);
@@ -1797,55 +1773,6 @@ public partial class ProductModelFactory : IProductModelFactory
 
         //prepare list model
         return new ProductTagProductListModel().PrepareToGrid(searchModel, products, () => products.Select(product => product.ToModel<ProductModel>()));
-    }
-
-    /// <summary>
-    /// Prepare paged product order list model
-    /// </summary>
-    /// <param name="searchModel">Product order search model</param>
-    /// <param name="product">Product</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the product order list model
-    /// </returns>
-    public virtual async Task<ProductOrderListModel> PrepareProductOrderListModelAsync(ProductOrderSearchModel searchModel, Product product)
-    {
-        ArgumentNullException.ThrowIfNull(searchModel);
-        ArgumentNullException.ThrowIfNull(product);
-
-        //get orders
-        var orders = await _orderService.SearchOrdersAsync(productId: searchModel.ProductId,
-            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
-
-        //prepare grid model
-        var model = await new ProductOrderListModel().PrepareToGridAsync(searchModel, orders, () =>
-        {
-            return orders.SelectAwait(async order =>
-            {
-                var billingAddress = await _addressService.GetAddressByIdAsync(order.BillingAddressId);
-
-                //fill in model values from the entity
-                var orderModel = new OrderModel
-                {
-                    Id = order.Id,
-                    CustomerEmail = billingAddress.Email,
-                    CustomOrderNumber = order.CustomOrderNumber
-                };
-
-                //convert dates to the user time
-                orderModel.CreatedOn = await _dateTimeHelper.ConvertToUserTimeAsync(order.CreatedOnUtc, DateTimeKind.Utc);
-
-                //fill in additional values (not existing in the entity)
-                orderModel.StoreName = (await _storeService.GetStoreByIdAsync(order.StoreId))?.Name ?? "Deleted";
-                orderModel.OrderStatus = await _localizationService.GetLocalizedEnumAsync(order.OrderStatus);
-                orderModel.PaymentStatus = await _localizationService.GetLocalizedEnumAsync(order.PaymentStatus);
-                orderModel.ShippingStatus = await _localizationService.GetLocalizedEnumAsync(order.ShippingStatus);
-
-                return orderModel;
-            });
-        });
-
-        return model;
     }
 
     /// <summary>

@@ -66,22 +66,18 @@
                 @await Component.InvokeAsync(typeof(HomepageBannerViewComponent))
 
                 <div class="border-b border-slate-200 bg-white/85 backdrop-blur-md">
-                    <header class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-                        <div class="flex flex-1 items-center gap-4 lg:gap-6">
-                            <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden" aria-label="Mở điều hướng">
-                                <span class="material-symbols-outlined">menu</span>
-                            </button>
-                            <form method="get" action="/search" class="m-0 mt-[30px] w-full max-w-md self-center">
-                                <label class="relative block">
-                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                                        <span class="material-symbols-outlined text-lg">search</span>
-                                    </span>
-                                    <input type="search" name="q" class="h-10 w-full rounded-lg border-none bg-slate-100 py-2 pl-10 pr-4 text-sm leading-5 text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/25" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
-                                </label>
-                            </form>
-                        </div>
+                    <header class="flex h-10 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                        <button type="button" class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden" aria-label="Mở điều hướng">
+                            <span class="material-symbols-outlined">menu</span>
+                        </button>
+                        <form method="get" action="/search" class="m-0 hidden min-w-0 flex-1 lg:flex lg:items-center">
+                            <span class="pointer-events-none absolute pl-3 text-slate-400">
+                                <span class="material-symbols-outlined text-lg">search</span>
+                            </span>
+                            <input type="search" name="q" class="h-9 w-full rounded-lg border-none bg-slate-100 pl-10 pr-4 py-0 text-sm text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/25" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
+                        </form>
+                        <div class="flex flex-1 items-center justify-end lg:flex-none">
 
-                        <div class="flex items-center gap-3 sm:gap-4">
                             <button type="button" class="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800" aria-label="Thông báo">
                                 <span class="material-symbols-outlined">notifications</span>
                                 <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-rose-500"></span>
@@ -113,7 +109,9 @@
 
             @if (IsSectionDefined("Breadcrumb"))
             {
-                @RenderSection("Breadcrumb")
+                <div class="center-1 w-full px-4 pt-4 sm:px-6 lg:px-8 xl:px-10">
+                    @RenderSection("Breadcrumb")
+                </div>
             }
 
             <div class="master-column-wrapper">

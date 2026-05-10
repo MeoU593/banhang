@@ -144,9 +144,6 @@ public partial record ProductEditorSettingsModel : BaseNopModel, ISettingsModel
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.Seo")]
     public bool Seo { get; set; }
 
-    [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.PurchasedWithOrders")]
-    public bool PurchasedWithOrders { get; set; }
-
     [NopResourceDisplayName("Admin.Configuration.Settings.ProductEditor.ProductAttributes")]
     public bool ProductAttributes { get; set; }
 

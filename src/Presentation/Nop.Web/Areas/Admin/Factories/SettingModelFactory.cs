@@ -13,7 +13,6 @@ using Nop.Core.Domain.Forums;
 using Nop.Core.Domain.Gdpr;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Media;
-using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Security;
 using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Translation;
@@ -65,7 +64,6 @@ public partial class SettingModelFactory : ISettingModelFactory
     protected readonly ILanguageService _languageService;
     protected readonly ILocalizationService _localizationService;
     protected readonly IPictureService _pictureService;
-    protected readonly IReturnRequestModelFactory _returnRequestModelFactory;
     protected readonly IReviewTypeModelFactory _reviewTypeModelFactory;
     protected readonly ISettingService _settingService;
     protected readonly IStoreContext _storeContext;
@@ -96,7 +94,6 @@ public partial class SettingModelFactory : ISettingModelFactory
         ILanguageService languageService,
         ILocalizationService localizationService,
         IPictureService pictureService,
-        IReturnRequestModelFactory returnRequestModelFactory,
         ISettingService settingService,
         IStoreContext storeContext,
         IStoreService storeService,
@@ -123,7 +120,6 @@ public partial class SettingModelFactory : ISettingModelFactory
         _languageService = languageService;
         _localizationService = localizationService;
         _pictureService = pictureService;
-        _returnRequestModelFactory = returnRequestModelFactory;
         _settingService = settingService;
         _storeContext = storeContext;
         _storeService = storeService;
@@ -1287,69 +1283,6 @@ public partial class SettingModelFactory : ISettingModelFactory
                 return sortOptionModel;
             }).OrderBy(option => option.DisplayOrder);
         });
-
-        return model;
-    }
-
-    /// <summary>
-    /// <summary>
-    /// Prepare order settings model
-    /// </summary>
-    /// <param name="model">Order settings model</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the order settings model
-    /// </returns>
-    public virtual async Task<OrderSettingsModel> PrepareOrderSettingsModelAsync(OrderSettingsModel model = null)
-    {
-        //load settings for a chosen store scope
-        var storeId = await _storeContext.GetActiveStoreScopeConfigurationAsync();
-        var orderSettings = await _settingService.LoadSettingAsync<OrderSettings>(storeId);
-
-        //fill in model values from the entity
-        model ??= orderSettings.ToSettingsModel<OrderSettingsModel>();
-
-        //fill in additional values (not existing in the entity)
-        model.ActiveStoreScopeConfiguration = storeId;
-        model.PrimaryStoreCurrencyCode = (await _currencyService.GetCurrencyByIdAsync(_currencySettings.PrimaryStoreCurrencyId))?.CurrencyCode;
-        model.OrderIdent = await _dataProvider.GetTableIdentAsync<Order>();
-
-        //fill in overridden values
-        if (storeId > 0)
-        {
-            model.IsReOrderAllowed_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.IsReOrderAllowed, storeId);
-            model.MinOrderSubtotalAmount_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.MinOrderSubtotalAmount, storeId);
-            model.MinOrderSubtotalAmountIncludingTax_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.MinOrderSubtotalAmountIncludingTax, storeId);
-            model.MinOrderTotalAmount_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.MinOrderTotalAmount, storeId);
-            model.AutoUpdateOrderTotalsOnEditingOrder_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AutoUpdateOrderTotalsOnEditingOrder, storeId);
-            model.AnonymousCheckoutAllowed_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AnonymousCheckoutAllowed, storeId);
-            model.CheckoutDisabled_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.CheckoutDisabled, storeId);
-            model.TermsOfServiceOnShoppingCartPage_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.TermsOfServiceOnShoppingCartPage, storeId);
-            model.TermsOfServiceOnOrderConfirmPage_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.TermsOfServiceOnOrderConfirmPage, storeId);
-            model.OnePageCheckoutEnabled_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.OnePageCheckoutEnabled, storeId);
-            model.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab, storeId);
-            model.DisableBillingAddressCheckoutStep_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.DisableBillingAddressCheckoutStep, storeId);
-            model.DisableOrderCompletedPage_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.DisableOrderCompletedPage, storeId);
-            model.DisplayPickupInStoreOnShippingMethodPage_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.DisplayPickupInStoreOnShippingMethodPage, storeId);
-            model.AttachPdfInvoiceToOrderPlacedEmail_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPlacedEmail, storeId);
-            model.AttachPdfInvoiceToOrderPaidEmail_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AttachPdfInvoiceToOrderPaidEmail, storeId);
-            model.AttachPdfInvoiceToOrderProcessingEmail_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AttachPdfInvoiceToOrderProcessingEmail, storeId);
-            model.AttachPdfInvoiceToOrderCompletedEmail_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AttachPdfInvoiceToOrderCompletedEmail, storeId);
-            model.ReturnRequestsEnabled_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.ReturnRequestsEnabled, storeId);
-            model.ReturnRequestsAllowFiles_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.ReturnRequestsAllowFiles, storeId);
-            model.ReturnRequestNumberMask_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.ReturnRequestNumberMask, storeId);
-            model.NumberOfDaysReturnRequestAvailable_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.NumberOfDaysReturnRequestAvailable, storeId);
-            model.CustomOrderNumberMask_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.CustomOrderNumberMask, storeId);
-            model.ExportWithProducts_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.ExportWithProducts, storeId);
-            model.AllowAdminsToBuyCallForPriceProducts_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AllowAdminsToBuyCallForPriceProducts, storeId);
-            model.AllowCustomersCancelOrders_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.AllowCustomersCancelOrders, storeId);
-            model.ShowProductThumbnailInOrderDetailsPage_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.ShowProductThumbnailInOrderDetailsPage, storeId);
-            model.DeleteGiftCardUsageHistory_OverrideForStore = await _settingService.SettingExistsAsync(orderSettings, x => x.DeleteGiftCardUsageHistory, storeId);
-        }
-
-        //prepare nested search models
-        await _returnRequestModelFactory.PrepareReturnRequestReasonSearchModelAsync(model.ReturnRequestReasonSearchModel);
-        await _returnRequestModelFactory.PrepareReturnRequestActionSearchModelAsync(model.ReturnRequestActionSearchModel);
 
         return model;
     }

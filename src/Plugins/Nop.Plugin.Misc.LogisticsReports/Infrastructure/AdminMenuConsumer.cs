@@ -33,14 +33,17 @@ public class AdminMenuConsumer : IConsumer<AdminMenuCreatedEvent>
         if (!canViewSystemWide && currentVendor == null)
             return;
 
-        var rootItem = new AdminMenuItem
+        var rootItem = eventMessage.RootMenuItem.GetItemBySystemName("LogisticsReports.Root") ?? new AdminMenuItem
         {
             SystemName = "LogisticsReports.Root",
-            Title = await _localizationService.GetResourceAsync("Plugins.Misc.LogisticsReports.Menu.Root"),
+            Title = "Quản lý báo cáo",
             IconClass = "fas fa-chart-bar",
             Visible = true,
             ChildNodes = new List<AdminMenuItem>()
         };
+
+rootItem.Title = "Quản lý báo cáo";
+        rootItem.IconClass = "fas fa-chart-bar";
 
         if (canViewSystemWide)
         {
@@ -95,39 +98,6 @@ public class AdminMenuConsumer : IConsumer<AdminMenuCreatedEvent>
             });
         }
 
-        if (!canViewSystemWide)
-        {
-            rootItem.ChildNodes.Add(new AdminMenuItem
-            {
-                SystemName = "LogisticsReports.Products",
-                Title = "Danh mục hàng hóa",
-                Url = eventMessage.GetMenuItemUrl("Product", "List"),
-                Visible = true,
-                IconClass = "far fa-circle"
-            });
-
-            rootItem.ChildNodes.Add(new AdminMenuItem
-            {
-                SystemName = "LogisticsReports.News",
-                Title = "Tin tức / Công văn",
-                Url = eventMessage.GetMenuItemUrl("Blog", "BlogPosts"),
-                Visible = true,
-                IconClass = "far fa-circle"
-            });
-
-            if (canManageDocuments || isUnitLeader)
-            {
-                rootItem.ChildNodes.Add(new AdminMenuItem
-                {
-                    SystemName = "LogisticsReports.Documents",
-                    Title = "Văn bản tài liệu",
-                    Url = eventMessage.GetMenuItemUrl("DocumentPortalAdmin", "List"),
-                    Visible = true,
-                    IconClass = "far fa-circle"
-                });
-            }
-        }
-
         if (isUnitLeader)
         {
             rootItem.ChildNodes.Add(new AdminMenuItem
@@ -143,6 +113,31 @@ public class AdminMenuConsumer : IConsumer<AdminMenuCreatedEvent>
         if (!rootItem.ChildNodes.Any())
             return;
 
-        eventMessage.RootMenuItem.ChildNodes.Add(rootItem);
+        if (!eventMessage.RootMenuItem.ChildNodes.Contains(rootItem))
+        {
+            var insertIndex = -1;
+            for (var i = 0; i < eventMessage.RootMenuItem.ChildNodes.Count; i++)
+            {
+                if (eventMessage.RootMenuItem.ChildNodes[i].SystemName == "DocumentPortal.Root")
+                {
+                    insertIndex = i;
+                    break;
+                }
+            }
+
+            if (insertIndex < 0)
+            {
+                for (var i = 0; i < eventMessage.RootMenuItem.ChildNodes.Count; i++)
+                {
+                    if (eventMessage.RootMenuItem.ChildNodes[i].SystemName == "ProductManagement")
+                    {
+                        insertIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            eventMessage.RootMenuItem.ChildNodes.Insert(insertIndex >= 0 ? insertIndex + 1 : eventMessage.RootMenuItem.ChildNodes.Count, rootItem);
+        }
     }
 }

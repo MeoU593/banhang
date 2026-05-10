@@ -10,16 +10,25 @@
 {
     @await Component.InvokeAsync(typeof(CustomerNavigationViewComponent), new { selectedTabId = CustomerNavigationEnum.VendorInfo })
 }
+@section Breadcrumb
+{
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span>Tài khoản</span>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Thông tin đơn vị</span>
+    </nav>
+}
 
 <style>
     .vendor-command-page .vendor-hero {
         overflow: hidden;
         border: 1px solid rgba(214, 185, 90, 0.28);
         border-radius: 16px;
-        padding: 24px;
+        padding: 20px;
         color: #ffffff;
-        background-color: rgba(33, 45, 27, 0.92);
-        background-image: linear-gradient(120deg, #0f1a33 0%, #1f2b1a 52%, #314026 100%), repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 14px);
+        background-image: linear-gradient(120deg, #29313a 0%, #574500 52%, #8a6a2a 100%);
         box-shadow: 0 24px 60px -35px rgba(15, 23, 42, 0.85);
     }
 
@@ -33,7 +42,7 @@
     }
 
     .vendor-command-page .vendor-title {
-        margin: 8px 0 0;
+        margin: 0;
         color: #ffffff;
         font-size: var(--public-font-hero-title);
         font-weight: 900;
@@ -42,9 +51,9 @@
     }
 
     .vendor-command-page .vendor-subtitle {
-        margin: 10px 0 0;
-        color: #e2e8f0;
-        font-size: var(--public-font-body);
+        margin: 6px 0 0;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: var(--public-font-small);
     }
 
     .vendor-command-page .vendor-card {
@@ -166,14 +175,6 @@
 
 <div class="page account-page vendor-command-page px-4 pb-8 lg:px-0">
     <section class="vendor-hero">
-        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span>Tài khoản</span>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span class="text-white">Thông tin đơn vị</span>
-        </nav>
-        <p class="vendor-label">Thông tin đơn vị</p>
         <h1 class="vendor-title">Cập nhật hồ sơ đơn vị</h1>
         <p class="vendor-subtitle">Cập nhật tên, liên hệ, mô tả và hình ảnh đại diện của đơn vị.</p>
     </section>

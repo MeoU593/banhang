@@ -2679,27 +2679,6 @@ public partial class ProductController : BaseAdminController
 
     #endregion
 
-    #region Purchased with order
-
-    [HttpPost]
-    [CheckPermission(StandardPermission.Catalog.PRODUCTS_VIEW)]
-    public virtual async Task<IActionResult> PurchasedWithOrders(ProductOrderSearchModel searchModel)
-    {
-        //try to get a product with the specified id
-        var product = await _productService.GetProductByIdAsync(searchModel.ProductId)
-            ?? throw new ArgumentException("No product found with the specified id");
-
-        if (!await IsProductInCurrentVendorScopeAsync(product))
-            return Content("This is not your product");
-
-        //prepare model
-        var model = (dynamic) await _productModelFactory.PrepareProductOrderListModelAsync(searchModel, product);
-
-        return Json(model);
-    }
-
-    #endregion
-
     #region Export / Import
 
     [HttpPost, ActionName("DownloadCatalogPDF")]

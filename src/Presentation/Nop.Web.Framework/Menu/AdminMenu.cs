@@ -81,61 +81,34 @@ public partial class AdminMenu : IAdminMenu
             Url = GetMenuItemUrl("Home", "Overview"),
             ChildNodes = new List<AdminMenuItem>
             {
-                //catalog
+                //unit management
                 new()
                 {
-                    SystemName = "Catalog",
-                    Title = await _localizationService.GetResourceAsync("Admin.Catalog"),
-                    IconClass = "fas fa-book",
+                    SystemName = "UnitManagement",
+                    Title = "Quản lý đơn vị",
+                    IconClass = "fas fa-sitemap",
                     ChildNodes = new List<AdminMenuItem>
                     {
                         new()
                         {
-                            SystemName = "Products",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.Products"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCTS_VIEW },
-                            Url = GetMenuItemUrl("Product", "List"),
+                            SystemName = "Vendors",
+                            Title = "Danh sách đơn vị",
+                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
+                            Url = GetMenuItemUrl("Vendor", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
                         {
-                            SystemName = "Categories",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.Categories"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.CATEGORIES_VIEW },
-                            Url = GetMenuItemUrl("Category", "List"),
+                            SystemName = "Vendor attributes",
+                            Title = "Thuộc tính đơn vị",
+                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
+                            Url = GetMenuItemUrl("VendorAttribute", "List"),
                             IconClass = "far fa-dot-circle"
                         },
-                        new()
-                        {
-                            SystemName = "Product reviews",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.ProductReviews"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_REVIEWS_VIEW },
-                            Url = GetMenuItemUrl("ProductReview", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Filter level values",
-                            Title = await _localizationService.GetResourceAsync("Admin.Catalog.FilterLevelValues"),
-                            PermissionNames = new List<string> { StandardPermission.Catalog.FILTER_LEVEL_VALUE_VIEW },
-                            Url = GetMenuItemUrl("FilterLevelValue", "List"),
-                            Visible = _filterLevelSettings.FilterLevelEnabled,
-                            IconClass = "far fa-dot-circle"
-                        },
-                    }
-                },
-                //customers
-                new()
-                {
-                    SystemName = "Customers",
-                    Title = await _localizationService.GetResourceAsync("Admin.Customers"),
-                    IconClass = "far fa-user",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
                         new()
                         {
                             SystemName = "Customers list",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.Customers"),
+                            Title = "Tài khoản khách hàng",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
                             Url = GetMenuItemUrl("Customer", "List"),
                             IconClass = "far fa-dot-circle"
@@ -143,41 +116,9 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Customer roles",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.CustomerRoles"),
+                            Title = "Vai trò khách hàng",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMER_ROLES_VIEW },
                             Url = GetMenuItemUrl("CustomerRole", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Vendors",
-                            Title = "Đơn vị",
-                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
-                            Url = GetMenuItemUrl("Vendor", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Online customers",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.OnlineCustomers"),
-                            PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
-                            Url = GetMenuItemUrl("OnlineCustomer", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Activity logs",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.ActivityLog"),
-                            PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
-                            Url = GetMenuItemUrl("ActivityLog", "ActivityLogs"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Activity types",
-                            Title = await _localizationService.GetResourceAsync("Admin.Customers.ActivityLogType"),
-                            PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
-                            Url = GetMenuItemUrl("ActivityLog", "ActivityTypes"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
@@ -187,75 +128,120 @@ public partial class AdminMenu : IAdminMenu
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
                             Url = GetMenuItemUrl("Customer", "PendingApproval"),
                             IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Online customers",
+                            Title = "Khách hàng trực tuyến",
+                            PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
+                            Url = GetMenuItemUrl("OnlineCustomer", "List"),
+                            IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Activity logs",
+                            Title = "Nhật ký hoạt động",
+                            PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
+                            Url = GetMenuItemUrl("ActivityLog", "ActivityLogs"),
+                            IconClass = "far fa-dot-circle"
+                        },
+                        new()
+                        {
+                            SystemName = "Activity types",
+                            Title = "Loại hoạt động",
+                            PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
+                            Url = GetMenuItemUrl("ActivityLog", "ActivityTypes"),
+                            IconClass = "far fa-dot-circle"
                         }
                     }
                 },
-                //content management
+                //product management
                 new()
                 {
-                    SystemName = "Content Management",
-                    Title = await _localizationService.GetResourceAsync("Admin.ContentManagement"),
-                    IconClass = "fas fa-cubes",
+                    SystemName = "ProductManagement",
+                    Title = "Quản lý sản phẩm",
+                    IconClass = "fas fa-box-open",
                     ChildNodes = new List<AdminMenuItem>
                     {
                         new()
                         {
-                            SystemName = "Menus",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Menus"),
-                            PermissionNames = new List<string> { StandardPermission.ContentManagement.MENU_VIEW },
-                            Url = GetMenuItemUrl("Menu", "List"),
+                            SystemName = "Products",
+                            Title = "Danh mục hàng hóa",
+                            PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCTS_VIEW },
+                            Url = GetMenuItemUrl("Product", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
                         {
-                            SystemName = "Blog posts",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.BlogPosts"),
-                            PermissionNames = new List<string> { StandardPermission.ContentManagement.BLOG_VIEW },
-                            Url = GetMenuItemUrl("Blog", "BlogPosts"),
+                            SystemName = "Categories",
+                            Title = "Nhóm hàng hóa",
+                            PermissionNames = new List<string> { StandardPermission.Catalog.CATEGORIES_VIEW },
+                            Url = GetMenuItemUrl("Category", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
                         {
-                            SystemName = "Blog comments",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Blog.Comments"),
-                            PermissionNames =
-                                new List<string>
-                                {
-                                    StandardPermission.ContentManagement.BLOG_COMMENTS_VIEW
-                                },
-                            Url = GetMenuItemUrl("Blog", "BlogComments"),
+                            SystemName = "Product reviews",
+                            Title = "Đánh giá sản phẩm",
+                            PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_REVIEWS_VIEW },
+                            Url = GetMenuItemUrl("ProductReview", "List"),
                             IconClass = "far fa-dot-circle"
-                        },
+                        }
+                    }
+                },
+                //document/report roots are populated by plugins
+                new()
+                {
+                    SystemName = "DocumentPortal.Root",
+                    Title = "Quản lý tài liệu",
+                    IconClass = "fas fa-folder-open",
+                    ChildNodes = new List<AdminMenuItem>()
+                },
+                new()
+                {
+                    SystemName = "LogisticsReports.Root",
+                    Title = "Quản lý báo cáo",
+                    IconClass = "fas fa-chart-bar",
+                    ChildNodes = new List<AdminMenuItem>()
+                },
+                //forum management
+                new()
+                {
+                    SystemName = "ForumManagement",
+                    Title = "Quản lý diễn đàn",
+                    IconClass = "fas fa-comments",
+                    ChildNodes = new List<AdminMenuItem>
+                    {
                         new()
                         {
                             SystemName = "Manage forums",
-                            Title = await _localizationService.GetResourceAsync("Admin.ContentManagement.Forums"),
+                            Title = "Diễn đàn",
                             PermissionNames = new List<string> { StandardPermission.ContentManagement.FORUMS_VIEW },
                             Url = GetMenuItemUrl("Forum", "List"),
                             IconClass = "far fa-dot-circle"
                         },
                         new()
                         {
-                            SystemName = "Duty message",
-                            Title = "Nội dung trang đăng nhập",
+                            SystemName = "Forums settings",
+                            Title = "Cài đặt diễn đàn",
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
-                            Url = GetMenuItemUrl("Setting", "DutyMessage"),
+                            Url = GetMenuItemUrl("Setting", "Forum"),
                             IconClass = "far fa-dot-circle"
                         }
                     }
                 },
-                //configuration
+                //system management
                 new()
                 {
-                    SystemName = "Configuration",
-                    Title = await _localizationService.GetResourceAsync("Admin.Configuration"),
+                    SystemName = "SystemManagement",
+                    Title = "Quản lý hệ thống",
                     IconClass = "fas fa-cogs",
                     ChildNodes = new List<AdminMenuItem>
                     {
                         new()
                         {
                             SystemName = "Settings",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings"),
+                            Title = "Cài đặt",
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
                             IconClass = "far fa-dot-circle",
                             ChildNodes = new List<AdminMenuItem>
@@ -263,49 +249,49 @@ public partial class AdminMenu : IAdminMenu
                                 new()
                                 {
                                     SystemName = "General settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.GeneralCommon"),
+                                    Title = "Cài đặt chung",
                                     Url = GetMenuItemUrl("Setting", "GeneralCommon"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "Customer and user settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.CustomerUser"),
+                                    Title = "Cài đặt người dùng",
                                     Url = GetMenuItemUrl("Setting", "CustomerUser"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "Catalog settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Catalog"),
+                                    Title = "Cài đặt danh mục",
                                     Url = GetMenuItemUrl("Setting", "Catalog"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "Blog settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Blog"),
+                                    Title = "Cài đặt tin tức",
                                     Url = GetMenuItemUrl("Setting", "Blog"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "Forums settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Forums"),
+                                    Title = "Cài đặt diễn đàn",
                                     Url = GetMenuItemUrl("Setting", "Forum"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "Media settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.Media"),
+                                    Title = "Cài đặt media",
                                     Url = GetMenuItemUrl("Setting", "Media"),
                                     IconClass = "far fa-circle"
                                 },
                                 new()
                                 {
                                     SystemName = "App settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.AppSettings"),
+                                    Title = "Cấu hình ứng dụng",
                                     PermissionNames =
                                         new List<string>
                                         {
@@ -317,7 +303,7 @@ public partial class AdminMenu : IAdminMenu
                                 new()
                                 {
                                     SystemName = "All settings",
-                                    Title = await _localizationService.GetResourceAsync("Admin.Configuration.Settings.AllSettings"),
+                                    Title = "Tất cả cài đặt",
                                     Url = GetMenuItemUrl("Setting", "AllSettings"),
                                     IconClass = "far fa-circle"
                                 },
@@ -334,7 +320,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Stores",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.Stores"),
+                            Title = "Cửa hàng",
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_STORES },
                             Url = GetMenuItemUrl("Store",
                             "List"),
@@ -343,25 +329,15 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Access control list",
-                            Title = await _localizationService.GetResourceAsync("Admin.Configuration.ACL"),
+                            Title = "Phân quyền truy cập",
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_ACL },
                             Url = GetMenuItemUrl("Security", "Permissions"),
                             IconClass = "far fa-dot-circle"
                         },
-                    }
-                },
-                //system
-                new()
-                {
-                    SystemName = "System",
-                    Title = await _localizationService.GetResourceAsync("Admin.System"),
-                    IconClass = "fas fa-cube",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
                         new()
                         {
                             SystemName = "System information",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.SystemInfo"),
+                            Title = "Thông tin hệ thống",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "SystemInfo"),
                             IconClass = "far fa-dot-circle"
@@ -369,7 +345,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Log",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.Log"),
+                            Title = "Nhật ký hệ thống",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_SYSTEM_LOG },
                             Url = GetMenuItemUrl("Log", "List"),
                             IconClass = "far fa-dot-circle"
@@ -377,7 +353,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Warnings",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.Warnings"),
+                            Title = "Cảnh báo",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "Warnings"),
                             IconClass = "far fa-dot-circle"
@@ -385,7 +361,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Maintenance",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.Maintenance"),
+                            Title = "Bảo trì",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "Maintenance"),
                             IconClass = "far fa-dot-circle"
@@ -393,7 +369,7 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Schedule tasks",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.ScheduleTasks"),
+                            Title = "Tác vụ định kỳ",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_SCHEDULE_TASKS },
                             Url = GetMenuItemUrl("ScheduleTask",
                             "List"),
@@ -402,14 +378,13 @@ public partial class AdminMenu : IAdminMenu
                         new()
                         {
                             SystemName = "Search engine friendly names",
-                            Title = await _localizationService.GetResourceAsync("Admin.System.SeNames"),
+                            Title = "Đường dẫn thân thiện",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "SeNames"),
                             IconClass = "far fa-dot-circle"
                         },
                     }
                 },
-                //third party plugins
                 new()
                 {
                     SystemName = "Third party plugins",

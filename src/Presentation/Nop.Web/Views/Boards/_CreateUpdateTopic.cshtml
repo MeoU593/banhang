@@ -6,14 +6,7 @@
 
 @await Html.PartialAsync("_ForumHeader", null, new ViewDataDictionary(ViewData) { ["ForumId"] = Model.ForumId, ["DisableSearchForm"] = true })
 <div class="page forum-edit-page px-4 pb-8 lg:px-0">
-    <div class="page-title mb-5 overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-8">
-        <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-            <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-white">Diễn đàn</a>
-            <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-            <span class="text-white">@(Model.IsEdit ? T("Forum.EditTopic") : T("Forum.NewTopic"))</span>
-        </nav>
+    <div class="page-title mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6">
         @if (Model.IsEdit)
         {
             <h1 class="public-page-title font-black tracking-tight">@T("Forum.EditTopic")</h1>

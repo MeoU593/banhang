@@ -87,6 +87,19 @@ public partial class NopSelectTagHelper : TagHelper
         var tagName = For != null ? For.Name : Name;
         if (!string.IsNullOrEmpty(tagName))
         {
+            if (For == null)
+            {
+                if (!htmlAttributes.TryAdd("class", "form-control select2"))
+                    htmlAttributes["class"] += " form-control select2";
+
+                htmlAttributes.TryAdd("style", "width: 100%;");
+                htmlAttributes.TryAdd("data-dropdown-css-class", "select2-blue");
+
+                var dropdown = _htmlHelper.DropDownList(tagName, Items, htmlAttributes);
+                output.Content.SetHtmlContent(await dropdown.RenderHtmlContentAsync());
+                return;
+            }
+
             var templateName = "Select";
 
             if (bool.TryParse(IsMultiple, out var multiple) && multiple)
@@ -94,7 +107,7 @@ public partial class NopSelectTagHelper : TagHelper
 
             IHtmlContent selectList;
             var modelType = For?.ModelExplorer.ModelType;
-            var additionalData = new { htmlAttributes, SelectList = Items, MinimumItemsForSearch = _adminAreaSettings.MinimumDropdownItemsForSearch };
+            var additionalData = new { htmlAttributes, SelectList = Items ?? new List<SelectListItem>(), MinimumItemsForSearch = _adminAreaSettings.MinimumDropdownItemsForSearch };
 
             if (modelType is null || new[] { typeof(List<string>), typeof(string) }.Contains(modelType))
             {
@@ -109,7 +122,7 @@ public partial class NopSelectTagHelper : TagHelper
                 if (!htmlAttributes.TryAdd("class", "form-control"))
                     htmlAttributes["class"] += " form-control";
 
-                selectList = _htmlHelper.DropDownList(tagName, Items, htmlAttributes);
+                selectList = _htmlHelper.DropDownList(tagName, Items ?? new List<SelectListItem>(), htmlAttributes);
             }
 
             output.Content.SetHtmlContent(await selectList.RenderHtmlContentAsync());

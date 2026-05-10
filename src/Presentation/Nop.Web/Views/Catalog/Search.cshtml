@@ -81,17 +81,20 @@
     }
 </style>
 
+@section Breadcrumb
+{
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Tìm kiếm</span>
+    </nav>
+}
+
 <div class="page search-page">
     <div class="page-body w-full space-y-6">
-        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-military-green p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-8">
-            <nav class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200" aria-label="Breadcrumb">
-                <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-white">Trang chủ</a>
-                <span class="material-symbols-outlined text-sm text-slate-300">chevron_right</span>
-                <span class="text-white">Tìm kiếm</span>
-            </nav>
-            <div class="flex flex-wrap items-start justify-between gap-6">
+        <section class="overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="space-y-2">
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-secondary-container">Tra cứu tập trung</p>
                     <h1 class="public-hero-title font-black tracking-tight">Tìm kiếm toàn hệ thống</h1>
                     <p class="max-w-3xl text-sm text-slate-200 sm:text-base">Tìm trong sản phẩm, tin tức, văn bản kho tài liệu và đơn vị từ một giao diện thống nhất.</p>
                 </div>
@@ -101,7 +104,7 @@
                 </div>
             </div>
 
-            <div class="mt-5 grid grid-cols-2 gap-3 text-center md:grid-cols-4">
+            <div class="mt-4 grid grid-cols-2 gap-3 text-center md:grid-cols-4">
                 <div class="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
                     <div class="text-[10px] uppercase tracking-wider text-slate-200">Sản phẩm</div>
                     <div class="mt-1 text-xl font-black">@Model.ProductTotalCount</div>
