@@ -107,6 +107,10 @@ public static partial class NopRouteNames
         /// </summary>
         public const string UNIT_DETAILS = "UnitDetails";
 
+        public const string UNIT_DIRECTORY = "UnitDirectory";
+
+        public const string USER_GUIDE = "UserGuide";
+
         /// <summary>
         /// Gets the sitemap route name
         /// </summary>

@@ -63,11 +63,12 @@ public partial interface IVendorService
     /// <param name="pageIndex">Page index</param>
     /// <param name="pageSize">Page size</param>
     /// <param name="showHidden">A value indicating whether to show hidden records</param>
+    /// <param name="vendorIds">Vendor identifiers to include</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the vendors
     /// </returns>
-    Task<IPagedList<Vendor>> GetAllVendorsAsync(string name = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false);
+    Task<IPagedList<Vendor>> GetAllVendorsAsync(string name = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, int[] vendorIds = null);
 
     /// <summary>
     /// Gets descendant vendor identifiers for the specified vendor

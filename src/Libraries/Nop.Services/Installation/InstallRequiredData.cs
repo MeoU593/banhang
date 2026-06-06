@@ -40,6 +40,7 @@ using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Helpers;
+using Nop.Services.Logging;
 using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Seo;
@@ -2065,7 +2066,7 @@ public partial class InstallationService
     {
         var crAdministrators = new CustomerRole
         {
-            Name = "Administrators",
+            Name = "Quản trị hệ thống",
             Active = true,
             IsSystemRole = true,
             SystemName = NopCustomerDefaults.AdministratorsRoleName
@@ -2079,21 +2080,21 @@ public partial class InstallationService
         };
         var crRegistered = new CustomerRole
         {
-            Name = "Registered",
+            Name = "Người dùng thường",
             Active = true,
             IsSystemRole = true,
             SystemName = NopCustomerDefaults.RegisteredRoleName
         };
         var crGuests = new CustomerRole
         {
-            Name = "Guests",
+            Name = "Người dùng đơn vị",
             Active = true,
             IsSystemRole = true,
             SystemName = NopCustomerDefaults.GuestsRoleName
         };
         var crVendors = new CustomerRole
         {
-            Name = "Vendors",
+            Name = "Quản trị đơn vị",
             Active = true,
             IsSystemRole = true,
             SystemName = NopCustomerDefaults.VendorsRoleName
@@ -2341,6 +2342,16 @@ public partial class InstallationService
                     TopicTemplateId = defaultTopicTemplate.Id
                 },
                 new() {
+                    SystemName = "UserGuide",
+                    IncludeInSitemap = false,
+                    IsPasswordProtected = false,
+                    DisplayOrder = 1,
+                    Published = true,
+                    Title = "Tài liệu hướng dẫn sử dụng",
+                    Body = @"<div class=""user-guide-topic-content""><p><strong>Tài liệu hướng dẫn sử dụng</strong> giúp cán bộ, nhân viên và quản trị đơn vị thao tác nhanh trên cổng thông tin hậu cần - quân nhu.</p><h2>1. Đăng nhập / đăng ký</h2><ol><li>Mở trang đăng nhập từ menu hoặc màn hình chính.</li><li>Nhập đúng email hoặc tên đăng nhập và mật khẩu được cấp.</li><li>Nếu chưa có tài khoản, chọn đăng ký, khai báo đơn vị công tác và chờ phê duyệt.</li></ol><h2>2. Cập nhật hồ sơ cá nhân</h2><ol><li>Vào mục Hồ sơ cá nhân trên sidebar.</li><li>Kiểm tra họ tên, số hiệu quân nhân, cấp bậc, chức vụ và đơn vị công tác.</li><li>Dùng trang Cập nhật hồ sơ để bổ sung số điện thoại, địa chỉ và ảnh đại diện.</li></ol><h2>3. Sản phẩm / năng lực</h2><ol><li>Mở Sản phẩm / Năng lực để xem danh mục hậu cần và năng lực bảo đảm.</li><li>Dùng bộ lọc theo danh mục, đơn vị đăng hoặc trạng thái để thu hẹp kết quả.</li><li>Mở chi tiết để xem mô tả, thông tin người đăng và đơn vị phụ trách.</li></ol><h2>4. Tin tức / văn bản</h2><ol><li>Vào Tin tức &amp; Văn bản để theo dõi thông báo, tin hoạt động và văn bản nghiệp vụ.</li><li>Chọn đúng tab Tin tức hoặc Văn bản theo nhu cầu.</li><li>Dùng từ khóa, tác giả hoặc đơn vị đăng để tìm nhanh nội dung liên quan.</li></ol><h2>5. Kho tài liệu</h2><ol><li>Mở Kho tài liệu để tra cứu tài liệu nghiệp vụ, biểu mẫu và tài liệu dùng chung.</li><li>Lọc theo loại tài liệu, đơn vị ban hành hoặc từ khóa.</li><li>Nếu có quyền, chọn Tải văn bản lên để gửi tài liệu mới chờ duyệt.</li></ol><h2>6. Diễn đàn</h2><ol><li>Mở Diễn đàn để trao đổi kinh nghiệm và thảo luận nghiệp vụ.</li><li>Tạo chủ đề mới trong chuyên mục phù hợp.</li><li>Dùng trả lời hoặc bình luận để cập nhật ý kiến, hướng xử lý và biểu mẫu liên quan.</li></ol><h2>7. Danh bạ đơn vị</h2><ol><li>Mở Tiện ích rồi chọn Danh bạ để tra cứu nhân sự theo đơn vị.</li><li>Chọn đơn vị trong cây bên trái để xem danh sách liên hệ.</li><li>Kiểm tra số điện thoại, chức vụ, cấp bậc và số hiệu quân nhân trước khi liên hệ.</li></ol><h2>8. Quản trị đơn vị</h2><ol><li>Tài khoản quản trị đơn vị có thể mở khu vực Admin hoặc Quản trị đơn vị.</li><li>Theo dõi sản phẩm, tin tức, tài liệu, báo cáo và nhân sự trong phạm vi đơn vị.</li><li>Cập nhật dữ liệu theo đúng phân quyền được cấp.</li></ol><h2>9. Thêm / import danh bạ</h2><ol><li>Trong Admin, vào chi tiết đơn vị và chọn Quản lý danh bạ.</li><li>Thêm nhân sự thủ công hoặc import file Excel theo mẫu cột trên màn hình.</li><li>Kiểm tra trạng thái hiển thị public trước khi lưu.</li></ol><h2>10. Hỗ trợ sử dụng</h2><ol><li>Khi gặp lỗi, ghi lại đường dẫn trang, thao tác đã thực hiện và thông báo lỗi.</li><li>Chụp ảnh màn hình nếu giao diện hiển thị bất thường.</li><li>Liên hệ cán bộ phụ trách hệ thống của đơn vị để được hỗ trợ.</li></ol></div>",
+                    TopicTemplateId = defaultTopicTemplate.Id
+                },
+                new() {
                     SystemName = "VendorTermsOfService",
                     IncludeInSitemap = false,
                     IsPasswordProtected = false,
@@ -2396,6 +2407,21 @@ public partial class InstallationService
                     SystemKeyword = "AddNewBlogPost",
                     Enabled = true,
                     Name = "Add a new blog post"
+                },
+                new() {
+                    SystemKeyword = NopActivityLogDefaults.AddNewNewsPost,
+                    Enabled = true,
+                    Name = "Đăng tin tức"
+                },
+                new() {
+                    SystemKeyword = NopActivityLogDefaults.AddNewBlogDocument,
+                    Enabled = true,
+                    Name = "Đăng văn bản"
+                },
+                new() {
+                    SystemKeyword = NopActivityLogDefaults.AddNewPortalDocument,
+                    Enabled = true,
+                    Name = "Đăng tài liệu"
                 },
                 new() {
                     SystemKeyword = "AddNewCampaign",
@@ -2486,6 +2512,11 @@ public partial class InstallationService
                     SystemKeyword = "AddNewProduct",
                     Enabled = true,
                     Name = "Add a new product"
+                },
+                new() {
+                    SystemKeyword = NopActivityLogDefaults.SubmitUnitReport,
+                    Enabled = true,
+                    Name = "Đăng báo cáo"
                 },
                 new() {
                     SystemKeyword = "AddNewProductAttribute",
@@ -3244,6 +3275,24 @@ public partial class InstallationService
                     Name = "Upload a favicon and app icons"
                 }
             };
+
+        var enabledActivityLogTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [NopActivityLogDefaults.PublicStoreSuccessfulLogin] = "Đăng nhập",
+            [NopActivityLogDefaults.PublicStoreLogout] = "Đăng xuất",
+            [NopActivityLogDefaults.AddNewNewsPost] = "Đăng tin tức",
+            [NopActivityLogDefaults.AddNewBlogDocument] = "Đăng văn bản",
+            [NopActivityLogDefaults.AddNewPortalDocument] = "Đăng tài liệu",
+            [NopActivityLogDefaults.AddNewProduct] = "Đăng sản phẩm",
+            [NopActivityLogDefaults.SubmitUnitReport] = "Đăng báo cáo"
+        };
+
+        foreach (var activityLogType in activityLogTypes)
+        {
+            activityLogType.Enabled = enabledActivityLogTypes.ContainsKey(activityLogType.SystemKeyword);
+            if (enabledActivityLogTypes.TryGetValue(activityLogType.SystemKeyword, out var name))
+                activityLogType.Name = name;
+        }
 
         await _dataProvider.BulkInsertEntitiesAsync(activityLogTypes);
     }

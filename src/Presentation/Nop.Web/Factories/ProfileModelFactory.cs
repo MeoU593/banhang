@@ -146,9 +146,6 @@ public partial class ProfileModelFactory : IProfileModelFactory
             }
         }
 
-        //private message
-        var pmEnabled = _forumSettings.AllowPrivateMessages && !await _customerService.IsGuestAsync(customer);
-
         //total forum posts
         var totalPostsEnabled = false;
         var totalPosts = 0;
@@ -186,7 +183,6 @@ public partial class ProfileModelFactory : IProfileModelFactory
             AvatarUrl = avatarUrl,
             LocationEnabled = locationEnabled,
             Location = location,
-            PMEnabled = pmEnabled,
             TotalPostsEnabled = totalPostsEnabled,
             TotalPosts = totalPosts.ToString(),
             JoinDateEnabled = joinDateEnabled,

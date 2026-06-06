@@ -1,12 +1,10 @@
 @model ForumPostModel
-@using Nop.Core
 
-@inject IWebHelper webHelper;
 @{
-    var thisPageUrl = webHelper.GetThisPageUrl(true);
     var customerInitial = !string.IsNullOrWhiteSpace(Model.CustomerName)
         ? Model.CustomerName.Substring(0, 1).ToUpperInvariant()
         : "?";
+    var canManagePost = Model.IsCurrentCustomerAllowedToEditPost || Model.IsCurrentCustomerAllowedToDeletePost;
 }
 
 <article class="topic-post rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" id="@Html.Encode($"post{Model.Id}")" style="overflow:visible;">
@@ -22,7 +20,7 @@
 
         <div class="min-w-0 flex-1 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-2 text-xs">
+                <div class="public-meta-text flex flex-wrap items-center gap-2">
                     <span class="font-bold text-slate-900">
                         @if (Model.AllowViewingProfiles)
                         {
@@ -44,10 +42,15 @@
                     <span class="text-slate-400">@Model.PostCreatedOnStr</span>
                 </div>
 
-                <a id="post-link-@Model.Id" title="@T("Forum.PostLinkTitle")" class="inline-flex h-7 items-center justify-center rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" href="@(thisPageUrl)#post@(Model.Id)">#@(Model.Id)</a>
+                @if (Model.IsCurrentCustomerAllowedToCreatePost)
+                {
+                    <a href="#"
+                       class="forum-reply-trigger public-control-text"
+                       data-inline-reply-target="inline-reply-form-@Model.Id">Trả lời</a>
+                }
             </div>
 
-            <div class="post-text prose prose-slate w-full max-w-full break-words rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700" data-post-content="@Model.Id" style="width:100%;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
+            <div class="public-body-text post-text prose prose-slate w-full max-w-full break-words rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-slate-700" data-post-content="@Model.Id" style="width:100%;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;white-space:normal;">
                 @Html.Raw(Model.FormattedText)
             </div>
 
@@ -96,28 +99,24 @@
             {
                 <div class="post-vote mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5" id="@($"post-vote-{Model.Id}")">
                     <span class="vote up inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-400 hover:text-emerald-600 @if (Model.VoteIsUp.HasValue && (bool)Model.VoteIsUp){<text>selected</text>}" title="@T("Forum.Post.IsUseful")"></span>
-                    <div class="vote-count-post min-w-[24px] text-center text-xs font-bold text-slate-700">@Model.VoteCount</div>
+                    <div class="public-meta-text vote-count-post min-w-[24px] text-center font-bold text-slate-700">@Model.VoteCount</div>
                     <span class="vote down inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-rose-400 hover:text-rose-600 @if (Model.VoteIsUp.HasValue && (bool)!Model.VoteIsUp){<text>selected</text>}" title="@T("Forum.Post.IsNotUseful")"></span>
                 </div>
             }
 
-            <div class="mt-3 border-t border-slate-100 pt-3" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;clear:both;width:100%;overflow:visible;">
-                @if (Model.IsCurrentCustomerAllowedToCreatePost)
-                {
-                    <a href="#"
-                       class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm transition hover:brightness-110"
-                       style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;text-decoration:none;"
-                       data-inline-reply-target="inline-reply-form-@Model.Id">Trả lời</a>
-                }
+            @if (canManagePost)
+            {
+                <div class="forum-post-manage-actions">
                 @if (Model.IsCurrentCustomerAllowedToEditPost)
                 {
-                    @Html.RouteLink(T("Forum.EditPost").Text, NopRouteNames.Standard.POST_EDIT, new { id = Model.Id }, new { @class = "inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green", style = "display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;text-decoration:none;" })
+                    @Html.RouteLink(T("Forum.EditPost").Text, NopRouteNames.Standard.POST_EDIT, new { id = Model.Id }, new { @class = "forum-post-manage-actions__link public-control-text" })
                 }
                 @if (Model.IsCurrentCustomerAllowedToDeletePost)
                 {
-                    <a href="#" class="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;text-decoration:none;" onclick="return deletepost(@(Model.Id))">@T("Forum.DeletePost").Text</a>
+                    <a href="#" class="forum-post-manage-actions__link forum-post-manage-actions__link--danger public-control-text" onclick="return deletepost(@(Model.Id))">@T("Forum.DeletePost").Text</a>
                 }
-            </div>
+                </div>
+            }
 
             @if (Model.IsCurrentCustomerAllowedToCreatePost)
             {
@@ -125,32 +124,32 @@
                       asp-route="@NopRouteNames.Standard.POST_CREATE"
                       asp-route-id="@Model.ForumTopicId"
                       method="post"
-                      class="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3"
+                      class="forum-inline-reply"
                       style="display:none;">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="FromTopicInline" value="true" />
                     <input type="hidden" name="ForumTopicId" value="@Model.ForumTopicId" />
                     <input type="hidden" name="ReplyToPostId" value="@Model.Id" />
-                    <input type="hidden" name="Subscribed" value="true" />
+                    <input type="hidden" name="Subscribed" value="false" />
 
-                    <label class="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">Trả lời @Model.CustomerName</label>
+                    <div class="forum-inline-reply__title public-label-text">Trả lời @Model.CustomerName</div>
                     <textarea name="Text" rows="3" required
-                              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-700 outline-none transition focus:border-military-green"></textarea>
+                              class="forum-inline-reply__textarea public-control-text"
+                              placeholder="Nhập nội dung trả lời..."></textarea>
 
-                    <div class="mt-2 flex items-center justify-end gap-2">
+                    <div class="forum-inline-reply__actions">
                         <button type="button"
-                                class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700"
+                                class="forum-inline-reply__button forum-inline-reply__button--ghost public-control-text"
                                 data-inline-reply-cancel="inline-reply-form-@Model.Id">Hủy</button>
                         <button type="submit"
-                                class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm"
-                                style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Gửi trả lời</button>
+                                class="forum-inline-reply__button forum-inline-reply__button--primary public-control-text">Gửi</button>
                     </div>
                 </form>
             }
 
             @if (Model.SignaturesEnabled & !string.IsNullOrEmpty(Model.FormattedSignature))
             {
-                <div class="signature border-t border-slate-100 pt-3 text-xs text-slate-500">
+                <div class="public-meta-text signature border-t border-slate-100 pt-3 text-slate-500">
                     @Html.Raw(Model.FormattedSignature)
                 </div>
             }

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Localization;
@@ -1441,12 +1442,20 @@ public partial class UrlRecordService : IUrlRecordService
         if (string.IsNullOrEmpty(name))
             return Task.FromResult(name);
 
+        name = PrepareSlugSource(name);
+
         var sb = new StringBuilder();
-        foreach (var c in name.Trim().ToLowerInvariant())
+        foreach (var c in name.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD))
         {
-            if (convertNonWesternChars && _seoCharacterTable.TryGetValue(c, out var transliteration))
+            var category = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (category == UnicodeCategory.NonSpacingMark)
+                continue;
+
+            if (c == 'đ')
+                sb.Append('d');
+            else if (_seoCharacterTable.TryGetValue(c, out var transliteration))
                 sb.Append(transliteration.ToLowerInvariant());
-            else if (_okChars.Contains(c) || allowUnicodeCharsInUrls && char.IsLetterOrDigit(c))
+            else if (_okChars.Contains(c))
                 sb.Append(c);
         }
 
@@ -1454,6 +1463,49 @@ public partial class UrlRecordService : IUrlRecordService
         seName = UnderscoreRegex().Replace(seName, "_");
 
         return Task.FromResult(seName);
+    }
+
+    protected virtual string PrepareSlugSource(string name)
+    {
+        var value = name.Trim();
+        if (value.Contains('%'))
+        {
+            try
+            {
+                value = Uri.UnescapeDataString(value);
+            }
+            catch
+            {
+                // Keep the original value if it is not a valid escaped URL fragment.
+            }
+        }
+
+        if (LooksLikeMojibake(value))
+        {
+            try
+            {
+                var fixedValue = Encoding.UTF8.GetString(Encoding.Latin1.GetBytes(value));
+                if (!string.IsNullOrWhiteSpace(fixedValue) && fixedValue.Count(c => c == '\uFFFD') < value.Count(c => c == '\uFFFD'))
+                    value = fixedValue;
+                else if (!fixedValue.Contains('\uFFFD'))
+                    value = fixedValue;
+            }
+            catch
+            {
+                // Keep the original value if best-effort mojibake repair fails.
+            }
+        }
+
+        return value;
+    }
+
+    protected virtual bool LooksLikeMojibake(string value)
+    {
+        return value.Contains('Ã')
+            || value.Contains('Â')
+            || value.Contains("áº", StringComparison.Ordinal)
+            || value.Contains("á»", StringComparison.Ordinal)
+            || value.Contains("Ä", StringComparison.Ordinal);
     }
 
     /// <summary>

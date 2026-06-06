@@ -63,126 +63,109 @@
     @NopHtml.GenerateHeadCustom()
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/css/admin/fonts/material-symbols-outlined.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" asp-location="None"></script>
     <script id="tailwind-config" asp-location="None">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "military-green": "#2d3a22",
-                        "military-red": "#b22222",
-                        "military-gold": "#d4af37",
-                        "sidebar-bg": "#29313a",
-                        "primary": "#2d3a22",
-                        "on-primary": "#ffffff",
-                        "primary-container": "#3d4f2d",
-                        "on-primary-container": "#dfe8d4",
-                        "primary-fixed": "#dfe8d4",
-                        "primary-fixed-dim": "#bcc9aa",
-                        "on-primary-fixed": "#1f2918",
-                        "on-primary-fixed-variant": "#3d4f2d",
-                        "secondary": "#735c00",
-                        "on-secondary": "#ffffff",
-                        "secondary-container": "#f0d27b",
-                        "on-secondary-container": "#745c00",
-                        "secondary-fixed": "#ffe2a0",
-                        "secondary-fixed-dim": "#e9c349",
-                        "on-secondary-fixed": "#241a00",
-                        "on-secondary-fixed-variant": "#574500",
-                        "tertiary": "#0f1300",
-                        "on-tertiary": "#ffffff",
-                        "tertiary-container": "#232900",
-                        "on-tertiary-container": "#899258",
-                        "tertiary-fixed": "#dfe8a6",
-                        "tertiary-fixed-dim": "#c3cc8c",
-                        "on-tertiary-fixed": "#191e00",
-                        "on-tertiary-fixed-variant": "#434b18",
-                        "surface": "#f7f7f6",
-                        "surface-dim": "#e7e7e2",
-                        "surface-bright": "#f7f7f6",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-container-low": "#f4f5f2",
-                        "surface-container": "#f0f1ed",
-                        "surface-container-high": "#ebece7",
-                        "surface-container-highest": "#e4e6df",
-                        "surface-variant": "#e6e8e0",
-                        "surface-tint": "#2d3a22",
-                        "inverse-surface": "#29313a",
-                        "inverse-on-surface": "#e9f1fd",
-                        "inverse-primary": "#bcc9aa",
-                        "background": "#f7f7f6",
-                        "on-background": "#141c24",
-                        "on-surface": "#141c24",
-                        "on-surface-variant": "#44474c",
-                        "outline": "#75777c",
-                        "outline-variant": "#c4c6cc",
-                        "error": "#ba1a1a",
-                        "on-error": "#ffffff",
-                        "error-container": "#ffdad6",
-                        "on-error-container": "#93000a"
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    fontFamily: {
-                        "sans": ["Inter", "sans-serif"],
-                        "headline": ["Inter", "sans-serif"],
-                        "body": ["Inter", "sans-serif"],
-                        "label": ["Inter", "sans-serif"]
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "military-green": "#2e0001",
+                            "military-red": "#b91d20",
+                            "military-gold": "#fed65b",
+                            "sidebar-bg": "#29313a",
+                            "primary": "#2e0001",
+                            "on-primary": "#ffffff",
+                            "primary-container": "#550005",
+                            "on-primary-container": "#ffe3e0",
+                            "primary-fixed": "#ffe3e0",
+                            "primary-fixed-dim": "#ffb4aa",
+                            "on-primary-fixed": "#2e0001",
+                            "on-primary-fixed-variant": "#550005",
+                            "secondary": "#735c00",
+                            "on-secondary": "#ffffff",
+                            "secondary-container": "#fed65b",
+                            "on-secondary-container": "#745c00",
+                            "secondary-fixed": "#ffe2a0",
+                            "secondary-fixed-dim": "#e9c349",
+                            "on-secondary-fixed": "#241a00",
+                            "on-secondary-fixed-variant": "#574500",
+                            "tertiary": "#0f1300",
+                            "on-tertiary": "#ffffff",
+                            "tertiary-container": "#232900",
+                            "on-tertiary-container": "#899258",
+                            "tertiary-fixed": "#dfe8a6",
+                            "tertiary-fixed-dim": "#c3cc8c",
+                            "on-tertiary-fixed": "#191e00",
+                            "on-tertiary-fixed-variant": "#434b18",
+                            "surface": "#f7f9ff",
+                            "surface-dim": "#dbe3ef",
+                            "surface-bright": "#f7f9ff",
+                            "surface-container-lowest": "#ffffff",
+                            "surface-container-low": "#edf4ff",
+                            "surface-container": "#e6edf8",
+                            "surface-container-high": "#e1e8f2",
+                            "surface-container-highest": "#dbe3ef",
+                            "surface-variant": "#e6edf8",
+                            "surface-tint": "#b91d20",
+                            "inverse-surface": "#29313a",
+                            "inverse-on-surface": "#e9f1fd",
+                            "inverse-primary": "#bcc9aa",
+                            "background": "#f7f9ff",
+                            "on-background": "#141c24",
+                            "on-surface": "#141c24",
+                            "on-surface-variant": "#44474c",
+                            "outline": "#75777c",
+                            "outline-variant": "#c4c6cc",
+                            "error": "#ba1a1a",
+                            "on-error": "#ffffff",
+                            "error-container": "#ffdad6",
+                            "on-error-container": "#93000a"
+                        },
+                        borderRadius: {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                        },
+                        fontFamily: {
+                            "sans": ["Public Sans", "Inter", "sans-serif"],
+                            "headline": ["Public Sans", "Inter", "sans-serif"],
+                            "body": ["Public Sans", "Inter", "sans-serif"],
+                            "label": ["Public Sans", "Inter", "sans-serif"]
+                        }
                     }
                 }
             }
         }
     </script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" asp-location="None"></script>
     @*This is used so that themes can inject content into the header*@
     @await Html.PartialAsync("Head")
 
     @NopHtml.GenerateCssFiles()
     <style>
         :root {
-            --app-font-family: 'Inter', Arial, Helvetica, sans-serif;
-            --app-font-size-base: 14px;
-            --app-font-size-small: 13px;
-            --app-font-size-button: 13px;
-            --app-line-height-base: 1.55;
-            --app-control-height: 38px;
             --app-content-max-width: 1440px;
-            --display-lg: 2rem;
-            --headline-sm: 1.125rem;
-            --title-sm: 0.9375rem;
-            --label-sm: 0.6875rem;
-            --public-font-body: 14px;
-            --public-font-control: 13px;
-            --public-font-page-title: clamp(1.375rem, 1.7vw, 1.625rem);
-            --public-font-hero-title: clamp(1.25rem, 1.55vw, 1.5rem);
-            --public-font-section-title: clamp(1.125rem, 1.35vw, 1.25rem);
-            --public-font-card-title: 0.9375rem;
-            --public-font-list-title: 0.875rem;
-            --public-font-meta: 0.75rem;
-            --public-font-label: 0.6875rem;
-            --primary: #2d3a22;
+            --primary: #2e0001;
             --on-primary: #ffffff;
-            --primary-container: #3d4f2d;
-            --on-primary-container: #dfe8d4;
+            --primary-container: #550005;
+            --on-primary-container: #ffe3e0;
             --secondary: #735c00;
-            --secondary-container: #f0d27b;
+            --secondary-container: #fed65b;
             --on-secondary-container: #745c00;
-            --surface: #f7f7f6;
-            --surface-dim: #e7e7e2;
-            --surface-bright: #f7f7f6;
+            --surface: #f7f9ff;
+            --surface-dim: #dbe3ef;
+            --surface-bright: #f7f9ff;
             --surface-container-lowest: #ffffff;
-            --surface-container-low: #f4f5f2;
-            --surface-container: #f0f1ed;
-            --surface-container-high: #ebece7;
-            --surface-container-highest: #e4e6df;
-            --surface-variant: #e6e8e0;
-            --surface-tint: #2d3a22;
+            --surface-container-low: #edf4ff;
+            --surface-container: #e6edf8;
+            --surface-container-high: #e1e8f2;
+            --surface-container-highest: #dbe3ef;
+            --surface-variant: #e6edf8;
+            --surface-tint: #b91d20;
             --on-surface: #141c24;
             --on-surface-variant: #44474c;
             --outline: #75777c;
@@ -195,38 +178,14 @@
             --app-radius-md: 0.5rem;
             --app-radius-lg: 0.75rem;
             --app-border-soft: rgba(148, 163, 184, 0.25);
-            --app-border-focus: rgba(45, 58, 34, 0.4);
+            --app-border-focus: rgba(185, 29, 32, 0.4);
             --app-shadow-soft: 0 16px 32px -26px rgba(20, 28, 36, 0.2);
             --app-shadow-ambient: 0 24px 40px -28px rgba(20, 28, 36, 0.24);
-        }
-
-        /* Universal font override – beats all element-level Arial rules in styles.css */
-        *,
-        *::before,
-        *::after {
-            font-family: var(--app-font-family) !important;
-        }
-
-        /* Preserve monospace for code blocks */
-        pre, code, kbd, samp, tt {
-            font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace !important;
         }
 
         body {
             background: var(--surface-container-low);
             color: var(--on-surface);
-            font-size: var(--app-font-size-base);
-            line-height: var(--app-line-height-base);
-            letter-spacing: normal;
-        }
-
-        button,
-        input,
-        select,
-        textarea,
-        .button-1,
-        .button-2 {
-            font-size: var(--app-font-size-button);
         }
 
         .material-symbols-outlined {
@@ -299,74 +258,38 @@
             width: 100%;
         }
 
-        .page {
+        .app-header-breadcrumb {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: var(--app-control-height);
+            overflow: visible;
             text-align: left;
-            min-height: auto;
+            text-overflow: clip;
         }
 
-        .page h1,
-        .page h2,
-        .page h3,
-        .page h4 {
-            letter-spacing: -0.02em;
-        }
-
-        .page h1 {
-            font-size: var(--public-font-page-title);
-            line-height: 1.15;
-        }
-
-        .page h2 {
-            font-size: var(--public-font-section-title);
+        .app-header-breadcrumb nav {
+            align-items: center;
+            margin-bottom: 0 !important;
+            justify-content: flex-start;
+            overflow: visible;
+            text-overflow: clip;
+            flex-wrap: nowrap !important;
             line-height: 1.2;
         }
 
-        .page h3 {
-            font-size: var(--public-font-card-title);
-            line-height: 1.25;
+        .app-header-breadcrumb nav a,
+        .app-header-breadcrumb nav span:not(.material-symbols-outlined) {
+            min-width: 0;
+            max-width: none;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: nowrap;
         }
 
-        .public-hero-title {
-            font-size: var(--public-font-hero-title) !important;
-            line-height: 1.18 !important;
-            letter-spacing: -0.015em;
-        }
-
-        .public-page-title {
-            font-size: var(--public-font-page-title) !important;
-            line-height: 1.2 !important;
-            letter-spacing: -0.015em;
-        }
-
-        .public-section-title {
-            font-size: var(--public-font-section-title) !important;
-            line-height: 1.2 !important;
-            letter-spacing: -0.02em;
-        }
-
-        .public-card-title {
-            font-size: var(--public-font-card-title) !important;
-            line-height: 1.3 !important;
-        }
-
-        .public-list-title {
-            font-size: var(--public-font-list-title) !important;
-            line-height: 1.45 !important;
-        }
-
-        .public-body-text {
-            font-size: var(--public-font-body) !important;
-            line-height: 1.6 !important;
-        }
-
-        .public-meta-text {
-            font-size: var(--public-font-meta) !important;
-            line-height: 1.45 !important;
-        }
-
-        .public-label-text {
-            font-size: var(--public-font-label) !important;
-            line-height: 1.35 !important;
+        .page {
+            text-align: left;
+            min-height: auto;
         }
 
         .page .rounded-xl {
@@ -400,7 +323,7 @@
         .page select:focus,
         .page textarea:focus {
             border-color: var(--app-border-focus);
-            box-shadow: 0 0 0 3px rgba(45, 58, 34, 0.12);
+            box-shadow: 0 0 0 3px rgba(185, 29, 32, 0.12);
             outline: 0;
         }
 
@@ -417,14 +340,6 @@
         .page .button-1:hover,
         .page .button-2:hover {
             box-shadow: var(--app-shadow-ambient);
-        }
-
-        .page .text-xs.uppercase,
-        .page .text-[11px].uppercase,
-        .page .text-[10px].uppercase {
-            font-size: var(--label-sm);
-            letter-spacing: 0.11em;
-            font-weight: 700;
         }
 
         /* ── Required * trước label — pattern .inputs (nopCommerce standard) ── */
@@ -490,9 +405,12 @@
             order: 4; flex-basis: 100%;
         }
 
-        .page-title,
         .header-menu {
             display: none;
+        }
+
+        .page-title {
+            display: block;
         }
 
         /* Đảm bảo input với icon không bị theme ghi đè padding */
@@ -863,7 +781,7 @@
         .forum-edit-page .buttons .button-1,
         .move-topic-page .buttons .button-1 {
             border: 0 !important;
-            background: #2d3a22 !important;
+            background: #2e0001 !important;
             color: #ffffff !important;
         }
 
@@ -873,6 +791,173 @@
             background: #ffffff !important;
             color: #334155 !important;
             box-shadow: none !important;
+        }
+
+        /* Final public form normalization. Keep this after legacy/Tailwind compatibility rules. */
+        .page :where(input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="url"], select),
+        .public-control {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            height: var(--public-control-h, 2.75rem) !important;
+            min-height: var(--public-control-h, 2.75rem) !important;
+            border: 1px solid rgba(196, 198, 204, 0.45) !important;
+            border-radius: var(--public-radius-md, 0.75rem) !important;
+            background: #ffffff !important;
+            color: var(--public-text, #141c24) !important;
+            font-family: var(--app-font-family, 'Public Sans', 'Inter', Arial, sans-serif) !important;
+            font-size: var(--public-font-control, 0.875rem) !important;
+            font-weight: 650 !important;
+            line-height: 1.35 !important;
+            padding: 0 0.95rem !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+            outline: 0 !important;
+            vertical-align: middle !important;
+            -webkit-appearance: none;
+        }
+
+        .page input[type="date"] {
+            -webkit-appearance: auto !important;
+            appearance: auto !important;
+            padding-right: 0.65rem !important;
+        }
+
+        .page input[type="date"]::-webkit-calendar-picker-indicator {
+            width: auto !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            cursor: pointer;
+        }
+
+        .page :where(textarea),
+        textarea.public-control {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            min-height: clamp(7.5rem, 12vw, 11rem) !important;
+            height: auto !important;
+            border: 1px solid rgba(196, 198, 204, 0.45) !important;
+            border-radius: var(--public-radius-md, 0.75rem) !important;
+            background: #ffffff !important;
+            color: var(--public-text, #141c24) !important;
+            font-family: var(--app-font-family, 'Public Sans', 'Inter', Arial, sans-serif) !important;
+            font-size: var(--public-font-control, 0.875rem) !important;
+            font-weight: 600 !important;
+            line-height: 1.55 !important;
+            padding: 0.85rem 0.95rem !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+            outline: 0 !important;
+        }
+
+        .page :where(input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="url"], select, textarea):focus,
+        .public-control:focus {
+            border-color: rgba(185, 29, 32, 0.48) !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 0.22rem rgba(185, 29, 32, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .page :where(input[type="checkbox"], input[type="radio"], input[type="file"], input[type="hidden"]) {
+            width: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: initial !important;
+            border-radius: initial;
+            box-shadow: none !important;
+            -webkit-appearance: auto;
+        }
+
+        .page input[class~="pl-10"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .public-control-with-icon {
+            padding-left: 2.5rem !important;
+        }
+
+        .page input[class~="pl-11"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .page .reg-field.has-icon,
+        .page .login-field,
+        .page .password-field-input {
+            padding-left: 2.75rem !important;
+        }
+
+        .page input[class~="pl-12"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-left: 3rem !important;
+        }
+
+        .page input[class~="pr-12"]:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-right: 3rem !important;
+        }
+
+        .page .input-shell,
+        .page .login-input-wrap,
+        .page .reg-field-wrap {
+            position: relative;
+        }
+
+        .page .input-shell .input-icon,
+        .page .login-input-icon,
+        .page .reg-field-icon {
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .page .input-shell :where(input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="url"], select, textarea),
+        .page .command-field .input-shell :where(input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="url"], select, textarea),
+        .page .login-input-wrap .login-field,
+        .page .reg-field-wrap .reg-field.has-icon {
+            padding-left: 2.75rem !important;
+        }
+
+        .page .input-shell textarea,
+        .page .command-field .input-shell textarea {
+            padding-top: 0.85rem !important;
+        }
+
+        .page .login-field-password-wrap .login-field-password {
+            padding-right: 3rem !important;
+        }
+
+        .page select:not([multiple]) {
+            padding-right: 2.5rem !important;
+            text-overflow: ellipsis;
+        }
+
+        .public-field,
+        .page .inputs,
+        .page .account-field,
+        .page .command-field,
+        .page .space-y-1:has(> label),
+        .page .space-y-2:has(> label) {
+            min-width: 0;
+        }
+
+        .public-field-label,
+        .page label:not(.inline-flex):not(.flex) {
+            color: var(--public-text-soft, #536174) !important;
+            font-size: var(--public-font-label, 0.75rem) !important;
+            font-weight: 800 !important;
+            line-height: 1.35 !important;
+        }
+
+        .public-required,
+        .page .required,
+        .page .nop-required {
+            color: var(--public-red, #b91d20) !important;
+            font-weight: 900 !important;
+        }
+
+        .public-field-error,
+        .page .field-validation-error,
+        .page .validation-summary-errors,
+        .page .message-error {
+            color: #b91d20 !important;
+            font-size: var(--public-font-meta, 0.8125rem) !important;
+            line-height: 1.45 !important;
+        }
+
+        .page input:-webkit-autofill,
+        .page input:-webkit-autofill:hover,
+        .page input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+            -webkit-text-fill-color: var(--public-text, #141c24) !important;
+            transition: background-color 0s 9999s !important;
         }
 
         .ui-helper-hidden-accessible {

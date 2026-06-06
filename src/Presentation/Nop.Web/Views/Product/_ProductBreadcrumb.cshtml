@@ -10,7 +10,7 @@
 }
 @if (Model.Enabled)
 {
-    <nav class="mb-5 flex items-center gap-2 px-6 pt-6 text-xs font-medium uppercase tracking-wider text-on-surface-variant lg:px-8">
+    <nav class="public-breadcrumb product-header-breadcrumb flex items-center gap-2 text-on-surface-variant">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="hover:text-military-green transition-colors">Trang chủ</a>
         @foreach (var category in Model.CategoryBreadcrumb)
         {
@@ -18,7 +18,7 @@
             <a href="@(await NopUrl.RouteGenericUrlAsync<Category>(new { SeName = category.SeName }))" class="hover:text-military-green transition-colors">@category.Name</a>
         }
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span class="font-bold text-on-surface line-clamp-1">@Model.ProductName</span>
+        <span class="font-bold text-on-surface">@Model.ProductName</span>
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBreadcrumbAfter, additionalData = Model })
     </nav>
 }

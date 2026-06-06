@@ -12,6 +12,7 @@ using Nop.Plugin.Misc.DocumentPortal.Factories;
 using Nop.Plugin.Misc.DocumentPortal.Models.Public;
 using Nop.Plugin.Misc.DocumentPortal.Services;
 using Nop.Services.Customers;
+using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Media;
 using Nop.Web.Controllers;
@@ -30,6 +31,8 @@ public class DocumentController : BasePublicController
     private readonly IWorkContext _workContext;
     private readonly IDownloadService _downloadService;
     private readonly ICustomerService _customerService;
+    private readonly ICustomerActivityService _customerActivityService;
+    private readonly ILocalizationService _localizationService;
     private readonly ILogger _logger;
 
     public DocumentController(
@@ -38,6 +41,8 @@ public class DocumentController : BasePublicController
         IWorkContext workContext,
         IDownloadService downloadService,
         ICustomerService customerService,
+        ICustomerActivityService customerActivityService,
+        ILocalizationService localizationService,
         ILogger logger)
     {
         _documentPortalService = documentPortalService;
@@ -45,6 +50,8 @@ public class DocumentController : BasePublicController
         _workContext = workContext;
         _downloadService = downloadService;
         _customerService = customerService;
+        _customerActivityService = customerActivityService;
+        _localizationService = localizationService;
         _logger = logger;
     }
 
@@ -294,6 +301,9 @@ public class DocumentController : BasePublicController
             };
 
             await _documentPortalService.InsertAsync(document);
+
+            await _customerActivityService.InsertActivityAsync(customer, NopActivityLogDefaults.AddNewPortalDocument,
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewPortalDocument"), document.Title), document);
 
             TempData["UploadSuccess"] = "Tài liệu đã được gửi lên và đang chờ duyệt.";
             return RedirectToRoute(DocumentPortalDefaults.Routes.LIST);

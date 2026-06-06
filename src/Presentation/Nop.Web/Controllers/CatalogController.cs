@@ -233,6 +233,15 @@ public partial class CatalogController : BasePublicController
             manufacturerIds: command.Ms,
             orderBy: orderBy);
 
+        var productsForUnitCount = await _productService.SearchProductsAsync(
+            0,
+            int.MaxValue,
+            storeId: store.Id,
+            visibleIndividuallyOnly: true,
+            productIds: favoriteProductIds,
+            manufacturerIds: command.Ms,
+            orderBy: orderBy);
+
         var model = new CatalogProductsModel
         {
             UseAjaxLoading = false,
@@ -242,7 +251,8 @@ public partial class CatalogController : BasePublicController
                 ? "Tai khoan nay chua co san pham yeu thich."
                 : await _localizationService.GetResourceAsync("Categories.NoProducts"),
             CanFilterByFavorites = canFilterByFavorites,
-            FavoritesOnly = favoritesOnly
+            FavoritesOnly = favoritesOnly,
+            PostingUnitCount = productsForUnitCount.Select(product => product.VendorId).Where(vendorId => vendorId > 0).Distinct().Count()
         };
 
         model.LoadPagedList(products);
@@ -534,6 +544,7 @@ public partial class CatalogController : BasePublicController
                     languageId: language.Id,
                     pageIndex: model.BlogPage - 1,
                     pageSize: model.BlogPageSize,
+                    postTypeId: 0,
                     keywords: model.q);
 
                 model.BlogTotalCount = blogPosts.TotalCount;

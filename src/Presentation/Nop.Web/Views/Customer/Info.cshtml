@@ -34,10 +34,10 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
-        <span>Tài khoản</span>
+        <a asp-route="@NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT" class="transition hover:text-military-green">Hồ sơ cá nhân</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <span class="text-slate-700">Cập nhật hồ sơ</span>
     </nav>
@@ -52,6 +52,25 @@
 
 .command-header {
     margin-bottom: 8px;
+}
+
+.customer-info-page .command-header {
+    min-height: auto !important;
+    margin-bottom: 14px !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: 18px !important;
+}
+
+.customer-info-page .command-header .public-blue-hero-content {
+    gap: 0.75rem !important;
+}
+
+.customer-info-page .command-header .public-hero-title {
+    font-size: clamp(1.35rem, 0.55vw + 1.1rem, 1.7rem) !important;
+}
+
+.customer-info-page .command-header .public-hero-subtitle {
+    font-size: 0.92rem !important;
 }
 
 .command-breadcrumb {
@@ -73,9 +92,7 @@
 }
 
 .command-shell {
-    display: grid;
-    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
-    gap: 20px;
+    display: block;
 }
 
 .profile-side-card,
@@ -131,8 +148,8 @@
     height: 36px;
     border: 0;
     border-radius: 999px;
-    background: #b22222;
-    color: #d4af37;
+    background: #2e0001;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,7 +205,7 @@
 }
 
 .command-section {
-    padding: 24px;
+    padding: 20px;
     background: #fff;
 }
 
@@ -197,7 +214,7 @@
 }
 
 .command-section h3 {
-    margin: 0 0 16px;
+    margin: 0 0 12px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -211,13 +228,35 @@
     width: 4px;
     height: 18px;
     border-radius: 999px;
-    background: #b22222;
+    background: #b91d20;
 }
 
 .command-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 10px 12px;
+}
+
+.command-profile-section .command-profile-top-grid {
+    grid-template-columns: minmax(22%, 28%) repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.command-profile-section .command-profile-rest-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: end;
+    margin-top: 10px;
+}
+
+.command-profile-section .command-unit-field,
+.command-profile-section .command-position-field,
+.command-profile-section .command-enlistment-field,
+.command-profile-section .command-gender-field {
+    grid-column: auto;
+}
+
+.command-profile-section .command-gender-field {
+    align-self: start;
 }
 
 .command-field {
@@ -226,19 +265,25 @@
     flex-wrap: wrap;
     align-items: baseline;
     column-gap: 4px;
-    row-gap: 7px;
+    row-gap: 4px;
 }
 
 .command-field > label,
 .command-field > .label {
     order: 2;
     flex-shrink: 0;
-    margin: 0;
-    color: #44474c;
-    font-size: var(--public-font-label);
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #44474c !important;
+    font-size: var(--public-font-label) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
 }
 
 .command-field > .required,
@@ -284,6 +329,11 @@
     pointer-events: none;
 }
 
+.command-enlistment-field .input-icon {
+    left: 11px;
+    font-size: 20px;
+}
+
 .command-field input[type="text"],
 .command-field input[type="email"],
 .command-field input[type="tel"],
@@ -298,7 +348,7 @@
     border-radius: 8px;
     background: #ffffff;
     box-shadow: inset 0 0 0 1px rgba(196, 198, 204, 0.35);
-    padding: 11px 12px 11px 40px;
+    padding: 11px 12px 11px 42px !important;
     color: #141c24;
     font-size: var(--public-font-control);
     font-weight: 600;
@@ -307,14 +357,28 @@
 
 .command-field textarea {
     min-height: 96px;
-    padding-top: 12px;
+    padding-top: 12px !important;
 }
 
 .command-field input:focus,
 .command-field select:focus,
 .command-field textarea:focus {
     outline: none;
-    box-shadow: inset 0 0 0 2px rgba(45, 58, 34, 0.4);
+    box-shadow: inset 0 0 0 2px rgba(185, 29, 32, 0.4);
+}
+
+.command-field input[type="date"]::-webkit-calendar-picker-indicator {
+    width: auto;
+    height: auto;
+    margin-right: 0;
+    padding: 0;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.command-field input[type="date"]::-webkit-inner-spin-button,
+.command-field input[type="date"]::-webkit-clear-button {
+    display: none;
 }
 
 .command-readonly {
@@ -353,6 +417,44 @@
     display: flex;
     gap: 10px;
     align-items: flex-start;
+}
+
+.gender-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.gender-options span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    border-radius: 999px;
+    background: #f8fafc;
+    padding: 0 12px;
+}
+
+.gender-options input[type="radio"] {
+    width: 14px !important;
+    height: 14px !important;
+    min-height: 0 !important;
+    margin: 0;
+}
+
+.gender-options label {
+    margin: 0 !important;
+    color: #334155 !important;
+    font-size: var(--public-font-control) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
 }
 
 .newsletter-row {
@@ -424,7 +526,7 @@
     border: 0;
     border-radius: 8px;
     padding: 12px 18px;
-    background: #2f5d31;
+    background: #2e0001;
     color: #fff;
     font-size: var(--public-font-label);
     font-weight: 900;
@@ -434,7 +536,102 @@
 }
 
 .command-save:hover {
-    background: #264d28;
+    filter: brightness(1.1);
+}
+
+.command-avatar-field {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 16px;
+}
+
+.command-profile-section .command-avatar-field {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 0;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    padding: 10px;
+}
+
+.command-avatar-content {
+    min-width: 0;
+    width: 100%;
+}
+
+.command-avatar-field .profile-photo-wrap {
+    width: 88px;
+    height: 88px;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.profile-photo-upload-trigger {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f8fafc;
+    border-radius: 999px;
+    background: #2e0001;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 8px 18px -12px rgba(15, 23, 42, 0.75);
+    transition: transform 0.16s ease, filter 0.16s ease;
+}
+
+.profile-photo-upload-trigger:hover,
+.profile-photo-upload-trigger:focus-within {
+    filter: brightness(1.14);
+    transform: translateY(-1px);
+}
+
+.profile-photo-upload-trigger .material-symbols-outlined {
+    display: block;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.command-avatar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.command-avatar-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    border: 0;
+    border-radius: 10px;
+    background: #2e0001;
+    color: #fff;
+    cursor: pointer;
+    font-size: var(--public-font-control);
+    font-weight: 800;
+    padding: 0 14px;
+}
+
+.command-avatar-button-danger {
+    background: #ffdad6;
+    color: #93000a;
 }
 
 @@media (max-width: 1200px) {
@@ -443,13 +640,35 @@
     }
 }
 
-@@media (max-width: 768px) {
+@@media (max-width: 560px) {
     .command-edit-page {
         padding: 0 0 24px;
     }
 
     .command-grid {
         grid-template-columns: 1fr;
+    }
+
+    .command-profile-section .command-profile-top-grid,
+    .command-profile-section .command-profile-rest-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .command-profile-section .command-unit-field,
+    .command-profile-section .command-position-field,
+    .command-profile-section .command-enlistment-field,
+    .command-profile-section .command-gender-field {
+        grid-column: auto;
+    }
+
+    .command-avatar-field {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .command-profile-section .command-avatar-field {
+        grid-column: auto;
+        grid-row: auto;
     }
 
     .command-footer {
@@ -460,72 +679,66 @@
 }
 </style>
 
-<div class="page account-page command-edit-page customer-info-page">
-    <section class="command-header overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-        <div class="space-y-1.5">
-            <h1 class="public-hero-title font-black tracking-tight text-white">Cập nhật hồ sơ quân nhân</h1>
-            <p class="text-xs leading-5 text-slate-200 sm:text-sm">Điều chỉnh thông tin cơ bản, liên lạc, xác thực và tùy chọn bổ sung cho tài khoản.</p>
+<div class="page account-page command-edit-page customer-info-page public-page-shell public-page-stack">
+    <section class="command-header public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">Cập nhật hồ sơ quân nhân</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle">Điều chỉnh thông tin cơ bản, liên lạc, xác thực và tùy chọn bổ sung cho tài khoản.</p>
+            </div>
         </div>
     </section>
 
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerInfoTop, additionalData = Model })
 
-    <form id="customer-avatar-upload-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post" enctype="multipart/form-data">
+    <form id="customer-avatar-upload-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post" enctype="multipart/form-data" class="hidden">
         <input type="hidden" name="returnUrl" value="@avatarReturnUrl" />
         <input type="hidden" name="upload-avatar" value="true" />
     </form>
-    <form id="customer-avatar-remove-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post">
+    <form id="customer-avatar-remove-form" asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post" class="hidden">
         <input type="hidden" name="returnUrl" value="@avatarReturnUrl" />
     </form>
 
-    <form asp-route="CustomerEditAccount" method="post">
+    <form asp-route="CustomerEditAccount" method="post" class="public-page-stack">
         <div asp-validation-summary="ModelOnly" class="message-error"></div>
 
         @if (TempData["ProfileAvatarMessage"] != null)
         {
-            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            <div class="public-body-text mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-700">
                 @TempData["ProfileAvatarMessage"]
             </div>
         }
         @if (TempData["ProfileAvatarError"] != null)
         {
-            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <div class="public-body-text mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
                 @TempData["ProfileAvatarError"]
             </div>
         }
 
         <div class="command-shell">
-            <aside>
-                <div class="profile-side-card">
-                    <div class="profile-photo-wrap">
-                        <div class="profile-photo">
-                            <span>@getAvatarInitial(fullName)</span>
-                            @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
-                            {
-                                <img src="@Model.AvatarUrl" alt="@fullName" onerror="this.remove()" />
-                            }
+            <div class="command-card public-surface-card">
+                <section class="command-section command-profile-section public-surface-pad">
+                    <h3 class="public-section-title">Thông tin Quân nhân</h3>
+                    <div class="command-grid command-profile-top-grid">
+                        <div class="command-avatar-field">
+                            <div class="profile-photo-wrap">
+                                <div class="profile-photo">
+                                    <span>@getAvatarInitial(fullName)</span>
+                                    @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
+                                    {
+                                        <img src="@Model.AvatarUrl" alt="@fullName" onerror="this.remove()" />
+                                    }
+                                </div>
+                                <label class="profile-photo-upload-trigger" title="Thêm ảnh" aria-label="Thêm ảnh đại diện">
+                                    <span class="material-symbols-outlined">photo_camera</span>
+                                    <input name="uploadedFile" accept="image/jpeg,image/png,image/gif,image/webp" type="file" form="customer-avatar-upload-form" style="display:none" onchange="this.form.submit()" />
+                                </label>
+                            </div>
+                            <div class="command-avatar-content">
+                                <p class="public-label-text font-black uppercase tracking-[0.14em] text-sky-700">Ảnh đại diện hồ sơ</p>
+                            </div>
                         </div>
-                        <label class="profile-photo-link" title="Đổi ảnh đại diện">
-                            <span class="material-symbols-outlined" style="font-size:18px;">photo_camera</span>
-                            <input name="uploadedFile" accept="image/jpeg,image/png,image/gif,image/webp" type="file" form="customer-avatar-upload-form" style="display:none" onchange="this.form.submit()" />
-                        </label>
-                    </div>
 
-                    <h2>@fullName</h2>
-                    <div class="profile-meta">Mã quân nhân: @(string.IsNullOrWhiteSpace(Model.MilitaryCode) ? "Chưa cập nhật" : Model.MilitaryCode)</div>
-
-                    <a class="profile-side-action" asp-route="@NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT">Xem hồ sơ hiển thị</a>
-                    @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
-                    {
-                        <button type="submit" name="remove-avatar" form="customer-avatar-remove-form" class="profile-side-action profile-side-action-danger">Xóa avatar</button>
-                    }
-                </div>
-            </aside>
-
-            <div class="command-card">
-                <section class="command-section">
-                    <h3>Thông tin Quân nhân</h3>
-                    <div class="command-grid">
                         <div class="command-field">
                             <label asp-for="FirstName"></label>
                             <div class="input-shell">
@@ -570,8 +783,11 @@
                             </div>
                             <span asp-validation-for="Rank"></span>
                         </div>
+                    </div>
 
-                        <div class="command-field">
+                    <div class="command-grid command-profile-rest-grid">
+
+                        <div class="command-field command-unit-field">
                             <label for="@Html.IdFor(model => model.UnitName)">Đơn vị công tác</label>
                             <div class="input-shell">
                                 <span class="material-symbols-outlined input-icon">home_work</span>
@@ -580,7 +796,7 @@
                             <span asp-validation-for="UnitName"></span>
                         </div>
 
-                        <div class="command-field">
+                        <div class="command-field command-position-field">
                             <label for="@Html.IdFor(model => model.PositionTitle)">Chức vụ</label>
                             <div class="input-shell">
                                 <span class="material-symbols-outlined input-icon">stars</span>
@@ -589,7 +805,7 @@
                             <span asp-validation-for="PositionTitle"></span>
                         </div>
 
-                        <div class="command-field">
+                        <div class="command-field command-enlistment-field">
                             <label for="@Html.IdFor(model => model.EnlistmentDate)">Ngày nhập ngũ</label>
                             <div class="input-shell">
                                 <span class="material-symbols-outlined input-icon">event</span>
@@ -620,9 +836,9 @@
 
                         @if (Model.GenderEnabled)
                         {
-                            <div class="command-field">
+                            <div class="command-field command-gender-field">
                                 <span class="label">Giới tính</span>
-                                <div class="gdpr-row">
+                                <div class="gender-options">
                                     <span>
                                         <input type="radio" asp-for="Gender" value="M" checked="@(Model.Gender == "M")" id="gender-male" />
                                         <label class="forcheckbox" for="gender-male">@T("Account.Fields.Gender.Male")</label>
@@ -644,8 +860,8 @@
                     </div>
                 </section>
 
-                <section class="command-section">
-                    <h3>Liên lạc & Truy cập</h3>
+                <section class="command-section public-surface-pad">
+                    <h3 class="public-section-title">Liên lạc & Truy cập</h3>
                     <div class="command-grid">
                         <div class="command-field">
                             <label asp-for="Email"></label>
@@ -722,25 +938,9 @@
                     </div>
                 </section>
 
-                <section class="command-section">
-                    <h3>Thông tin bổ sung</h3>
+                <section class="command-section public-surface-pad">
+                    <h3 class="public-section-title">Thông tin bổ sung</h3>
                     <div class="command-grid">
-                        @if (Model.CompanyEnabled)
-                        {
-                            <div class="command-field">
-                                <label asp-for="Company"></label>
-                                <div class="input-shell">
-                                    <span class="material-symbols-outlined input-icon">business_center</span>
-                                    <input asp-for="Company" />
-                                </div>
-                                @if (Model.CompanyRequired)
-                                {
-                                    <nop-required />
-                                }
-                                <span asp-validation-for="Company"></span>
-                            </div>
-                        }
-
                         @if (Model.DisplayVatNumber)
                         {
                             <div class="command-field">
@@ -889,8 +1089,8 @@
 
                 @if (Model.CustomerAttributes.Count > 0)
                 {
-                    <section class="command-section">
-                        <h3>Thuộc tính bổ sung</h3>
+                    <section class="command-section public-surface-pad">
+                        <h3 class="public-section-title">Thuộc tính bổ sung</h3>
                         <div class="attribute-box">
                             @await Html.PartialAsync("_CustomerAttributes", Model.CustomerAttributes)
                         </div>
@@ -899,8 +1099,8 @@
 
                 @if (Model.NumberOfExternalAuthenticationProviders > 0)
                 {
-                    <section class="command-section">
-                        <h3>Tài khoản liên kết</h3>
+                    <section class="command-section public-surface-pad">
+                        <h3 class="public-section-title">Tài khoản liên kết</h3>
                         @if (Model.AssociatedExternalAuthRecords.Count > 0)
                         {
                             <div class="auth-table-wrap">
@@ -943,8 +1143,8 @@
 
                 @if (Model.GdprConsents.Count > 0)
                 {
-                    <section class="command-section">
-                        <h3>Xác nhận dữ liệu</h3>
+                    <section class="command-section public-surface-pad">
+                        <h3 class="public-section-title">Xác nhận dữ liệu</h3>
                         <div class="command-grid" style="grid-template-columns:1fr;">
                             @foreach (var consent in Model.GdprConsents)
                             {
@@ -972,8 +1172,8 @@
                     </section>
                 }
 
-                <section class="command-section">
-                    <h3>Đổi mật khẩu</h3>
+                <section class="command-section public-surface-pad">
+                    <h3 class="public-section-title">Đổi mật khẩu</h3>
                     <div class="security-tip">
                         Để thay đổi mật khẩu theo chuẩn bảo mật nội bộ, sử dụng trang đổi mật khẩu riêng của tài khoản.
                         <a asp-route="@NopRouteNames.Standard.CUSTOMER_CHANGE_PASSWORD" style="font-weight:800;color:#2e0001;">Mở trang đổi mật khẩu</a>.
@@ -981,8 +1181,8 @@
                 </section>
 
                 <div class="command-footer">
-                    <button type="button" class="command-cancel" onclick="window.location.href='@Url.RouteUrl(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT)'">Hủy thay đổi</button>
-                    <button type="submit" id="save-info-button" name="save-info-button" class="command-save">Cập nhật hồ sơ</button>
+                    <button type="button" class="public-control-text command-cancel" onclick="window.location.href='@Url.RouteUrl(NopRouteNames.General.CUSTOMER_PROFILE_ACCOUNT)'">Hủy thay đổi</button>
+                    <button type="submit" id="save-info-button" name="save-info-button" class="public-control-text command-save">Cập nhật hồ sơ</button>
                 </div>
             </div>
         </div>

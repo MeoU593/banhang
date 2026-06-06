@@ -30,13 +30,11 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
     public async Task HandleEventAsync(AdminMenuCreatedEvent eventMessage)
     {
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
-        var currentVendor = await _workContext.GetCurrentVendorAsync();
         var canAccessDocuments = await _documentPortalService.CanAccessDocumentManagementAsync(currentCustomer);
-        var canManage = await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENTS);
         var canManageSettings = await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENT_SETTINGS);
-        var isUnitLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
+        var canAccessBlog = await _permissionService.AuthorizeAsync(StandardPermission.ContentManagement.BLOG_VIEW, currentCustomer);
 
-        if (!canAccessDocuments && !canManageSettings && currentVendor == null)
+        if (!canAccessDocuments && !canManageSettings && !canAccessBlog)
             return;
 
         var root = eventMessage.RootMenuItem.GetItemBySystemName("DocumentPortal.Root") ?? new AdminMenuItem
@@ -61,7 +59,7 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
             });
         }
 
-        if (canManage)
+        if (canManageSettings)
         {
             root.ChildNodes.Add(new AdminMenuItem
             {
@@ -87,19 +85,6 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
                 IconClass = "fas fa-building"
             });
 
-            if (canManageSettings)
-            {
-                root.ChildNodes.Add(new AdminMenuItem
-                {
-                    SystemName = "DocumentPortal.Settings",
-                    Title = await _localizationService.GetResourceAsync("Plugins.Misc.DocumentPortal.Menu.Settings"),
-                    Url = "~/Admin/DocumentPortalAdmin/Settings",
-                    IconClass = "fas fa-cog"
-                });
-            }
-        }
-        else if (canManageSettings)
-        {
             root.ChildNodes.Add(new AdminMenuItem
             {
                 SystemName = "DocumentPortal.Settings",
@@ -109,7 +94,7 @@ public class AdminMenuEventConsumer : IConsumer<AdminMenuCreatedEvent>
             });
         }
 
-        if (currentVendor != null)
+        if (canAccessBlog)
         {
             root.ChildNodes.Add(new AdminMenuItem
             {

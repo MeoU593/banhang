@@ -131,7 +131,7 @@ public partial class VendorService : IVendorService
     /// A task that represents the asynchronous operation
     /// The task result contains the vendors
     /// </returns>
-    public virtual async Task<IPagedList<Vendor>> GetAllVendorsAsync(string name = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
+    public virtual async Task<IPagedList<Vendor>> GetAllVendorsAsync(string name = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, int[] vendorIds = null)
     {
         var vendors = await _vendorRepository.GetAllPagedAsync(query =>
         {
@@ -143,6 +143,9 @@ public partial class VendorService : IVendorService
 
             if (!showHidden)
                 query = query.Where(v => v.Active);
+
+            if (vendorIds?.Length > 0)
+                query = query.Where(v => vendorIds.Contains(v.Id));
 
             query = query.Where(v => !v.Deleted);
             query = query.OrderBy(v => v.DisplayOrder).ThenBy(v => v.Name).ThenBy(v => v.Email);

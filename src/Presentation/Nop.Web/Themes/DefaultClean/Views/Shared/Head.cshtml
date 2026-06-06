@@ -12,7 +12,10 @@
 
     //add main CSS file
     NopHtml.AppendCssFileParts($"~/Themes/{themeName}/Content/css/styles{(supportRtl ? ".rtl" : "")}.css");
-    
+
+    //add public typography CSS file after the legacy theme CSS
+    NopHtml.AddCssFileParts($"~/Themes/{themeName}/Content/css/public-typography.css");
+     
     //add swiper css file
     if (catalogSettings.DisplayAllPicturesOnCatalogPages)
     {

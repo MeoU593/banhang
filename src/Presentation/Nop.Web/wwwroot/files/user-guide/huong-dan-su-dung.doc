@@ -1,0 +1,18 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Huong dan su dung</title>
+</head>
+<body>
+  <h1>Huong dan su dung cong thong tin Hau can - Quan nhu</h1>
+  <p>Tai lieu mau phuc vu nut tai ve tren trang Tai lieu huong dan.</p>
+  <h2>Cac muc chinh</h2>
+  <ol>
+    <li>Dang nhap va cap nhat ho so ca nhan.</li>
+    <li>Xem san pham, nang luc va danh sach don vi.</li>
+    <li>Theo doi tin tuc, van ban, tai lieu va dien dan.</li>
+    <li>Quan tri don vi cap nhat danh ba, nhan su va bao cao theo phan quyen.</li>
+  </ol>
+  <p>Co the thay the file nay bang ban DOC/PDF chinh thuc cung ten hoac cap nhat lai duong dan tren giao dien.</p>
+</body>
+</html>

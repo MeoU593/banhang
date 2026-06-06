@@ -173,7 +173,7 @@ public partial class CustomerService : ICustomerService
             if (affiliateId > 0)
                 query = query.Where(c => affiliateId == c.AffiliateId);
             if (vendorId > 0)
-                query = query.Where(c => vendorId == c.VendorId);
+                query = query.Where(c => vendorId == c.VendorId || vendorId == c.CompanyId);
             if (isActive.HasValue)
                 query = query.Where(c => c.Active == isActive.Value);
 

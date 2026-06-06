@@ -18,52 +18,42 @@
     NopHtml.AppendPageCssClassParts("html-home-page");
 
     var blogUrl = Url.RouteUrl(NopRouteNames.General.BLOG);
-    var documentPortalUrl = "/tai-lieu";
-    var productListingUrl = Url.RouteUrl(NopRouteNames.General.CATEGORIES);
-    var boardsUrl = Url.RouteUrl(NopRouteNames.General.BOARDS);
+    var documentListUrl = Url.RouteUrl(NopRouteNames.Standard.BLOG_DOCUMENTS);
+}
 
-    var shortcuts = new[]
-    {
-        new { Title = "Sản phẩm", Icon = "inventory_2", Url = productListingUrl ?? "#" },
-        new { Title = "Tin tức văn bản", Icon = "article", Url = blogUrl ?? "#" },
-        new { Title = "Diễn đàn", Icon = "forum", Url = boardsUrl ?? "#" },
-        new { Title = "Kho tài liệu", Icon = "folder_open", Url = documentPortalUrl }
-    };
+@section Breadcrumb
+{
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
+        <span class="text-slate-700">Trang chủ</span>
+    </nav>
 }
 
 <div class="page home-page">
-    <div class="page-body mx-auto w-full max-w-[1440px] space-y-8 p-4 sm:p-6 lg:p-8">
+    <div class="page-body home-page-shell home-page-stack">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.HomepageTop })
 
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-            @foreach (var item in shortcuts)
-            {
-                <a href="@item.Url" class="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm transition-all hover:border-primary hover:shadow-md">
-                    <span class="material-symbols-outlined mb-2 text-3xl text-primary">@item.Icon</span>
-                    <span class="text-xs font-bold uppercase tracking-tight text-slate-700">@item.Title</span>
-                </a>
-            }
-        </div>
+        @await Component.InvokeAsync("HomepageNotifications")
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div class="space-y-6 lg:col-span-2">
+        <div class="home-content-grid">
+            <div class="space-y-6">
                 <section class="space-y-4">
-                    <div class="flex items-center justify-between">
+                    <div class="home-section-header">
                         <h3 class="public-card-title flex items-center gap-2 font-bold text-slate-800">
-                            <span class="material-symbols-outlined text-primary">newsmode</span>
+                            <span class="material-symbols-outlined text-blue-500">newsmode</span>
                             Tin tức &amp; Thông báo mới
                         </h3>
-                        <a class="text-sm font-semibold text-primary hover:underline" href="@(blogUrl ?? "#")">Tất cả tin tức</a>
+                        <a class="public-control-text home-section-action hover:underline" href="@(blogUrl ?? "#")">Tất cả tin tức</a>
                     </div>
                     @await Component.InvokeAsync(typeof(HomepageBlogPostsViewComponent), new { postTypeId = 0, take = 4, displayVariant = "home-news-grid" })
                 </section>
 
                 <section class="space-y-4">
-                    <div class="flex items-center justify-between">
+                    <div class="home-section-header">
                         <h3 class="public-card-title flex items-center gap-2 font-bold text-slate-800">
-                            <span class="material-symbols-outlined text-primary">description</span>
+                            <span class="material-symbols-outlined text-emerald-600">description</span>
                             Văn bản mới ban hành
                         </h3>
+                        <a class="public-control-text home-section-action hover:underline" href="@(documentListUrl ?? "#")">Xem tất cả</a>
                     </div>
                     @await Component.InvokeAsync(typeof(HomepageBlogPostsViewComponent), new { postTypeId = 1, take = 5, displayVariant = "home-doc-table" })
                 </section>
@@ -71,16 +61,19 @@
 
             <aside class="space-y-8">
                 <section class="space-y-4">
-                    <h3 class="public-card-title flex items-center gap-2 font-bold text-slate-800">
-                        <span class="material-symbols-outlined text-primary">precision_manufacturing</span>
-                        Sản phẩm tiêu biểu
-                    </h3>
+                    <div class="home-section-header">
+                        <h3 class="public-card-title flex items-center gap-2 font-bold text-slate-800">
+                            <span class="material-symbols-outlined text-yellow-500">star</span>
+                            Sản phẩm tiêu biểu
+                        </h3>
+                        <a class="public-control-text home-section-action inline-flex whitespace-nowrap" href="@(Url.RouteUrl(NopRouteNames.General.CATEGORIES) ?? "#")">Xem tất cả</a>
+                    </div>
                     @await Component.InvokeAsync(typeof(HomepageProductsViewComponent))
                 </section>
 
                 <section class="space-y-4">
                     <h3 class="public-card-title flex items-center gap-2 font-bold text-slate-800">
-                        <span class="material-symbols-outlined text-primary">chat_bubble</span>
+                        <span class="material-symbols-outlined text-purple-500">chat_bubble</span>
                         Hoạt động diễn đàn
                     </h3>
                     @await Component.InvokeAsync(typeof(ForumActiveDiscussionsSmallViewComponent))

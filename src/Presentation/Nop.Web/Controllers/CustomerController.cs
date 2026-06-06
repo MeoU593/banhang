@@ -35,6 +35,7 @@ using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Tax;
+using Nop.Services.Vendors;
 using Nop.Web.Factories;
 using Nop.Web.Framework;
 using Nop.Web.Framework.Controllers;
@@ -90,6 +91,7 @@ public partial class CustomerController : BasePublicController
     protected readonly IStateProvinceService _stateProvinceService;
     protected readonly IStoreContext _storeContext;
     protected readonly ITaxService _taxService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
     protected readonly LocalizationSettings _localizationSettings;
     protected readonly MediaSettings _mediaSettings;
@@ -142,6 +144,7 @@ public partial class CustomerController : BasePublicController
         IStateProvinceService stateProvinceService,
         IStoreContext storeContext,
         ITaxService taxService,
+        IVendorService vendorService,
         IWorkContext workContext,
         LocalizationSettings localizationSettings,
         MediaSettings mediaSettings,
@@ -189,6 +192,7 @@ public partial class CustomerController : BasePublicController
         _stateProvinceService = stateProvinceService;
         _storeContext = storeContext;
         _taxService = taxService;
+        _vendorService = vendorService;
         _workContext = workContext;
         _localizationSettings = localizationSettings;
         _mediaSettings = mediaSettings;
@@ -210,6 +214,14 @@ public partial class CustomerController : BasePublicController
             if (StringValues.IsNullOrEmpty(cbConsent) || !cbConsent.ToString().Equals("on"))
                 ModelState.AddModelError("", consent.RequiredMessage);
         }
+    }
+
+    protected virtual async Task<string> GetVendorNameAsync(int vendorId)
+    {
+        if (vendorId <= 0)
+            return null;
+
+        return (await _vendorService.GetVendorByIdAsync(vendorId))?.Name;
     }
 
     protected virtual async Task<string> ParseSelectedProviderAsync(IFormCollection form)
@@ -360,9 +372,6 @@ public partial class CustomerController : BasePublicController
 
             if (oldCustomerInfoModel.Email != newCustomerInfoModel.Email)
                 await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ProfileChanged, $"{await _localizationService.GetResourceAsync("Account.Fields.Email")} = {newCustomerInfoModel.Email}");
-
-            if (oldCustomerInfoModel.Company != newCustomerInfoModel.Company)
-                await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ProfileChanged, $"{await _localizationService.GetResourceAsync("Account.Fields.Company")} = {newCustomerInfoModel.Company}");
 
             if (oldCustomerInfoModel.StreetAddress != newCustomerInfoModel.StreetAddress)
                 await _gdprService.InsertLogAsync(customer, 0, GdprRequestType.ProfileChanged, $"{await _localizationService.GetResourceAsync("Account.Fields.StreetAddress")} = {newCustomerInfoModel.StreetAddress}");
@@ -547,9 +556,9 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
     [CheckAccessClosedStore(ignore: true)]
     //available even when navigation is not allowed
     [CheckAccessPublicStore(ignore: true)]
-    public virtual async Task<IActionResult> Login(bool? checkoutAsGuest)
+    public virtual async Task<IActionResult> Login()
     {
-        var model = await _customerModelFactory.PrepareLoginModelAsync(checkoutAsGuest);
+        var model = await _customerModelFactory.PrepareLoginModelAsync();
         var customer = await _workContext.GetCurrentCustomerAsync();
 
         if (await _customerService.IsRegisteredAsync(customer))
@@ -639,7 +648,7 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
         }
 
         //If we got this far, something failed, redisplay form
-        model = await _customerModelFactory.PrepareLoginModelAsync(model.CheckoutAsGuest);
+        model = await _customerModelFactory.PrepareLoginModelAsync();
         return View(model);
     }
 
@@ -992,8 +1001,11 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
                     customer.LastName = model.LastName;
                 if (_customerSettings.DateOfBirthEnabled)
                     customer.DateOfBirth = model.ParseDateOfBirth();
-                if (_customerSettings.CompanyEnabled)
-                    customer.Company = model.Company;
+                var selectedVendorId = model.VendorId;
+                var selectedVendorName = await GetVendorNameAsync(selectedVendorId);
+                customer.VendorId = selectedVendorId;
+                customer.CompanyId = selectedVendorId > 0 ? selectedVendorId : null;
+                customer.Company = selectedVendorName;
                 if (_customerSettings.StreetAddressEnabled)
                     customer.StreetAddress = model.StreetAddress;
                 if (_customerSettings.StreetAddress2Enabled)
@@ -1330,8 +1342,6 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
                 customer.LastName = model.LastName;
                 if (_customerSettings.DateOfBirthEnabled)
                     customer.DateOfBirth = model.ParseDateOfBirth();
-                if (_customerSettings.CompanyEnabled)
-                    customer.Company = model.Company;
                 customer.StreetAddress = model.StreetAddress;
                 customer.StreetAddress2 = model.StreetAddress2;
                 if (_customerSettings.ZipPostalCodeEnabled)
@@ -1357,7 +1367,7 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
                 if (_gdprSettings.GdprEnabled)
                     await LogGdprAsync(customer, oldCustomerModel, model, form);
 
-                _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Account.CustomerInfo.Updated"));
+                _notificationService.SuccessNotification("Đã cập nhật hồ sơ.", timeout: 5000);
 
                 return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
             }
@@ -1749,50 +1759,6 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
 
         var model = await _customerModelFactory.PrepareGdprToolsModelAsync();
         model.Result = await _localizationService.GetResourceAsync("Gdpr.DeleteRequested.Success");
-
-        return View(model);
-    }
-
-    #endregion
-
-    #region Check gift card balance
-
-    //check gift card balance page
-    //available even when a store is closed
-    [CheckAccessClosedStore(ignore: true)]
-    public virtual async Task<IActionResult> CheckGiftCardBalance()
-    {
-        if (!_customerSettings.AllowCustomersToCheckGiftCardBalance)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
-
-        var model = await _customerModelFactory.PrepareCheckGiftCardBalanceModelAsync();
-
-        return View(model);
-    }
-
-    [HttpPost, ActionName("CheckGiftCardBalance")]
-    [FormValueRequired("checkbalancegiftcard")]
-    [ValidateCaptcha]
-    public virtual async Task<IActionResult> CheckBalance(CheckGiftCardBalanceModel model, bool captchaValid)
-    {
-        if (!_customerSettings.AllowCustomersToCheckGiftCardBalance)
-            return RedirectToRoute(NopRouteNames.General.CUSTOMER_INFO);
-
-        //validate CAPTCHA
-        if (_captchaSettings.Enabled && _captchaSettings.ShowOnCheckGiftCardBalance && !captchaValid)
-            ModelState.AddModelError("", await _localizationService.GetResourceAsync("Common.WrongCaptchaMessage"));
-
-        if (ModelState.IsValid)
-        {
-            var giftCard = (await _giftCardService.GetAllGiftCardsAsync(giftCardCouponCode: model.GiftCardCode)).FirstOrDefault();
-            if (giftCard != null && await _giftCardService.IsGiftCardValidAsync(giftCard))
-            {
-                var remainingAmount = await _currencyService.ConvertFromPrimaryStoreCurrencyAsync(await _giftCardService.GetGiftCardRemainingAmountAsync(giftCard), await _workContext.GetWorkingCurrencyAsync());
-                model.Result = await _priceFormatter.FormatPriceAsync(remainingAmount, true, false);
-            }
-            else
-                model.Message = await _localizationService.GetResourceAsync("CheckGiftCardBalance.GiftCardCouponCode.Invalid");
-        }
 
         return View(model);
     }

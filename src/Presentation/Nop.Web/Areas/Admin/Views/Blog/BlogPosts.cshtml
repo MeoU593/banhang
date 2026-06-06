@@ -42,28 +42,34 @@
                             </div>
 
                             <div class="search-body @(hideSearchBlock ? "closed" : "")">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group row" @(Model.BlogPosts.HideStoresList ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="BlogPosts.SearchStoreId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="BlogPosts.SearchStoreId" asp-items="Model.BlogPosts.AvailableStores" />
-                                            </div>
+                                <div class="row align-items-end">
+                                    <div class="col-md-4" @(Model.BlogPosts.HideStoresList ? Html.Raw("style=\"display:none\"") : null)>
+                                        <div class="form-group">
+                                            <nop-label asp-for="BlogPosts.SearchStoreId" />
+                                            <nop-select asp-for="BlogPosts.SearchStoreId" asp-items="Model.BlogPosts.AvailableStores" />
                                         </div>
-											<div class="form-group row">
-											<div class="col-md-4">
-												<nop-label asp-for="SearchTitle" />
-											</div>
-											<div class="col-md-8">
-												<nop-editor asp-for="SearchTitle" />
-											</div>
-										</div>                                        
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label asp-for="SearchTitle">Bài viết</label>
+                                            <nop-editor asp-for="SearchTitle" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label for="CreatedOnFrom">Ngày đầu</label>
+                                            <input type="date" id="CreatedOnFrom" name="CreatedOnFrom" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label for="CreatedOnTo">Ngày cuối</label>
+                                            <input type="date" id="CreatedOnTo" name="CreatedOnTo" class="form-control" />
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-8 offset-md-4">
+                                    <div class="text-center col-12">
                                         <button type="button" id="search-blogpost" class="btn btn-primary btn-search">
                                             <i class="fas fa-magnifying-glass"></i>
                                             @T("Admin.Common.Search")
@@ -88,19 +94,16 @@
                                 Filters = new List<FilterParameter>
                                 {
                                     new FilterParameter(nameof(Model.BlogPosts.SearchStoreId), nameof(Model.BlogPosts)),
-                                    new FilterParameter(nameof(Model.SearchTitle))
+                                    new FilterParameter(nameof(Model.SearchTitle)),
+                                    new FilterParameter("CreatedOnFrom"),
+                                    new FilterParameter("CreatedOnTo")
                                 },
                                 ColumnCollection = new List<ColumnProperty>
                                 {
                                     new ColumnProperty(nameof(BlogPostModel.Title))
                                     {
-                                        Title = T("Admin.ContentManagement.Blog.BlogPosts.Fields.Title").Text,
-                                        Width = "400"
-                                    },
-                                    new ColumnProperty(nameof(BlogPostModel.LanguageName))
-                                    {
-                                        Title = T("Admin.ContentManagement.Blog.BlogPosts.Fields.Language").Text,
-                                        Width = "150"
+                                        Title = "Bài viết",
+                                        Width = "500"
                                     },
                                     new ColumnProperty(nameof(BlogPostModel.Id))
                                     {

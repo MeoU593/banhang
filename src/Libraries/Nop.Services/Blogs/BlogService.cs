@@ -78,13 +78,14 @@ public partial class BlogService : IBlogService
     /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
     /// <param name="vendorIds">Vendor identifiers; null/empty to load all records</param>
     /// <param name="keywords">Filter by keywords (title/body/overview/tags/author); null to load all records</param>
+    /// <param name="author">Filter by author name; null to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the blog posts
     /// </returns>
     public virtual async Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
         DateTime? dateFrom = null, DateTime? dateTo = null,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null)
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null, string author = null)
     {
         return await _blogPostRepository.GetAllPagedAsync(async query =>
         {
@@ -112,6 +113,12 @@ public partial class BlogService : IBlogService
                     (b.Body != null && b.Body.Contains(normalizedKeywords)) ||
                     (b.Tags != null && b.Tags.Contains(normalizedKeywords)) ||
                     (b.AuthorName != null && b.AuthorName.Contains(normalizedKeywords)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(author))
+            {
+                var normalizedAuthor = author.Trim();
+                query = query.Where(b => b.AuthorName != null && b.AuthorName == normalizedAuthor);
             }
 
             if (postTypeId.HasValue)

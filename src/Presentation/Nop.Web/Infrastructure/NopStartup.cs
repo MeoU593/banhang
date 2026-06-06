@@ -85,7 +85,6 @@ public partial class NopStartup : INopStartup
         services.AddScoped<Factories.IFilterLevelValueModelFactory, Factories.FilterLevelValueModelFactory>();
         services.AddScoped<Factories.IExternalAuthenticationModelFactory, Factories.ExternalAuthenticationModelFactory>();
         services.AddScoped<Factories.IJsonLdModelFactory, Factories.JsonLdModelFactory>();
-        services.AddScoped<Factories.IPrivateMessagesModelFactory, Factories.PrivateMessagesModelFactory>();
         services.AddScoped<Factories.IProductModelFactory, Factories.ProductModelFactory>();
         services.AddScoped<Factories.IProfileModelFactory, Factories.ProfileModelFactory>();
         services.AddScoped<Factories.ISitemapModelFactory, Factories.SitemapModelFactory>();

@@ -142,8 +142,14 @@ public partial class BlogController : BaseAdminController
             await _blogService.InsertBlogPostAsync(blogPost);
 
             //activity log
-            await _customerActivityService.InsertActivityAsync("AddNewBlogPost",
-                string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewBlogPost"), blogPost.Id), blogPost);
+            var activityKeyword = blogPost.PostTypeId == 1
+                ? NopActivityLogDefaults.AddNewBlogDocument
+                : NopActivityLogDefaults.AddNewNewsPost;
+            var activityResource = blogPost.PostTypeId == 1
+                ? "ActivityLog.AddNewBlogDocument"
+                : "ActivityLog.AddNewNewsPost";
+            await _customerActivityService.InsertActivityAsync(activityKeyword,
+                string.Format(await _localizationService.GetResourceAsync(activityResource), blogPost.Title), blogPost);
 
             //search engine name
             var seName = await _urlRecordService.ValidateSeNameAsync(blogPost, model.SeName, model.Title, true);

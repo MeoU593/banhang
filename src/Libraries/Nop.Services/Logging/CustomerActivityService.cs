@@ -202,6 +202,8 @@ public partial class CustomerActivityService : ICustomerActivityService
     /// <param name="createdOnTo">Log item creation to; pass null to load all records</param>
     /// <param name="customerId">Customer identifier; pass null to load all records</param>
     /// <param name="activityLogTypeId">Activity log type identifier; pass null to load all records</param>
+    /// <param name="customerIds">Customer identifiers; pass null to load all records</param>
+    /// <param name="activityLogTypeIds">Activity log type identifiers; pass null to load all records</param>
     /// <param name="ipAddress">IP address; pass null or empty to load all records</param>
     /// <param name="entityName">Entity name; pass null to load all records</param>
     /// <param name="entityId">Entity identifier; pass null to load all records</param>
@@ -212,8 +214,8 @@ public partial class CustomerActivityService : ICustomerActivityService
     /// The task result contains the activity log items
     /// </returns>
     public virtual async Task<IPagedList<ActivityLog>> GetAllActivitiesAsync(DateTime? createdOnFrom = null, DateTime? createdOnTo = null,
-        int? customerId = null, int? activityLogTypeId = null, string ipAddress = null, string entityName = null, int? entityId = null,
-        int pageIndex = 0, int pageSize = int.MaxValue)
+        int? customerId = null, int? activityLogTypeId = null, int[] customerIds = null, string ipAddress = null, string entityName = null, int? entityId = null,
+        int pageIndex = 0, int pageSize = int.MaxValue, int[] activityLogTypeIds = null)
     {
         return await _activityLogRepository.GetAllPagedAsync(query =>
         {
@@ -230,10 +232,15 @@ public partial class CustomerActivityService : ICustomerActivityService
             //filter by log type
             if (activityLogTypeId.HasValue && activityLogTypeId.Value > 0)
                 query = query.Where(logItem => activityLogTypeId == logItem.ActivityLogTypeId);
+            if (activityLogTypeIds?.Length > 0)
+                query = query.Where(logItem => activityLogTypeIds.Contains(logItem.ActivityLogTypeId));
 
             //filter by customer
             if (customerId.HasValue && customerId.Value > 0)
                 query = query.Where(logItem => customerId.Value == logItem.CustomerId);
+
+            if (customerIds?.Length > 0)
+                query = query.Where(logItem => customerIds.Contains(logItem.CustomerId));
 
             //filter by entity
             if (!string.IsNullOrEmpty(entityName))

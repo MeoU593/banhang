@@ -36,7 +36,6 @@ public partial record ForumPostModel : BaseNopModel
     public bool ShowCustomersLocation { get; set; }
     public string CustomerLocation { get; set; }
 
-    public bool AllowPrivateMessages { get; set; }
 
     public bool SignaturesEnabled { get; set; }
     public string FormattedSignature { get; set; }

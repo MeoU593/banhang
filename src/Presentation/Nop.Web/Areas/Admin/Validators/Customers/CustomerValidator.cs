@@ -58,8 +58,8 @@ public partial class CustomerValidator : BaseNopValidator<CustomerModel>
         }
         if (customerSettings.CompanyRequired && customerSettings.CompanyEnabled)
         {
-            RuleFor(x => x.Company)
-                .NotEmpty()
+            RuleFor(x => x.VendorId)
+                .GreaterThan(0)
                 .WithMessageAwait(localizationService.GetResourceAsync("Admin.Customers.Customers.Fields.Company.Required"))
                 //only for registered users
                 .WhenAwait(async x => await IsRegisteredCustomerRoleCheckedAsync(x, customerService));

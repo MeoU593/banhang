@@ -96,8 +96,7 @@ public partial class RegisterValidator : BaseNopValidator<RegisterModel>
                 return true;
             }).WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.DateOfBirth.MinimumAge"), customerSettings.DateOfBirthMinimumAge);
         }
-        if (customerSettings.CompanyRequired && customerSettings.CompanyEnabled)
-            RuleFor(x => x.Company).NotEmpty().WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.Company.Required"));
+        RuleFor(x => x.VendorId).GreaterThan(0).WithMessage("Vui lòng chọn đơn vị.");
         if (customerSettings.StreetAddressRequired && customerSettings.StreetAddressEnabled)
             RuleFor(x => x.StreetAddress).NotEmpty().WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.StreetAddress.Required"));
         if (customerSettings.StreetAddress2Required && customerSettings.StreetAddress2Enabled)

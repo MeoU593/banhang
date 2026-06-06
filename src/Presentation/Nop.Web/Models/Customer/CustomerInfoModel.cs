@@ -62,11 +62,6 @@ public partial record CustomerInfoModel : BaseNopModel
         return CommonHelper.ParseDate(DateOfBirthYear, DateOfBirthMonth, DateOfBirthDay);
     }
 
-    public bool CompanyEnabled { get; set; }
-    public bool CompanyRequired { get; set; }
-    [NopResourceDisplayName("Account.Fields.Company")]
-    public string Company { get; set; }
-
     public string MilitaryCode { get; set; }
 
     public string Rank { get; set; }

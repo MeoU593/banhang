@@ -738,6 +738,15 @@
   <LocaleResource Name="ActivityLog.AddNewBlogPost">
     <Value>Added a new blog post (ID = {0})</Value>
   </LocaleResource>
+  <LocaleResource Name="ActivityLog.AddNewNewsPost">
+    <Value>Đăng tin tức mới: {0}</Value>
+  </LocaleResource>
+  <LocaleResource Name="ActivityLog.AddNewBlogDocument">
+    <Value>Đăng văn bản mới: {0}</Value>
+  </LocaleResource>
+  <LocaleResource Name="ActivityLog.AddNewPortalDocument">
+    <Value>Đăng tài liệu mới: {0}</Value>
+  </LocaleResource>
   <LocaleResource Name="ActivityLog.AddNewCampaign">
     <Value>Added a new campaign (ID = {0})</Value>
   </LocaleResource>
@@ -796,7 +805,10 @@
     <Value>Added a new menu item ('{0}')</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.AddNewProduct">
-    <Value>Added a new product ('{0}')</Value>
+    <Value>Đăng sản phẩm mới: {0}</Value>
+  </LocaleResource>
+  <LocaleResource Name="ActivityLog.SubmitUnitReport">
+    <Value>Gửi báo cáo đơn vị: {0}</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.AddNewProductAttribute">
     <Value>Added a new product attribute ('{0}')</Value>
@@ -1192,13 +1204,13 @@
     <Value>Used contact us form</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.PublicStore.Login.Success">
-    <Value>Public store. Customer has logged in</Value>
+    <Value>Đăng nhập thành công</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.PublicStore.Login.Fail">
     <Value>Public store. Customer has failed to log in: {0}</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.PublicStore.Logout">
-    <Value>Logout</Value>
+    <Value>Đăng xuất</Value>
   </LocaleResource>
   <LocaleResource Name="ActivityLog.PublicStore.PlaceOrder">
     <Value>Placed a new order (ID = {0})</Value>
@@ -3595,13 +3607,13 @@
     <Value>Check to display this product on your store's home page. Recommended for your most popular products.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.Sku">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.Sku.Hint">
-    <Value>Product stock keeping unit (SKU). Your internal unique identifier that can be used to track this product.</Value>
+    <Value>Mã sản phẩm nội bộ dùng để nhận diện và theo dõi sản phẩm.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.Sku.Reserved">
-    <Value>The entered SKU is already reserved for the product '{0}'</Value>
+    <Value>Mã sản phẩm đã được dùng cho sản phẩm '{0}'</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Fields.StockQuantity">
     <Value>Stock quantity</Value>
@@ -3721,13 +3733,13 @@
     <Value>Download catalog as PDF</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.List.GoDirectlyToSku">
-    <Value>Go directly to product SKU</Value>
+    <Value>Đi thẳng tới mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.List.GoDirectlyToSku.Hint">
-    <Value>Enter product SKU and click Go.</Value>
+    <Value>Nhập mã sản phẩm và bấm đi tới.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.List.ImportFromExcelTip">
-    <Value>Imported products are distinguished by SKU. If the SKU already exists, then its corresponding product will be updated.</Value>
+    <Value>Sản phẩm nhập từ Excel được phân biệt theo mã sản phẩm. Nếu mã đã tồn tại, sản phẩm tương ứng sẽ được cập nhật.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.List.SearchCategory">
     <Value>Category</Value>
@@ -3967,13 +3979,13 @@
     <Value>Choose pictures associated to this attribute combination. These pictures will replace the main product image when this product attribute combination is selected.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Sku">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Sku.Hint">
-    <Value>Product stock keeping unit (SKU). Your internal unique identifier that can be used to track this attribute combination.</Value>
+    <Value>Mã sản phẩm nội bộ dùng để theo dõi tổ hợp thuộc tính này.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Sku.Reserved">
-    <Value>The entered SKU is already reserved for one of combinations of the product '{0}'</Value>
+    <Value>Mã sản phẩm đã được dùng cho một tổ hợp của sản phẩm '{0}'</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.StockQuantity">
     <Value>Stock quantity</Value>
@@ -6796,16 +6808,16 @@
     <Value>Check to show product short description on catalog pages.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ShowSkuOnCatalogPages">
-    <Value>Show SKU on catalog pages</Value>
+    <Value>Hiển thị mã sản phẩm trên trang danh mục</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ShowSkuOnCatalogPages.Hint">
-    <Value>Check to show product SKU on catalog pages in public store.</Value>
+    <Value>Chọn để hiển thị mã sản phẩm trên các trang danh mục ngoài public.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ShowSkuOnProductDetailsPage">
-    <Value>Show SKU on product details page</Value>
+    <Value>Hiển thị mã sản phẩm trên trang chi tiết</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.ShowSkuOnProductDetailsPage.Hint">
-    <Value>Check to show product SKU on the product details page in public store.</Value>
+    <Value>Chọn để hiển thị mã sản phẩm trên trang chi tiết ngoài public.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.Catalog.SortOptions.DisplayOrder">
     <Value>Display order</Value>
@@ -10830,10 +10842,22 @@
     <Value>Search by a specific store.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.SearchTitle">
-    <Value>Title</Value>
+    <Value>Bài viết</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.SearchTitle.Hint">
     <Value>Search by a blog post title.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnFrom">
+    <Value>Ngày đầu</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnFrom.Hint">
+    <Value>Lọc bài viết có ngày bắt đầu hoặc ngày tạo từ ngày này.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnTo">
+    <Value>Ngày cuối</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnTo.Hint">
+    <Value>Lọc bài viết có ngày bắt đầu hoặc ngày tạo đến ngày này.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.ContentManagement.Blog.BlogPosts.Updated">
     <Value>The blog post has been updated successfully.</Value>
@@ -13188,7 +13212,7 @@
     <Value>Đăng xuất</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.PublicStore">
-    <Value>Xem trang chủ</Value>
+    <Value>Trang người dùng</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Header.RestartApplication">
     <Value>Khởi động lại</Value>
@@ -13866,7 +13890,7 @@
     <Value>Enter quantity.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Products.AddNew.SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Products.AddNew.SubTotalExclTax">
     <Value>Total (excl tax)</Value>
@@ -13959,7 +13983,7 @@
     <Value>Return request(s)</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Products.SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Products.Total">
     <Value>Total</Value>
@@ -14187,7 +14211,7 @@
     <Value>Warning: </Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Shipments.Products.SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Orders.Shipments.Products.Warehouse">
     <Value>Warehouse</Value>
@@ -18747,7 +18771,7 @@
     <Value>Quantity</Value>
   </LocaleResource>
   <LocaleResource Name="Messages.Order.Product(s).SKU">
-    <Value>SKU: {0}</Value>
+    <Value>Mã sản phẩm: {0}</Value>
   </LocaleResource>
   <LocaleResource Name="Messages.Order.Product(s).Total">
     <Value>Total</Value>
@@ -18897,7 +18921,7 @@
     <Value>Quantity</Value>
   </LocaleResource>
   <LocaleResource Name="Order.Product(s).SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Order.Product(s).Total">
     <Value>Total</Value>
@@ -18963,7 +18987,7 @@
     <Value>Qty shipped</Value>
   </LocaleResource>
   <LocaleResource Name="Order.Shipments.Product(s).SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Order.Shipments.ReadyForPickupDate">
     <Value>Date ready for pickup</Value>
@@ -19311,7 +19335,7 @@
     <Value>Total</Value>
   </LocaleResource>
   <LocaleResource Name="Pdf.Product.Sku">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Pdf.Product.VendorName">
     <Value>Vendor name</Value>
@@ -19749,7 +19773,7 @@
     <Value>Start date</Value>
   </LocaleResource>
   <LocaleResource Name="Products.Sku">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="Products.Specs">
     <Value>Products specifications</Value>
@@ -20682,7 +20706,7 @@
     <Value>Enter valid sender name</Value>
   </LocaleResource>
   <LocaleResource Name="ShoppingCart.SKU">
-    <Value>SKU</Value>
+    <Value>Mã sản phẩm</Value>
   </LocaleResource>
   <LocaleResource Name="ShoppingCart.TaxShipping.ExclTax">
     <Value><![CDATA[All prices are entered excluding tax. Excluding <a href="{0}">shipping</a>]]></Value>

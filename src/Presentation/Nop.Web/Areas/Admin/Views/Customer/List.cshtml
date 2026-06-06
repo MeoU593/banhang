@@ -1,10 +1,9 @@
 ﻿@model CustomerSearchModel
 
 @{
-    //page title
-    ViewBag.PageTitle = T("Admin.Customers.Customers").Text;
-    //active menu item (system name)
-    NopHtml.SetActiveMenuItemSystemName("Customers list");
+    var isPendingApprovalView = ViewBag.IsPendingApprovalView == true;
+    ViewBag.PageTitle = isPendingApprovalView ? "Tài khoản chờ duyệt" : "Danh sách tài khoản";
+    NopHtml.SetActiveMenuItemSystemName(isPendingApprovalView ? "Pending customers" : "Customers list");
 }
 
 @{
@@ -15,7 +14,7 @@
 <form asp-controller="Customer" asp-action="List" method="post">
     <div class="content-header clearfix">
         <h1 class="float-left">
-            @T("Admin.Customers.Customers")
+            @ViewBag.PageTitle
         </h1>
         <div class="float-right">
             <a asp-action="Create" class="btn btn-primary">
@@ -191,17 +190,14 @@
                                                 <nop-editor asp-for="SearchLastActivityTo" />
                                             </div>
                                         </div>
-                                        @if (Model.CompanyEnabled)
-                                        {
-                                            <div class="form-group row">
-                                                <div class="col-md-4">
-                                                    <nop-label asp-for="SearchCompany" />
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <nop-editor asp-for="SearchCompany" />
-                                                </div>
+                                        <div class="form-group row">
+                                            <div class="col-md-4">
+                                                <div class="label-wrapper"><label class="col-form-label" for="@Html.IdFor(model => model.SearchVendorId)">Đơn vị</label></div>
                                             </div>
-                                        }
+                                            <div class="col-md-8">
+                                                <nop-select asp-for="SearchVendorId" asp-items="Model.AvailableVendors" />
+                                            </div>
+                                        </div>
                                         @if (Model.PhoneEnabled)
                                         {
                                             <div class="form-group row">
@@ -290,7 +286,7 @@
                                         new FilterParameter(nameof(Model.SearchLastName)),
                                         new FilterParameter(nameof(Model.SearchDayOfBirth)),
                                         new FilterParameter(nameof(Model.SearchMonthOfBirth)),
-                                        new FilterParameter(nameof(Model.SearchCompany)),
+                                        new FilterParameter(nameof(Model.SearchVendorId)),
                                         new FilterParameter(nameof(Model.SearchRegistrationDateFrom)),
                                         new FilterParameter(nameof(Model.SearchRegistrationDateTo)),
                                         new FilterParameter(nameof(Model.SearchLastActivityFrom)),
@@ -337,13 +333,10 @@
                                     Title = T("Admin.Customers.Customers.Fields.CustomerRoles").Text,
                                     Width = "100"
                                 });
-                                if (Model.CompanyEnabled)
+                                gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CustomerModel.Company))
                                 {
-                                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CustomerModel.Company))
-                                    {
-                                        Title = T("Admin.Customers.Customers.Fields.Company").Text
-                                    });
-                                }
+                                    Title = "Đơn vị"
+                                });
                                 if (Model.PhoneEnabled)
                                 {
                                     gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CustomerModel.Phone))

@@ -8,6 +8,7 @@ using Nop.Core.Events;
 using Nop.Services.Localization;
 using Nop.Services.Plugins;
 using Nop.Services.Security;
+using Nop.Services.Vendors;
 using Nop.Web.Framework.Events;
 
 namespace Nop.Web.Framework.Menu;
@@ -31,6 +32,7 @@ public partial class AdminMenu : IAdminMenu
     protected readonly IPluginManager<IAdminMenuPlugin> _adminMenuPluginManager;
 #pragma warning restore CS0618 // Type or member is obsolete
     protected readonly IUrlHelperFactory _urlHelperFactory;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
 
     #endregion
@@ -49,6 +51,7 @@ public partial class AdminMenu : IAdminMenu
         IPluginManager<IAdminMenuPlugin> adminMenuPluginManager,
 #pragma warning restore CS0618 // Type or member is obsolete
         IUrlHelperFactory urlHelperFactory,
+        IVendorService vendorService,
         IWorkContext workContext)
     {
         _filterLevelSettings = filterLevelSettings;
@@ -58,6 +61,7 @@ public partial class AdminMenu : IAdminMenu
         _permissionService = permissionService;
         _adminMenuPluginManager = adminMenuPluginManager;
         _urlHelperFactory = urlHelperFactory;
+        _vendorService = vendorService;
         _workContext = workContext;
     }
 
@@ -91,35 +95,68 @@ public partial class AdminMenu : IAdminMenu
                     {
                         new()
                         {
+                            SystemName = "UnitDashboard",
+                            Title = "Tổng quan",
+                            PermissionNames = new List<string> { StandardPermission.Security.ACCESS_ADMIN_PANEL },
+                            Url = GetMenuItemUrl("Home", "Index"),
+                            IconClass = "fas fa-chart-line"
+                        },
+                        new()
+                        {
                             SystemName = "Vendors",
                             Title = "Danh sách đơn vị",
                             PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
-                            Url = GetMenuItemUrl("Vendor", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-building"
                         },
                         new()
                         {
-                            SystemName = "Vendor attributes",
-                            Title = "Thuộc tính đơn vị",
-                            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
-                            Url = GetMenuItemUrl("VendorAttribute", "List"),
-                            IconClass = "far fa-dot-circle"
+                            SystemName = "UnitDirectory",
+                            Title = "Quản lý nhân sự",
+                            PermissionNames = new List<string> { StandardPermission.Security.ACCESS_ADMIN_PANEL },
+                            Url = GetMenuItemUrl("UnitDirectory", "List"),
+                            IconClass = "fas fa-address-book"
                         },
+                        new()
+                        {
+                            SystemName = "UnitStaff",
+                            Title = "Quản lý tài khoản",
+                            PermissionNames = new List<string> { StandardPermission.Security.ACCESS_ADMIN_PANEL },
+                            Url = GetMenuItemUrl("UnitStaff", "List"),
+                            IconClass = "fas fa-user-shield"
+                        },
+                        new()
+                        {
+                            SystemName = "UnitActivityLog",
+                            Title = "Nhật ký hệ thống",
+                            PermissionNames = new List<string> { StandardPermission.Security.ACCESS_ADMIN_PANEL },
+                            Url = GetMenuItemUrl("UnitActivityLog", "List"),
+                            IconClass = "fas fa-clock-rotate-left"
+                        }
+                    }
+                },
+                //account management
+                new()
+                {
+                    SystemName = "AccountManagement",
+                    Title = "Quản lý tài khoản",
+                    IconClass = "fas fa-users-gear",
+                    ChildNodes = new List<AdminMenuItem>
+                    {
                         new()
                         {
                             SystemName = "Customers list",
-                            Title = "Tài khoản khách hàng",
+                            Title = "Danh sách tài khoản",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
                             Url = GetMenuItemUrl("Customer", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-user-group"
                         },
                         new()
                         {
                             SystemName = "Customer roles",
-                            Title = "Vai trò khách hàng",
+                            Title = "Phân quyền tài khoản",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMER_ROLES_VIEW },
                             Url = GetMenuItemUrl("CustomerRole", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-user-shield"
                         },
                         new()
                         {
@@ -127,23 +164,33 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Tài khoản chờ duyệt",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
                             Url = GetMenuItemUrl("Customer", "PendingApproval"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-user-clock"
                         },
                         new()
                         {
                             SystemName = "Online customers",
-                            Title = "Khách hàng trực tuyến",
+                            Title = "Tài khoản trực tuyến",
                             PermissionNames = new List<string> { StandardPermission.Customers.CUSTOMERS_VIEW },
                             Url = GetMenuItemUrl("OnlineCustomer", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
+                            IconClass = "fas fa-signal"
+                        }
+                    }
+                },
+                //system logs
+                new()
+                {
+                    SystemName = "SystemLogs",
+                    Title = "Nhật ký hệ thống",
+                    IconClass = "fas fa-clipboard-list",
+                    ChildNodes = new List<AdminMenuItem>
+                    {
                         new()
                         {
                             SystemName = "Activity logs",
                             Title = "Nhật ký hoạt động",
                             PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
                             Url = GetMenuItemUrl("ActivityLog", "ActivityLogs"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-list-check"
                         },
                         new()
                         {
@@ -151,7 +198,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Loại hoạt động",
                             PermissionNames = new List<string> { StandardPermission.Customers.ACTIVITY_LOG_VIEW },
                             Url = GetMenuItemUrl("ActivityLog", "ActivityTypes"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-tags"
                         }
                     }
                 },
@@ -169,7 +216,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Danh mục hàng hóa",
                             PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCTS_VIEW },
                             Url = GetMenuItemUrl("Product", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-boxes-stacked"
                         },
                         new()
                         {
@@ -177,7 +224,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Nhóm hàng hóa",
                             PermissionNames = new List<string> { StandardPermission.Catalog.CATEGORIES_VIEW },
                             Url = GetMenuItemUrl("Category", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-layer-group"
                         },
                         new()
                         {
@@ -185,7 +232,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Đánh giá sản phẩm",
                             PermissionNames = new List<string> { StandardPermission.Catalog.PRODUCT_REVIEWS_VIEW },
                             Url = GetMenuItemUrl("ProductReview", "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-star-half-stroke"
                         }
                     }
                 },
@@ -204,32 +251,6 @@ public partial class AdminMenu : IAdminMenu
                     IconClass = "fas fa-chart-bar",
                     ChildNodes = new List<AdminMenuItem>()
                 },
-                //forum management
-                new()
-                {
-                    SystemName = "ForumManagement",
-                    Title = "Quản lý diễn đàn",
-                    IconClass = "fas fa-comments",
-                    ChildNodes = new List<AdminMenuItem>
-                    {
-                        new()
-                        {
-                            SystemName = "Manage forums",
-                            Title = "Diễn đàn",
-                            PermissionNames = new List<string> { StandardPermission.ContentManagement.FORUMS_VIEW },
-                            Url = GetMenuItemUrl("Forum", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Forums settings",
-                            Title = "Cài đặt diễn đàn",
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
-                            Url = GetMenuItemUrl("Setting", "Forum"),
-                            IconClass = "far fa-dot-circle"
-                        }
-                    }
-                },
                 //system management
                 new()
                 {
@@ -240,107 +261,11 @@ public partial class AdminMenu : IAdminMenu
                     {
                         new()
                         {
-                            SystemName = "Settings",
-                            Title = "Cài đặt",
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
-                            IconClass = "far fa-dot-circle",
-                            ChildNodes = new List<AdminMenuItem>
-                            {
-                                new()
-                                {
-                                    SystemName = "General settings",
-                                    Title = "Cài đặt chung",
-                                    Url = GetMenuItemUrl("Setting", "GeneralCommon"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Customer and user settings",
-                                    Title = "Cài đặt người dùng",
-                                    Url = GetMenuItemUrl("Setting", "CustomerUser"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Catalog settings",
-                                    Title = "Cài đặt danh mục",
-                                    Url = GetMenuItemUrl("Setting", "Catalog"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Blog settings",
-                                    Title = "Cài đặt tin tức",
-                                    Url = GetMenuItemUrl("Setting", "Blog"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Forums settings",
-                                    Title = "Cài đặt diễn đàn",
-                                    Url = GetMenuItemUrl("Setting", "Forum"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Media settings",
-                                    Title = "Cài đặt media",
-                                    Url = GetMenuItemUrl("Setting", "Media"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "App settings",
-                                    Title = "Cấu hình ứng dụng",
-                                    PermissionNames =
-                                        new List<string>
-                                        {
-                                            StandardPermission.System.MANAGE_APP_SETTINGS
-                                        },
-                                    Url = GetMenuItemUrl("Setting", "AppSettings"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "All settings",
-                                    Title = "Tất cả cài đặt",
-                                    Url = GetMenuItemUrl("Setting", "AllSettings"),
-                                    IconClass = "far fa-circle"
-                                },
-                                new()
-                                {
-                                    SystemName = "Duty message",
-                                    Title = "Thông điệp trực ban",
-                                    PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_SETTINGS },
-                                    Url = GetMenuItemUrl("Setting", "DutyMessage"),
-                                    IconClass = "far fa-circle"
-                                }
-                            }
-                        },
-                        new()
-                        {
-                            SystemName = "Stores",
-                            Title = "Cửa hàng",
-                            PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_STORES },
-                            Url = GetMenuItemUrl("Store",
-                            "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
                             SystemName = "Access control list",
                             Title = "Phân quyền truy cập",
                             PermissionNames = new List<string> { StandardPermission.Configuration.MANAGE_ACL },
                             Url = GetMenuItemUrl("Security", "Permissions"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "System information",
-                            Title = "Thông tin hệ thống",
-                            PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
-                            Url = GetMenuItemUrl("Common", "SystemInfo"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-key"
                         },
                         new()
                         {
@@ -348,15 +273,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Nhật ký hệ thống",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_SYSTEM_LOG },
                             Url = GetMenuItemUrl("Log", "List"),
-                            IconClass = "far fa-dot-circle"
-                        },
-                        new()
-                        {
-                            SystemName = "Warnings",
-                            Title = "Cảnh báo",
-                            PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
-                            Url = GetMenuItemUrl("Common", "Warnings"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-file-lines"
                         },
                         new()
                         {
@@ -364,7 +281,7 @@ public partial class AdminMenu : IAdminMenu
                             Title = "Bảo trì",
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
                             Url = GetMenuItemUrl("Common", "Maintenance"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-screwdriver-wrench"
                         },
                         new()
                         {
@@ -373,16 +290,16 @@ public partial class AdminMenu : IAdminMenu
                             PermissionNames = new List<string> { StandardPermission.System.MANAGE_SCHEDULE_TASKS },
                             Url = GetMenuItemUrl("ScheduleTask",
                             "List"),
-                            IconClass = "far fa-dot-circle"
+                            IconClass = "fas fa-calendar-days"
                         },
                         new()
                         {
-                            SystemName = "Search engine friendly names",
-                            Title = "Đường dẫn thân thiện",
-                            PermissionNames = new List<string> { StandardPermission.System.MANAGE_MAINTENANCE },
-                            Url = GetMenuItemUrl("Common", "SeNames"),
-                            IconClass = "far fa-dot-circle"
-                        },
+                            SystemName = "Topics",
+                            Title = "Tài liệu hướng dẫn",
+                            PermissionNames = new List<string> { StandardPermission.ContentManagement.TOPICS_VIEW },
+                            Url = GetMenuItemUrl("Topic", "EditUserGuide"),
+                            IconClass = "fas fa-book-open"
+                        }
                     }
                 },
                 new()
@@ -393,6 +310,65 @@ public partial class AdminMenu : IAdminMenu
                 }
             }
         };
+    }
+
+    protected virtual async Task PopulateVendorTreeMenuAsync(AdminMenuItem root)
+    {
+        var vendorsMenu = root.GetItemBySystemName("Vendors");
+        if (vendorsMenu == null)
+            return;
+
+        var vendorListUrl = GetMenuItemUrl("Vendor", "List");
+        var vendorDetailsUrl = GetMenuItemUrl("Vendor", "Details");
+        if (string.IsNullOrWhiteSpace(vendorListUrl))
+            return;
+
+        vendorsMenu.ChildNodes.Clear();
+
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        var vendors = (await _vendorService.GetAllVendorsAsync(showHidden: true, pageSize: int.MaxValue)).ToList();
+
+        if (currentVendor != null)
+        {
+            var allowedVendorIds = (await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)).ToHashSet();
+            vendors = vendors.Where(vendor => allowedVendorIds.Contains(vendor.Id)).ToList();
+        }
+
+        vendorsMenu.ChildNodes.Add(new AdminMenuItem
+        {
+            SystemName = "Vendors.All",
+            Title = currentVendor == null ? "Tất cả đơn vị" : "Tất cả đơn vị thuộc quyền",
+            PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
+            Url = currentVendor == null ? vendorListUrl : $"{vendorListUrl}?SearchRootVendorId={currentVendor.Id}",
+            IconClass = "fas fa-list"
+        });
+
+        AdminMenuItem buildVendorNode(Nop.Core.Domain.Vendors.Vendor vendor)
+        {
+            var children = vendors
+                .Where(child => child.ParentId == vendor.Id)
+                .OrderBy(child => child.DisplayOrder)
+                .ThenBy(child => child.Name)
+                .Select(buildVendorNode)
+                .ToList();
+
+            return new AdminMenuItem
+            {
+                SystemName = $"Vendors.{vendor.Id}",
+                Title = vendor.Name,
+                PermissionNames = new List<string> { StandardPermission.Customers.VENDORS_VIEW },
+                Url = string.IsNullOrWhiteSpace(vendorDetailsUrl) ? $"{vendorListUrl}?SearchRootVendorId={vendor.Id}" : $"{vendorDetailsUrl}?id={vendor.Id}",
+                IconClass = children.Any() ? "fas fa-building" : "far fa-building",
+                ChildNodes = children
+            };
+        }
+
+        var topVendors = currentVendor != null
+            ? vendors.Where(vendor => vendor.Id == currentVendor.Id)
+            : vendors.Where(vendor => !vendor.ParentId.HasValue || vendor.ParentId.Value <= 0);
+
+        foreach (var vendor in topVendors.OrderBy(vendor => vendor.DisplayOrder).ThenBy(vendor => vendor.Name))
+            vendorsMenu.ChildNodes.Add(buildVendorNode(vendor));
     }
 
     /// <summary>
@@ -425,6 +401,19 @@ public partial class AdminMenu : IAdminMenu
         var root = cloneMenuItem(_baseRootMenuItem);
 
         var customer = await _workContext.GetCurrentCustomerAsync();
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        var canManageAllVendors = currentVendor == null && await _permissionService.AuthorizeAsync(StandardPermission.Customers.VENDORS_CREATE_EDIT_DELETE, customer);
+        var isUnitLeader = currentVendor != null && currentVendor.PmCustomerId == customer.Id;
+
+        await PopulateVendorTreeMenuAsync(root);
+
+        var unitDirectoryMenu = root.GetItemBySystemName("UnitDirectory");
+        if (unitDirectoryMenu != null)
+            unitDirectoryMenu.Visible = canManageAllVendors || isUnitLeader;
+
+        var unitActivityLogMenu = root.GetItemBySystemName("UnitActivityLog");
+        if (unitActivityLogMenu != null)
+            unitActivityLogMenu.Visible = isUnitLeader;
 
         await _eventPublisher.PublishAsync(new AdminMenuCreatedEvent(this, root));
 

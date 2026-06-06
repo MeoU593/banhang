@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core.Domain.Customers;
 using Nop.Services.Customers;
 using Nop.Services.Security;
 using Nop.Web.Framework.Models;
@@ -28,6 +29,15 @@ public partial class AclSupportedModelFactory : IAclSupportedModelFactory
 
     #endregion
 
+    #region Utilities
+
+    protected virtual string GetDisplayCustomerRoleName(CustomerRole customerRole)
+    {
+        return customerRole?.Name;
+    }
+
+    #endregion
+
     #region Methods
 
     /// <summary>
@@ -44,7 +54,7 @@ public partial class AclSupportedModelFactory : IAclSupportedModelFactory
         var availableRoles = await _customerService.GetAllCustomerRolesAsync(showHidden: true);
         model.AvailableCustomerRoles = availableRoles.Select(role => new SelectListItem
         {
-            Text = role.Name,
+            Text = GetDisplayCustomerRoleName(role),
             Value = role.Id.ToString(),
             Selected = model.SelectedCustomerRoleIds.Contains(role.Id)
         }).ToList();

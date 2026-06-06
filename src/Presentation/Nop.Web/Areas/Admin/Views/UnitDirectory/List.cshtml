@@ -1,0 +1,296 @@
+@model UnitDirectoryAdminModel
+
+@{
+    ViewBag.PageTitle = "Quản lý nhân sự";
+    NopHtml.SetActiveMenuItemSystemName("UnitDirectory");
+    var vendorOptions = Model.AvailableVendors.Where(x => x.Value != "0").ToList();
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">Quản lý nhân sự - @Model.VendorName</h1>
+    <div class="float-right">
+        <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#add-person-panel">
+            <i class="fas fa-plus-square"></i>
+            Thêm mới
+        </button>
+        <div class="btn-group">
+            <a class="btn btn-success" asp-controller="UnitDirectory" asp-action="ExportExcel" asp-route-vendorId="@Model.SelectedVendorId" asp-route-q="@Model.SearchKeyword" asp-route-rank="@Model.SearchRank" asp-route-positionTitle="@Model.SearchPositionTitle" asp-route-publishedId="@Model.SearchPublishedId">
+                <i class="fas fa-download"></i>
+                Xuất
+            </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">
+                <span class="sr-only">Mở menu xuất</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right" role="menu">
+                <a class="dropdown-item" asp-controller="UnitDirectory" asp-action="ExportExcel" asp-route-vendorId="@Model.SelectedVendorId" asp-route-q="@Model.SearchKeyword" asp-route-rank="@Model.SearchRank" asp-route-positionTitle="@Model.SearchPositionTitle" asp-route-publishedId="@Model.SearchPublishedId">Xuất Excel</a>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" data-toggle="collapse" data-target="#import-person-panel">
+            <i class="fas fa-upload"></i>
+            Nhập
+        </button>
+        <a class="btn btn-default" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-arrow-left"></i>
+            Tổng quan
+        </a>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Bộ lọc nhân sự</h3>
+            </div>
+            <div class="card-body">
+                <form id="unit-directory-filter-form" asp-controller="UnitDirectory" asp-action="List" method="get">
+                    <div class="form-row">
+                        @if (Model.CanSelectVendor)
+                        {
+                            <div class="form-group col-md-3">
+                                <label>Đơn vị</label>
+                                <select name="vendorId" asp-items="Model.AvailableVendors" class="form-control"></select>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+                        }
+                        <div class="form-group col-md-3">
+                            <label>Từ khóa</label>
+                            <input name="q" value="@Model.SearchKeyword" class="form-control" placeholder="Họ tên, SĐT, số hiệu..." data-auto-filter="text" />
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>Quân hàm</label>
+                            <input name="rank" value="@Model.SearchRank" class="form-control" data-auto-filter="text" />
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>Chức vụ</label>
+                            <input name="positionTitle" value="@Model.SearchPositionTitle" class="form-control" data-auto-filter="text" />
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>Hiển thị</label>
+                            <select name="publishedId" class="form-control">
+                                <option value="0" selected="@(Model.SearchPublishedId == 0)">Tất cả</option>
+                                <option value="1" selected="@(Model.SearchPublishedId == 1)">Đang public</option>
+                                <option value="2" selected="@(Model.SearchPublishedId == 2)">Ẩn</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2 d-flex align-items-end">
+                            <a asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" class="btn btn-default">Làm mới</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="add-person-panel" class="collapse">
+            <div class="card card-default">
+                <div class="card-header">
+                    <h3 class="card-title">Thêm nhân sự mới</h3>
+                </div>
+                <form asp-controller="UnitDirectory" asp-action="Add" method="post">
+                    <input type="hidden" asp-for="Entry.FilterVendorId" value="@Model.SelectedVendorId" />
+                    <div class="card-body">
+                        @if (Model.CanSelectVendor)
+                        {
+                            <div class="form-group">
+                                <label>Đơn vị quản lý</label>
+                                <select asp-for="Entry.VendorId" asp-items="vendorOptions" class="form-control"></select>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="Entry.VendorId" value="@Model.VendorId" />
+                        }
+                        <div class="form-row">
+                            <div class="form-group col-md-4"><label>Họ tên</label><input asp-for="Entry.FullName" class="form-control" /></div>
+                            <div class="form-group col-md-4"><label>Quân hàm</label><input asp-for="Entry.Rank" class="form-control" /></div>
+                            <div class="form-group col-md-4"><label>Chức vụ</label><input asp-for="Entry.PositionTitle" class="form-control" /></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4"><label>Số điện thoại</label><input asp-for="Entry.Phone" class="form-control" /></div>
+                            <div class="form-group col-md-4"><label>Số hiệu quân nhân</label><input asp-for="Entry.MilitaryCode" class="form-control" /></div>
+                            <div class="form-group col-md-4"><label>Đơn vị hiển thị</label><input asp-for="Entry.UnitName" class="form-control" placeholder="Để trống sẽ dùng tên đơn vị quản lý" /></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4 d-flex align-items-end"><label class="mb-0"><input asp-for="Entry.Published" /> Hiển thị public trong danh bạ</label></div>
+                        </div>
+                        <div class="form-group"><label>Lý lịch</label><textarea asp-for="Entry.Biography" class="form-control" rows="6"></textarea></div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary"><i class="far fa-save"></i> Thêm nhân sự</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="import-person-panel" class="collapse">
+            <div class="card card-default">
+                <div class="card-header">
+                    <h3 class="card-title">Import Excel</h3>
+                </div>
+                <form asp-controller="UnitDirectory" asp-action="ImportExcel" method="post" enctype="multipart/form-data">
+                    <div class="card-body">
+                        @if (Model.CanSelectVendor)
+                        {
+                            <div class="form-group">
+                                <label>Đơn vị import</label>
+                                <select name="vendorId" asp-items="vendorOptions" class="form-control"></select>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="vendorId" value="@Model.VendorId" />
+                        }
+                        <p class="text-muted">File gồm các cột: Họ tên, Quân hàm, Chức vụ, Số điện thoại, Số hiệu quân nhân, Đơn vị, Lý lịch.</p>
+                        <input type="file" name="importFile" accept=".xlsx,.xls" class="form-control-file" />
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-success"><i class="far fa-file-excel"></i> Import Excel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Danh sách nhân sự và thông tin danh bạ</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr>
+                            @if (Model.IsSystemAdmin)
+                            {
+                                <th style="min-width: 160px">Đơn vị</th>
+                            }
+                            <th style="min-width: 150px">Họ tên</th>
+                            <th>Quân hàm</th>
+                            <th>Chức vụ</th>
+                            <th>SĐT</th>
+                            <th>Số hiệu</th>
+                            <th>Hiển thị</th>
+                            <th class="text-center" style="width: 92px">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Entries.Any())
+                        {
+                            foreach (var entry in Model.Entries)
+                            {
+                                var detailsUrl = Url.Action("Details", "UnitDirectory", new { id = entry.Id, vendorId = Model.SelectedVendorId, page = Model.Page, pageSize = Model.PageSize });
+                                <tr class="unit-directory-row" data-href="@detailsUrl" style="cursor:pointer">
+                                    @if (Model.IsSystemAdmin)
+                                    {
+                                        <td>@entry.VendorName</td>
+                                    }
+                                    <td>
+                                        <a asp-controller="UnitDirectory" asp-action="Details" asp-route-id="@entry.Id" asp-route-vendorId="@Model.SelectedVendorId" asp-route-page="@Model.Page" asp-route-pageSize="@Model.PageSize">@entry.FullName</a>
+                                    </td>
+                                    <td>@entry.Rank</td>
+                                    <td>@entry.PositionTitle</td>
+                                    <td>@entry.Phone</td>
+                                    <td>@entry.MilitaryCode</td>
+                                    <td class="text-center">
+                                        <form asp-controller="UnitDirectory" asp-action="SetPublished" method="post" style="display:inline">
+                                            <input type="hidden" name="id" value="@entry.Id" />
+                                            <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+                                            <input type="hidden" name="q" value="@Model.SearchKeyword" />
+                                            <input type="hidden" name="rank" value="@Model.SearchRank" />
+                                            <input type="hidden" name="positionTitle" value="@Model.SearchPositionTitle" />
+                                            <input type="hidden" name="publishedId" value="@Model.SearchPublishedId" />
+                                            <input type="hidden" name="page" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <input type="checkbox" name="published" value="true" checked="@entry.Published" onchange="this.form.submit()" />
+                                            <input type="hidden" name="published" value="false" />
+                                        </form>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <a class="btn btn-default btn-sm" asp-controller="UnitDirectory" asp-action="Details" asp-route-id="@entry.Id" asp-route-vendorId="@Model.SelectedVendorId" asp-route-page="@Model.Page" asp-route-pageSize="@Model.PageSize" title="Xem" aria-label="Xem">
+                                            <i class="far fa-eye"></i>
+                                        </a>
+                                        <form asp-controller="UnitDirectory" asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Xóa nhân sự này?')">
+                                            <input type="hidden" name="id" value="@entry.Id" />
+                                            <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+                                            <input type="hidden" name="q" value="@Model.SearchKeyword" />
+                                            <input type="hidden" name="rank" value="@Model.SearchRank" />
+                                            <input type="hidden" name="positionTitle" value="@Model.SearchPositionTitle" />
+                                            <input type="hidden" name="publishedId" value="@Model.SearchPublishedId" />
+                                            <input type="hidden" name="page" value="@Model.Page" />
+                                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Xóa" aria-label="Xóa"><i class="far fa-trash-alt"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="@(Model.IsSystemAdmin ? 8 : 7)" class="text-center text-muted">Chưa có nhân sự phù hợp.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer clearfix">
+                <div class="float-left text-muted py-2">
+                    Hiển thị @Model.FirstItemIndex-@Model.LastItemIndex trong tổng số @Model.TotalItems nhân sự
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    var pageStart = Math.Max(1, Model.Page - 2);
+                    var pageEnd = Math.Min(Model.TotalPages, Model.Page + 2);
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-q="@Model.SearchKeyword" asp-route-rank="@Model.SearchRank" asp-route-positionTitle="@Model.SearchPositionTitle" asp-route-publishedId="@Model.SearchPublishedId" asp-route-page="@(Model.Page - 1)" asp-route-pageSize="@Model.PageSize">Trước</a>
+                        </li>
+                        @for (var pager = pageStart; pager <= pageEnd; pager++)
+                        {
+                            <li class="page-item @(pager == Model.Page ? "active" : string.Empty)">
+                                <a class="page-link" asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-q="@Model.SearchKeyword" asp-route-rank="@Model.SearchRank" asp-route-positionTitle="@Model.SearchPositionTitle" asp-route-publishedId="@Model.SearchPublishedId" asp-route-page="@pager" asp-route-pageSize="@Model.PageSize">@pager</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-q="@Model.SearchKeyword" asp-route-rank="@Model.SearchRank" asp-route-positionTitle="@Model.SearchPositionTitle" asp-route-publishedId="@Model.SearchPublishedId" asp-route-page="@(Model.Page + 1)" asp-route-pageSize="@Model.PageSize">Sau</a>
+                        </li>
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('click', function (event) {
+        const row = event.target.closest('.unit-directory-row');
+        if (!row || event.target.closest('a, button, form, input, select, textarea'))
+            return;
+
+        const href = row.getAttribute('data-href');
+        if (href)
+            window.location.href = href;
+    });
+
+    (function () {
+        const form = document.getElementById('unit-directory-filter-form');
+        if (!form)
+            return;
+
+        let timer;
+        const submitFilter = function () {
+            window.clearTimeout(timer);
+            form.requestSubmit ? form.requestSubmit() : form.submit();
+        };
+
+        form.querySelectorAll('select').forEach(function (select) {
+            select.addEventListener('change', submitFilter);
+        });
+
+        form.querySelectorAll('[data-auto-filter="text"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(submitFilter, 500);
+            });
+        });
+    })();
+</script>

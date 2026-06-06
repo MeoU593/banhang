@@ -14,33 +14,34 @@
 }
 
 <form asp-route="@NopRouteNames.Standard.CUSTOMER_AVATAR" method="post" enctype="multipart/form-data">
-    <div class="page account-page avatar-page">
-        <div class="page-title">
-            <h1>@T("Account.MyAccount") - @T("Account.Avatar")</h1>
-        </div>
-        <div class="page-body">
+    <div class="page account-page avatar-page px-4 pb-8 lg:px-0">
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.55)] sm:p-8">
+            <div class="mb-6">
+                <p class="public-label-text font-bold uppercase tracking-[0.18em] text-military-red">Ảnh đại diện</p>
+                <h1 class="public-page-title mt-2 font-black text-slate-950">@T("Account.MyAccount") - @T("Account.Avatar")</h1>
+            </div>
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerAvatarTop, additionalData = Model })
             <div asp-validation-summary="ModelOnly" class="message-error"></div>
-            <section class="fieldset">
+            <div class="grid gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 @if (!string.IsNullOrEmpty(Model.AvatarUrl))
                 {
                     <div class="image">
-                        <img src="@(Model.AvatarUrl)" alt="avatar" />
+                        <img src="@(Model.AvatarUrl)" alt="avatar" class="h-28 w-28 rounded-2xl border border-slate-200 object-cover" />
                     </div>
                 }
-                <input name="uploadedFile" accept="image/jpeg,image/png,image/gif,image/webp" type="file" aria-label="@T("Account.Avatar")" />
-            </section>
-            <section class="buttons">
-                <button type="submit" name="upload-avatar" class="button-1 upload-avatar-button">@T("Common.Upload")</button>
+                <input name="uploadedFile" accept="image/jpeg,image/png,image/gif,image/webp" type="file" aria-label="@T("Account.Avatar")" class="w-full" />
+            </div>
+            <section class="mt-5 flex flex-wrap gap-3">
+                <button type="submit" name="upload-avatar" class="button-1 upload-avatar-button public-control-text inline-flex min-h-11 items-center justify-center rounded-xl bg-military-red px-6 font-bold uppercase tracking-[0.12em] text-white transition hover:brightness-110">@T("Common.Upload")</button>
                 @if (!string.IsNullOrEmpty(Model.AvatarUrl))
                 {
-                    <button type="submit" name="remove-avatar" class="button-2 remove-avatar-button">@T("Account.Avatar.RemoveAvatar")</button>
+                    <button type="submit" name="remove-avatar" class="button-2 remove-avatar-button public-control-text inline-flex min-h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-6 font-bold text-rose-700 transition hover:bg-rose-100">@T("Account.Avatar.RemoveAvatar")</button>
                 }
             </section>
-            <div class="info">
+            <div class="info public-meta-text mt-4 text-slate-500">
                 JPG, PNG, GIF hoặc WEBP. Dung lượng tối đa theo cấu hình hệ thống.
             </div>
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerAvatarBottom, additionalData = Model })
-        </div>
+        </section>
     </div>
 </form>

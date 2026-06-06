@@ -1,0 +1,318 @@
+@model UnitStaffModel
+
+@{
+    ViewBag.PageTitle = "Quản lý tài khoản";
+    NopHtml.SetActiveMenuItemSystemName("UnitStaff");
+}
+
+<style>
+    .unit-staff-table th,
+    .unit-staff-table td {
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+        vertical-align: middle;
+    }
+
+    .unit-staff-table th {
+        line-height: 1.35;
+    }
+
+    .unit-staff-name-col {
+        width: 17%;
+    }
+
+    .unit-staff-email-col {
+        width: 19%;
+        overflow-wrap: anywhere;
+    }
+
+    .unit-staff-rank-col,
+    .unit-staff-status-col,
+    .unit-staff-date-col,
+    .unit-staff-login-col {
+        white-space: nowrap;
+    }
+
+    .unit-staff-code-col {
+        overflow-wrap: anywhere;
+    }
+
+    .unit-staff-actions-col {
+        width: 15%;
+    }
+
+    .unit-staff-role-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: center;
+    }
+
+    .unit-staff-role-actions form {
+        display: inline-flex;
+        margin: 0;
+    }
+
+    .unit-staff-role-actions .btn {
+        white-space: nowrap;
+    }
+
+    @@media (max-width: 991.98px) {
+        .unit-staff-table th,
+        .unit-staff-table td {
+            padding: 0.55rem;
+        }
+    }
+</style>
+
+<div class="content-header clearfix">
+    <h1 class="float-left">Quản lý tài khoản - @Model.VendorName</h1>
+    <div class="float-right">
+        <a class="btn btn-default" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-arrow-left"></i>
+            Tổng quan
+        </a>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        @if (Model.CanSelectVendor)
+        {
+            <div class="card card-default">
+                <div class="card-header">
+                    <h3 class="card-title">Bộ lọc tài khoản</h3>
+                </div>
+                <div class="card-body">
+                    <form id="unit-staff-filter-form" asp-controller="UnitStaff" asp-action="List" method="get" class="form-inline">
+                        <select name="vendorId" asp-items="Model.AvailableVendors" class="form-control mr-2"></select>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Tài khoản nhân viên thuộc đơn vị</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover mb-0 unit-staff-table">
+                    <thead>
+                        <tr>
+                            @if (Model.IsSystemAdmin)
+                            {
+                                <th>Đơn vị</th>
+                            }
+                            <th class="unit-staff-name-col">Họ tên</th>
+                            <th class="unit-staff-email-col">Gmail</th>
+                            <th class="unit-staff-rank-col">Quân hàm</th>
+                            <th>Chức vụ</th>
+                            <th class="unit-staff-code-col">Số hiệu</th>
+                            <th class="unit-staff-status-col">Trạng thái</th>
+                            <th class="unit-staff-date-col">Ngày tạo</th>
+                            <th class="unit-staff-login-col">Lần đăng nhập cuối</th>
+                            <th class="unit-staff-actions-col">Quyền hạn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Staff.Any())
+                        {
+                            foreach (var item in Model.Staff)
+                            {
+                                <tr>
+                                    @if (Model.IsSystemAdmin)
+                                    {
+                                        <td>@item.VendorName</td>
+                                    }
+                                    <td class="unit-staff-name-col">
+                                        <a asp-controller="Customer" asp-action="Edit" asp-route-id="@item.CustomerId">@item.FullName</a>
+                                        @if (item.IsLeader)
+                                        {
+                                            <span class="badge badge-primary ml-1">Trưởng đơn vị</span>
+                                        }
+                                    </td>
+                                    <td class="unit-staff-email-col">@item.Email</td>
+                                    <td class="unit-staff-rank-col">@(string.IsNullOrWhiteSpace(item.Rank) ? "Chưa rõ" : item.Rank)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.PositionTitle) ? "Chưa rõ" : item.PositionTitle)</td>
+                                    <td class="unit-staff-code-col">@(string.IsNullOrWhiteSpace(item.MilitaryCode) ? "Chưa cập nhật" : item.MilitaryCode)</td>
+                                    <td class="unit-staff-status-col">
+                                        @if (item.Active)
+                                        {
+                                            <span class="badge badge-success">Hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">Tạm khóa</span>
+                                        }
+                                    </td>
+                                    <td class="unit-staff-date-col">@item.CreatedOnText</td>
+                                    <td class="unit-staff-login-col">@item.LastLoginText</td>
+                                    <td class="unit-staff-actions-col">
+                                        <div class="mb-2">@(string.IsNullOrWhiteSpace(item.RoleNames) ? "Chưa có quyền" : item.RoleNames)</div>
+                                        <div class="unit-staff-role-actions">
+                                            @if (item.CanManageAccess)
+                                            {
+                                                if (item.HasUnitAdminAccess)
+                                                {
+                                                    <form asp-controller="UnitStaff" asp-action="RevokeAccess" method="post" onsubmit="return confirm('Thu hồi quyền quản trị đơn vị của tài khoản này?')">
+                                                        <input type="hidden" name="customerId" value="@item.CustomerId" />
+                                                        <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+                                                        <input type="hidden" name="page" value="@Model.Page" />
+                                                        <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                                        <button type="submit" class="btn btn-danger btn-sm">Thu hồi quyền</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <form asp-controller="UnitStaff" asp-action="GrantAccess" method="post">
+                                                        <input type="hidden" name="customerId" value="@item.CustomerId" />
+                                                        <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+                                                        <input type="hidden" name="page" value="@Model.Page" />
+                                                        <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                                                        <button type="submit" class="btn btn-success btn-sm">Cấp quyền quản trị</button>
+                                                    </form>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Không thể thay đổi</span>
+                                            }
+                                            @if (item.CanEditInfo)
+                                            {
+                                                var editModalId = $"edit-staff-{item.CustomerId}";
+                                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#@editModalId">
+                                                    Sửa thông tin
+                                                </button>
+                                            }
+                                        </div>
+                                        @if (item.CanEditInfo)
+                                        {
+                                            var editModalId = $"edit-staff-{item.CustomerId}";
+                                            <div class="modal fade" id="@editModalId" tabindex="-1" role="dialog" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg" role="document">
+                                                    <div class="modal-content">
+                                                        <form asp-controller="UnitStaff" asp-action="Edit" method="post">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Sửa thông tin nhân sự - @item.FullName</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="CustomerId" value="@item.CustomerId" />
+                                                                <input type="hidden" name="VendorId" value="@Model.SelectedVendorId" />
+                                                                <input type="hidden" name="Page" value="@Model.Page" />
+                                                                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                                                                <div class="form-row">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Họ / tên đệm</label>
+                                                                        <input name="FirstName" value="@item.FirstName" class="form-control" />
+                                                                    </div>
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Tên</label>
+                                                                        <input name="LastName" value="@item.LastName" class="form-control" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-row">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Gmail</label>
+                                                                        <input name="Email" value="@item.Email" class="form-control" />
+                                                                    </div>
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Tên đăng nhập</label>
+                                                                        <input name="Username" value="@item.Username" class="form-control" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-row">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Số điện thoại</label>
+                                                                        <input name="Phone" value="@item.Phone" class="form-control" />
+                                                                    </div>
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Số hiệu quân nhân</label>
+                                                                        <input name="MilitaryCode" value="@item.MilitaryCode" class="form-control" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-row">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Quân hàm</label>
+                                                                        <input name="Rank" value="@item.Rank" class="form-control" />
+                                                                    </div>
+                                                                    <div class="form-group col-md-6">
+                                                                        <label>Chức vụ</label>
+                                                                        <input name="PositionTitle" value="@item.PositionTitle" class="form-control" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-row">
+                                                                    <div class="form-group col-md-8">
+                                                                        <label>Đơn vị hiển thị</label>
+                                                                        <input name="UnitName" value="@item.UnitName" class="form-control" />
+                                                                    </div>
+                                                                    <div class="form-group col-md-4 d-flex align-items-end">
+                                                                        <label class="mb-0"><input type="checkbox" name="Active" value="true" checked="@item.Active" /> Hoạt động</label>
+                                                                        <input type="hidden" name="Active" value="false" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                                                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="@(Model.IsSystemAdmin ? 10 : 9)" class="text-center text-muted">Chưa có tài khoản nhân viên.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer clearfix">
+                <div class="float-left text-muted py-2">
+                    Hiển thị @Model.FirstItemIndex-@Model.LastItemIndex trong tổng số @Model.TotalItems tài khoản
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    var pageStart = Math.Max(1, Model.Page - 2);
+                    var pageEnd = Math.Min(Model.TotalPages, Model.Page + 2);
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-page="@(Model.Page - 1)" asp-route-pageSize="@Model.PageSize">Trước</a>
+                        </li>
+                        @for (var pager = pageStart; pager <= pageEnd; pager++)
+                        {
+                            <li class="page-item @(pager == Model.Page ? "active" : string.Empty)">
+                                <a class="page-link" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-page="@pager" asp-route-pageSize="@Model.PageSize">@pager</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.SelectedVendorId" asp-route-page="@(Model.Page + 1)" asp-route-pageSize="@Model.PageSize">Sau</a>
+                        </li>
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const form = document.getElementById('unit-staff-filter-form');
+        if (!form)
+            return;
+
+        form.querySelectorAll('select').forEach(function (select) {
+            select.addEventListener('change', function () {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            });
+        });
+    })();
+</script>

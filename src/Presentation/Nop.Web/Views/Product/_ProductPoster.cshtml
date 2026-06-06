@@ -38,18 +38,29 @@
     var email = GetStringValue(posterModel, "Email");
     var rank = GetStringValue(posterModel, "Rank");
     var positionTitle = GetStringValue(posterModel, "PositionTitle");
+    var displayRank = string.IsNullOrWhiteSpace(rank) ? "Đồng chí" : rank.Trim();
+    var displayPositionTitle = string.IsNullOrWhiteSpace(positionTitle) ? "Chưa cập nhật" : positionTitle.Trim();
+    var displayName = string.IsNullOrWhiteSpace(name) ? "Tài khoản chưa cập nhật" : name.Trim();
+    var posterSummaryName = displayName.StartsWith($"{displayRank} ", StringComparison.OrdinalIgnoreCase)
+        ? displayName
+        : $"{displayRank} {displayName}";
 }
 
 @if (hasData)
 {
     <div class="product-poster">
-        <span class="label">Người đăng sản phẩm:</span>
-        <details class="poster-details">
-            <summary>
-                <span class="poster-name">@name</span>
-                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">contact_page</span>
-            </summary>
+        <div class="product-poster-line">
+                <span class="label">Người đăng:</span>
+                <details class="poster-details">
+                <summary>
+                    <span class="poster-name">@posterSummaryName</span>
+                    <span class="material-symbols-outlined text-[16px]" aria-hidden="true">contact_page</span>
+                </summary>
             <div class="poster-card">
+                <div class="poster-field">
+                    <span class="poster-field-label">Họ và tên</span>
+                    <span>@displayName</span>
+                </div>
                 @if (!string.IsNullOrWhiteSpace(phoneNumber))
                 {
                     <div class="poster-field">
@@ -60,25 +71,20 @@
                 @if (!string.IsNullOrWhiteSpace(email))
                 {
                     <div class="poster-field">
-                        <span class="poster-field-label">Gmail</span>
+                        <span class="poster-field-label">Email</span>
                         <a href="mailto:@email">@email</a>
                     </div>
                 }
-                @if (!string.IsNullOrWhiteSpace(rank))
-                {
-                    <div class="poster-field">
-                        <span class="poster-field-label">Cấp bậc</span>
-                        <span>@rank</span>
-                    </div>
-                }
-                @if (!string.IsNullOrWhiteSpace(positionTitle))
-                {
-                    <div class="poster-field">
-                        <span class="poster-field-label">Chức vụ</span>
-                        <span>@positionTitle</span>
-                    </div>
-                }
+                <div class="poster-field">
+                    <span class="poster-field-label">Cấp bậc</span>
+                    <span>@displayRank</span>
+                </div>
+                <div class="poster-field">
+                    <span class="poster-field-label">Chức vụ</span>
+                    <span>@displayPositionTitle</span>
+                </div>
             </div>
-        </details>
+            </details>
+        </div>
     </div>
 }

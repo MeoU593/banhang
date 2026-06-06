@@ -13,7 +13,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
@@ -39,16 +39,18 @@
     }
 </script>
 
-<div class="page forum-search-page px-4 pb-8 lg:px-0">
-    <div class="mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.8)] sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-1.5">
-                <h1 class="public-page-title font-black tracking-tight">@T("Forum.Search")</h1>
-                <p class="max-w-2xl text-sm text-white/80">Lọc theo diễn đàn, thời gian và phạm vi để tìm nhanh chủ đề cần thiết.</p>
+<div class="page forum-search-page public-page-shell public-page-stack">
+    <div class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@T("Forum.Search")</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle max-w-2xl">Lọc theo diễn đàn, thời gian và phạm vi để tìm nhanh chủ đề cần thiết.</p>
             </div>
-            <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
-                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Kết quả</p>
-                <p class="mt-1 text-base font-black sm:text-lg">@Model.TopicTotalRecords</p>
+            <div class="public-blue-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em] text-sky-700">Kết quả</p>
+                    <p class="public-stat-value mt-1 font-black text-sky-950">@Model.TopicTotalRecords</p>
+                </div>
             </div>
         </div>
     </div>
@@ -60,34 +62,34 @@
             <form asp-route="@NopRouteNames.Standard.BOARDS_SEARCH" method="get" class="space-y-4">
                 <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                     <div class="space-y-2">
-                        <label for="searchterms" class="block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchKeyword")</label>
+                        <label for="searchterms" class="public-label-text block font-semibold text-slate-700">@T("Forum.Search.SearchKeyword")</label>
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 material-symbols-outlined text-[18px]">search</span>
-                            <input type="text" name="searchterms" id="searchterms" value="@Model.SearchTerms" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:border-military-green focus:bg-white" placeholder="Nhập từ khóa chủ đề, nội dung..." />
+                            <input type="text" name="searchterms" id="searchterms" value="@Model.SearchTerms" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-slate-700 outline-none transition focus:border-military-green focus:bg-white" placeholder="Nhập từ khóa chủ đề, nội dung..." />
                         </div>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
-                        <label for="advs" class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+                        <label for="advs" class="public-control-text inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 font-medium text-slate-700">
                             <input @(Model.ShowAdvancedSearch ? "checked=\"checked\"" : "") id="advs" name="advs" type="checkbox" value="true" class="h-4 w-4 rounded border-slate-300 text-military-green focus:ring-military-green" />
                             <span>@T("Forum.Search.AdvancedSearch")</span>
                         </label>
-                        <button type="submit" class="inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.SearchButton")</button>
+                        <button type="submit" class="public-control-text inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 font-semibold text-white transition hover:brightness-110">@T("Forum.SearchButton")</button>
                     </div>
                 </div>
 
                 <div class="mt-1 grid gap-4 md:grid-cols-3" id="advanced-search" style="display:none;">
                     <div class="space-y-2">
-                        <label for="forumId" class="block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchInForum")</label>
-                        <select name="forumId" id="forumId" asp-items="@(new SelectList(Model.ForumList, "Value", "Text", Model.ForumIdSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
+                        <label for="forumId" class="public-label-text block font-semibold text-slate-700">@T("Forum.Search.SearchInForum")</label>
+                        <select name="forumId" id="forumId" asp-items="@(new SelectList(Model.ForumList, "Value", "Text", Model.ForumIdSelected))" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
                     </div>
                     <div class="space-y-2">
-                        <label for="within" class="block text-sm font-semibold text-slate-700">@T("Forum.Search.SearchWithin")</label>
-                        <select name="within" id="within" asp-items="@(new SelectList(Model.WithinList, "Value", "Text", Model.WithinSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
+                        <label for="within" class="public-label-text block font-semibold text-slate-700">@T("Forum.Search.SearchWithin")</label>
+                        <select name="within" id="within" asp-items="@(new SelectList(Model.WithinList, "Value", "Text", Model.WithinSelected))" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
                     </div>
                     <div class="space-y-2">
-                        <label for="limitDays" class="block text-sm font-semibold text-slate-700">@T("Forum.Search.LimitResultsToPrevious")</label>
-                        <select name="limitDays" id="limitDays" asp-items="@(new SelectList(Model.LimitList, "Value", "Text", Model.LimitDaysSelected))" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
+                        <label for="limitDays" class="public-label-text block font-semibold text-slate-700">@T("Forum.Search.LimitResultsToPrevious")</label>
+                        <select name="limitDays" id="limitDays" asp-items="@(new SelectList(Model.LimitList, "Value", "Text", Model.LimitDaysSelected))" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></select>
                     </div>
                 </div>
             </form>
@@ -97,7 +99,7 @@
 
         @if (!string.IsNullOrWhiteSpace(Model.Error))
         {
-            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">@Model.Error</div>
+            <div class="public-body-text rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 font-medium text-rose-700">@Model.Error</div>
         }
 
         <div class="space-y-4">
@@ -136,7 +138,7 @@
 
             @if (Model.NoResultsVisisble)
             {
-                <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm text-slate-500">
+                <div class="public-body-text rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-500">
                     @T("Forum.SearchNoResultsText")
                 </div>
             }
@@ -155,17 +157,13 @@
 
                         <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-military-green/40 hover:shadow-md">
                             <div class="flex flex-wrap items-start gap-4">
-                                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-military-green/10 text-military-green">
-                                    <span class="material-symbols-outlined">forum</span>
-                                </div>
-
                                 <div class="min-w-0 flex-1 space-y-2">
                                     <div class="flex flex-wrap items-center gap-2">
                                         @if (!string.IsNullOrWhiteSpace(topicTypeLabel))
                                         {
-                                            <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">@topicTypeLabel</span>
+                                            <span class="public-label-text inline-flex rounded-full bg-amber-100 px-2.5 py-1 font-bold uppercase tracking-[0.12em] text-amber-700">@topicTypeLabel</span>
                                         }
-                                        <span class="text-xs text-slate-400">#@topic.Id</span>
+                                        <span class="public-meta-text text-slate-400">#@topic.Id</span>
                                     </div>
 
                                     <h3 class="public-card-title font-bold text-slate-900">
@@ -174,10 +172,10 @@
 
                                     @if (topic.NumPosts > Model.PostsPageSize)
                                     {
-                                        <div class="topic-pager text-xs">@await Html.ForumTopicSmallPagerAsync(topic)</div>
+                                        <div class="public-meta-text topic-pager">@await Html.ForumTopicSmallPagerAsync(topic)</div>
                                     }
 
-                                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                    <div class="public-meta-text flex flex-wrap items-center gap-2 text-slate-500">
                                         <span class="font-semibold text-slate-600">@T("Forum.Author"):</span>
                                         @if (topic.CustomerId > 0)
                                         {
@@ -192,7 +190,7 @@
                                         }
                                     </div>
 
-                                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                                    <div class="public-meta-text flex flex-wrap items-center gap-2">
                                         <span class="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">@topic.NumReplies @T("Forum.Replies")</span>
                                         <span class="rounded bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">@topic.Views @T("Forum.Views")</span>
                                         @if (Model.AllowPostVoting)
@@ -202,7 +200,7 @@
                                     </div>
                                 </div>
 
-                                <div class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-500 sm:w-64">
+                                <div class="public-meta-text w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-500 sm:w-64">
                                     <p class="mb-1 font-bold uppercase tracking-[0.12em] text-slate-400">@T("Forum.LatestPost")</p>
                                     @await Component.InvokeAsync(typeof(ForumLastPostViewComponent), new { forumPostId = topic.LastPostId, showTopic = false })
                                 </div>

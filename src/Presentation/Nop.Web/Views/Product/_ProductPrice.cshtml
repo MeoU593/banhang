@@ -5,57 +5,47 @@
 
 @inject IWorkContext workContext
 
-@if (!Model.CustomerEntersPrice)
+@if (!Model.CustomerEntersPrice && !Model.CallForPrice)
 {
     <div class="prices">
-        @if (Model.CallForPrice)
+        @if (Model.IsRental)
         {
-            @*call for price*@
-            <div class="product-price call-for-price">
-                <span>@T("Products.CallForPrice")</span>
+            <div class="rental-price">
+                <span>@T("Products.Price.RentalPrice"):</span>
+                <span>@Model.RentalPrice</span>
             </div>
         }
-        else
+        @if (!string.IsNullOrWhiteSpace(Model.OldPrice))
         {
-            if (Model.IsRental)
-            {
-                <div class="rental-price">
-                    <span>@T("Products.Price.RentalPrice"):</span>
-                    <span>@Model.RentalPrice</span>
-                </div>
-            }
-            if (!string.IsNullOrWhiteSpace(Model.OldPrice))
-            {
-                @*old price*@
-                <div class="old-product-price">
-                    <span>@T("Products.Price.OldPrice"):</span>
-                    <span>@Model.OldPrice</span>
-                </div>
-            }
-            <div class="product-price">
-                @if (!string.IsNullOrWhiteSpace(Model.OldPrice))
-                {
-                    <label for="price-value-@(Model.ProductId)">@T("Products.Price"):</label>
-                }
-                <span id="price-value-@(Model.ProductId)" class="price-value-@(Model.ProductId)">
-                    @Html.Raw(Model.Price)
-                </span>
+            @*old price*@
+            <div class="old-product-price">
+                <span>@T("Products.Price.OldPrice"):</span>
+                <span>@Model.OldPrice</span>
             </div>
-            if (!string.IsNullOrEmpty(Model.BasePricePAngV))
+        }
+        <div class="product-price">
+            @if (!string.IsNullOrWhiteSpace(Model.OldPrice))
             {
-                <div class="base-price-pangv" id="base-price-pangv-@Model.ProductId">
-                    @Model.BasePricePAngV
-                </div>
+                <label for="price-value-@(Model.ProductId)">@T("Products.Price"):</label>
             }
-            if (Model.DisplayTaxShippingInfo)
-            {
-                var inclTax = await workContext.GetTaxDisplayTypeAsync() == TaxDisplayType.IncludingTax;
-                //tax info is already included in the price (incl/excl tax). that's why we display only shipping info here
-                //of course, you can modify appropriate locales to include VAT info there
-                <div class="tax-shipping-info">
-                    @T(inclTax ? "Products.Price.TaxShipping.InclTax" : "Products.Price.TaxShipping.ExclTax", await NopUrl.RouteTopicUrlAsync("shippinginfo"))
-                </div>
-            }
+            <span id="price-value-@(Model.ProductId)" class="price-value-@(Model.ProductId)">
+                @Html.Raw(Model.Price)
+            </span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.BasePricePAngV))
+        {
+            <div class="base-price-pangv" id="base-price-pangv-@Model.ProductId">
+                @Model.BasePricePAngV
+            </div>
+        }
+        @if (Model.DisplayTaxShippingInfo)
+        {
+            var inclTax = await workContext.GetTaxDisplayTypeAsync() == TaxDisplayType.IncludingTax;
+            //tax info is already included in the price (incl/excl tax). that's why we display only shipping info here
+            //of course, you can modify appropriate locales to include VAT info there
+            <div class="tax-shipping-info">
+                @T(inclTax ? "Products.Price.TaxShipping.InclTax" : "Products.Price.TaxShipping.ExclTax", await NopUrl.RouteTopicUrlAsync("shippinginfo"))
+            </div>
         }
     </div>
 }

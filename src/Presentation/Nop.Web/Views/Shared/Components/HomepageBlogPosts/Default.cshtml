@@ -33,13 +33,13 @@
                     }
                     else
                     {
-                        <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-[13px] font-semibold uppercase tracking-[0.12em] text-slate-500">Ảnh minh họa</div>
+                        <div class="public-label-text flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 font-semibold uppercase tracking-[0.12em] text-slate-500">Ảnh minh họa</div>
                     }
                 </a>
                 <h3 class="public-section-title font-bold text-slate-900">
                     <a href="@featuredUrl" class="transition hover:text-military-green">@featured.Title</a>
                 </h3>
-                <div class="mt-3 line-clamp-4 text-[15px] leading-7 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                <div class="public-body-text mt-3 line-clamp-4 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
                     @Html.Raw(featuredPreviewContent)
                 </div>
             </div>
@@ -50,7 +50,7 @@
                     var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
                     var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
 
-                    <a href="@postUrl" class="block border-b border-dotted border-slate-300 py-4 text-[17px] leading-8 text-slate-700 transition hover:text-military-green">
+                    <a href="@postUrl" class="public-list-title block border-b border-dotted border-slate-300 py-4 text-slate-700 transition hover:text-military-green">
                         <span class="line-clamp-3">@item.Title</span>
                     </a>
                 }
@@ -65,7 +65,7 @@
                 var postRouteName = item.PostTypeId == 1 ? NopRouteNames.Standard.BLOG_DOCUMENT_POST : NopRouteNames.Standard.BLOG_NEWS_POST;
                 var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
 
-                <a href="@postUrl" class="flex items-start gap-2 px-5 py-4 text-[15px] font-semibold leading-7 text-slate-700 transition hover:bg-slate-50 hover:text-military-green">
+                <a href="@postUrl" class="public-list-title flex items-start gap-2 px-5 py-4 font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-military-green">
                     <span class="mt-1 text-military-green">▪</span>
                     <span class="line-clamp-3">@item.Title</span>
                 </a>
@@ -81,8 +81,8 @@
                 var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
 
                 <a href="@postUrl" class="block px-5 py-4 transition hover:bg-slate-50">
-                    <div class="line-clamp-2 text-[15px] font-semibold leading-6 text-slate-800">@item.Title</div>
-                    <div class="mt-2 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</div>
+                    <div class="public-list-title line-clamp-2 font-semibold text-slate-800">@item.Title</div>
+                    <div class="public-label-text home-meta-chip mt-2 inline-flex uppercase tracking-[0.14em]">@item.CreatedOn.ToString("dd/MM/yyyy")</div>
                 </a>
             }
         </div>
@@ -96,7 +96,7 @@
                 var postUrl = Url.RouteUrl(postRouteName, new { SeName = item.SeName }) ?? await NopUrl.RouteGenericUrlAsync<BlogPost>(new { SeName = item.SeName });
                 var previewContent = !string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body;
 
-                <article class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+                <article class="home-card group overflow-hidden transition-shadow">
                     <a href="@postUrl" class="block aspect-video overflow-hidden bg-slate-100">
                         @if (!string.IsNullOrWhiteSpace(item.ThumbnailImageUrl))
                         {
@@ -104,17 +104,17 @@
                         }
                         else
                         {
-                            <div class="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Tin tức</div>
+                            <div class="public-label-text flex h-full w-full items-center justify-center font-semibold uppercase tracking-[0.14em] text-slate-500">Tin tức</div>
                         }
                     </a>
-                    <div class="space-y-3 p-4">
-                        <h4 class="line-clamp-2 font-bold text-slate-800">@item.Title</h4>
-                        <div class="line-clamp-3 text-xs leading-5 text-slate-500 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                    <div class="home-card-pad home-news-card-body space-y-3">
+                        <h4 class="public-card-title line-clamp-2 font-bold text-slate-800">@item.Title</h4>
+                        <div class="public-meta-text line-clamp-3 text-slate-500 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
                             @Html.Raw(previewContent)
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-medium uppercase text-slate-400">@item.CreatedOn.ToString("dd/MM/yyyy")</span>
-                            <a href="@postUrl" class="inline-flex items-center gap-1 text-xs font-bold text-primary">
+                            <span class="public-label-text font-medium uppercase text-slate-400">@item.CreatedOn.ToString("dd/MM/yyyy")</span>
+                            <a href="@postUrl" class="public-label-text inline-flex items-center gap-1 font-bold text-primary">
                                 Chi tiết
                                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
                             </a>
@@ -127,12 +127,12 @@
     else if (displayVariant == "home-doc-table")
     {
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <table class="home-table">
+                <thead class="public-label-text bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
                     <tr>
-                        <th class="px-4 py-3">Số hiệu / Trích yếu</th>
-                        <th class="px-4 py-3">Ngày ban hành</th>
-                        <th class="px-4 py-3 text-right">Thao tác</th>
+                        <th class="home-doc-title-column px-4 py-3">Số hiệu / Trích yếu</th>
+                        <th class="home-doc-date-column px-4 py-3 whitespace-nowrap">Ngày ban hành</th>
+                        <th class="home-doc-action-column px-4 py-3 text-right whitespace-nowrap">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -144,10 +144,10 @@
 
                         <tr class="transition-colors hover:bg-slate-50">
                             <td class="px-4 py-3">
-                                <a href="@postUrl" class="line-clamp-1 font-bold text-slate-800 transition hover:text-primary">@item.Title</a>
-                                <p class="line-clamp-1 text-xs text-slate-500">@author</p>
+                                <a href="@postUrl" class="public-list-title line-clamp-1 font-bold text-slate-800 transition hover:text-primary">@item.Title</a>
+                                <p class="public-meta-text line-clamp-1 text-slate-500">@author</p>
                             </td>
-                            <td class="px-4 py-3 text-xs text-slate-500">@item.CreatedOn.ToString("dd/MM/yyyy")</td>
+                            <td class="home-doc-date-column text-slate-500"><span class="public-meta-text whitespace-nowrap">@item.CreatedOn.ToString("dd/MM/yyyy")</span></td>
                             <td class="px-4 py-3 text-right">
                                 <a href="@postUrl" class="inline-flex rounded-lg p-2 text-primary transition hover:bg-primary/10">
                                     <span class="material-symbols-outlined">open_in_new</span>
@@ -169,30 +169,30 @@
                 var previewContent = !string.IsNullOrWhiteSpace(item.BodyOverview) ? item.BodyOverview : item.Body;
                 var typeLabel = item.PostTypeId == 1 ? "Văn bản" : "Tin tức";
 
-                <article class="group flex h-full flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_48px_-28px_rgba(45,58,34,0.22)]">
+                <article class="home-card home-card-pad group flex h-full flex-col transition hover:-translate-y-[1px]">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">@typeLabel</p>
+                            <p class="public-label-text font-semibold uppercase tracking-[0.18em] text-slate-500">@typeLabel</p>
                             <h3 class="public-list-title mt-2 line-clamp-2 font-bold tracking-tight text-slate-900">
                                 <a href="@postUrl" class="transition hover:text-military-green">@item.Title</a>
                             </h3>
                         </div>
-                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                        <time datetime="@item.CreatedOn.ToString("yyyy-MM-dd")" class="public-label-text home-meta-chip whitespace-nowrap font-medium">
                             @item.CreatedOn.ToString("dd/MM/yyyy")
                         </time>
                     </div>
 
-                    <div class="mt-3 flex-1 text-sm leading-6 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
+                    <div class="public-body-text mt-3 flex-1 text-slate-600 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a]:text-inherit [&_a]:no-underline">
                         <div class="line-clamp-4">
                             @Html.Raw(previewContent)
                         </div>
                     </div>
 
-                    <div class="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
+                    <div class="public-meta-text mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-slate-500">
                         <span class="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
                             @(item.AllowComments ? $"{item.NumberOfComments} phản hồi" : "Đã xuất bản")
                         </span>
-                        <a href="@postUrl" class="inline-flex h-10 min-w-[132px] items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green active:scale-[0.98]">
+                        <a href="@postUrl" class="public-control-text home-action-button inline-flex items-center justify-center transition active:scale-[0.98]">
                             Xem bài viết
                         </a>
                     </div>
@@ -206,13 +206,13 @@ else
     <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-slate-500">
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Nguồn blog lõi</p>
+                <p class="public-label-text font-semibold uppercase tracking-[0.2em] text-slate-500">Nguồn blog lõi</p>
                 <h3 class="public-card-title font-bold tracking-tight text-slate-900">Chưa có bài viết nào để hiển thị</h3>
-                <p class="max-w-2xl text-sm leading-6 text-slate-600">Khi bài viết được xuất bản, hệ thống sẽ tự động cập nhật vào các khối trang chủ.</p>
+                <p class="public-body-text max-w-2xl text-slate-600">Khi bài viết được xuất bản, hệ thống sẽ tự động cập nhật vào các khối trang chủ.</p>
             </div>
             @if (!string.IsNullOrWhiteSpace(blogArchiveUrl))
             {
-                <a href="@blogArchiveUrl" class="inline-flex h-11 min-w-[186px] items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                <a href="@blogArchiveUrl" class="public-control-text home-action-button inline-flex items-center justify-center bg-white transition">
                     Đi tới lưu trữ blog
                 </a>
             }

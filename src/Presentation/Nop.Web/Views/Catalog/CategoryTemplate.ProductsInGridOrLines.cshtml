@@ -24,13 +24,16 @@
 
     var breadcrumbDelimiter = commonSettings.BreadcrumbDelimiter;
     NopHtml.AddJsonLdParts(Model.JsonLd);
+
+    var catalogModel = Model.CatalogProductsModel;
+    var postingUnitCount = catalogModel.GetType().GetProperty("PostingUnitCount")?.GetValue(catalogModel) as int? ?? 0;
 }
 
 @section Breadcrumb
 {
     @if (Model.DisplayCategoryBreadcrumb)
     {
-        <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+        <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
             <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
             <span>@breadcrumbDelimiter</span>
             <a href="@Url.RouteUrl(NopRouteNames.General.CATEGORIES)" class="transition hover:text-military-green">Sản phẩm &amp; Năng lực</a>
@@ -53,162 +56,26 @@
     }
 }
 
-<style>
-    .category-page-command {
-        background: #f1f5f9;
-        padding: 0;
-    }
-
-    .category-page-command .category-hero {
-        border: 1px solid rgba(214, 185, 90, 0.3);
-        border-radius: 16px;
-        background: linear-gradient(120deg, #29313a 0%, #574500 52%, #8a6a2a 100%);
-        padding: 20px;
-        box-shadow: 0 24px 60px -35px rgba(15, 23, 42, 0.85);
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .category-page-command .hero-meta {
-        max-width: 760px;
-    }
-
-    .category-page-command .category-title {
-        margin: 0;
-        color: #ffffff;
-        font-size: var(--public-font-hero-title);
-        font-weight: 900;
-        line-height: 1.1;
-        letter-spacing: -0.03em;
-    }
-
-    .category-page-command .category-description {
-        margin-top: 6px;
-        color: rgba(255, 255, 255, 0.82);
-        font-size: var(--public-font-small);
-        line-height: 1.55;
-        max-width: 700px;
-    }
-
-    .category-page-command .category-hero-side {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        min-width: 240px;
-    }
-
-    .category-page-command .category-hero-stats {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .category-page-command .hero-stat {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 10px 12px;
-        color: #ffffff;
-        font-size: var(--public-font-meta);
-        font-weight: 700;
-        text-align: center;
-    }
-
-    .category-page-command .hero-stat strong {
-        font-size: 1.125rem;
-        line-height: 1.1;
-    }
-
-    .category-page-command .hero-stat span:last-child {
-        color: rgba(255, 255, 255, 0.75);
-        font-size: 0.625rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-    }
-
-    .category-page-command .category-header-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 40px;
-        padding: 0 22px;
-        border: 0;
-        border-radius: 12px;
-        background: #ffffff;
-        color: #0f172a;
-        text-decoration: none;
-        font-size: var(--public-font-control);
-        font-weight: 800;
-        box-shadow: 0 16px 30px -24px rgba(15, 23, 42, 0.9);
-        transition: transform 0.2s ease, background-color 0.2s ease;
-    }
-
-    .category-page-command .category-header-action:hover {
-        background: rgba(255, 255, 255, 0.9);
-        color: #0f172a;
-        transform: translateY(-1px);
-    }
-
-    .category-page-command .category-page-flow {
-        display: grid;
-        gap: 22px;
-    }
-
-    @@media (max-width: 767px) {
-        .category-page-command {
-            padding: 14px;
-        }
-
-        .category-page-command .category-hero {
-            padding: 18px;
-        }
-
-        .category-page-command .category-title {
-            font-size: 1.75rem;
-        }
-
-        .category-page-command .category-header-action {
-            width: 100%;
-        }
-
-        .category-page-command .category-hero-side {
-            width: 100%;
-        }
-    }
-</style>
-
-<div class="page category-page category-page-command">
-    <header class="category-hero">
-        <div class="hero-meta">
-            <h1 class="category-title">@Model.Name</h1>
+<div class="page category-page category-page-command catalog-page-shell catalog-page-stack">
+    <header class="public-blue-hero catalog-overview-hero">
+        <div class="public-blue-hero-content">
+        <div class="public-blue-hero-copy">
+            <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@Model.Name</h1>
             @if (!string.IsNullOrWhiteSpace(Model.Description))
             {
-                <div class="category-description">@Html.Raw(Model.Description)</div>
+                <div class="public-hero-subtitle public-blue-hero-subtitle max-w-3xl">@Html.Raw(Model.Description)</div>
             }
         </div>
-        <div class="category-hero-side">
-            <div class="category-hero-stats">
-                <span class="hero-stat">
-                    <strong>@Model.CatalogProductsModel.TotalItems</strong>
-                    <span>Sản phẩm</span>
+        <div class="public-blue-hero-stats catalog-overview-stats sm:grid-cols-2">
+                <span class="public-blue-hero-stat">
+                    <strong class="public-stat-value font-black text-sky-950">@catalogModel.TotalItems</strong>
+                    <span class="public-label-text font-bold uppercase tracking-[0.14em] text-sky-700">Tổng sản phẩm</span>
                 </span>
-                <span class="hero-stat">
-                    <strong>@Model.CatalogProductsModel.TotalPages</strong>
-                    <span>Trang dữ liệu</span>
+                <span class="public-blue-hero-stat">
+                    <strong class="public-stat-value font-black text-sky-950">@postingUnitCount</strong>
+                    <span class="public-label-text font-bold uppercase tracking-[0.14em] text-sky-700">Đơn vị đăng</span>
                 </span>
-            </div>
-            <a class="category-header-action" href="#category-products">
-                <span>@(Model.CatalogProductsModel.TotalItems > 0 ? $"Xem {Model.CatalogProductsModel.TotalItems} sản phẩm" : "Mở danh sách")</span>
-                <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
-            </a>
+        </div>
         </div>
     </header>
 

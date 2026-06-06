@@ -47,17 +47,9 @@
 
     NopHtml.AddJsonLdParts(Model.JsonLd);
 
-    var availabilityText = string.IsNullOrWhiteSpace(Model.StockAvailability) ? "Có sẵn" : Model.StockAvailability;
-    var availabilityClass = string.IsNullOrWhiteSpace(Model.StockAvailability) ? "is-available" : "is-supplying";
-    var codeHint = !string.IsNullOrWhiteSpace(Model.Sku)
-        ? Model.Sku
-        : !string.IsNullOrWhiteSpace(Model.ManufacturerPartNumber)
-            ? Model.ManufacturerPartNumber
-            : !string.IsNullOrWhiteSpace(Model.Gtin)
-                ? Model.Gtin
-                : $"ID-{Model.Id}";
-    var hasSpecifications = Model.ProductSpecificationModel.Groups.Any(group => group.Attributes.Any());
-    var hasTags = Model.ProductTags.Any();
+    var heroDescription = !string.IsNullOrEmpty(Model.FullDescription)
+        ? Model.FullDescription
+        : Model.ShortDescription;
 }
 
 @section Breadcrumb
@@ -71,78 +63,45 @@
     }
 
     .logistics-product-page .page-body {
-        padding: 24px;
+        padding: clamp(1rem, 1.5vw, 1.75rem);
         display: grid;
-        gap: 22px;
+        gap: clamp(1rem, 1.45vw, 1.75rem);
     }
 
     .logistics-product-page .product-shell {
         display: grid;
-        gap: 22px;
+        gap: clamp(1rem, 1.45vw, 1.75rem);
     }
 
     .logistics-product-page .product-hero {
         display: grid;
-        gap: 22px;
+        gap: clamp(1rem, 1.45vw, 1.75rem);
         grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-        align-items: start;
+        align-items: stretch;
     }
 
     .logistics-product-page .gallery-card,
     .logistics-product-page .overview-card,
     .logistics-product-page .product-section {
         border: 1px solid rgba(196, 198, 204, 0.35);
-        border-radius: 18px;
+        border-radius: clamp(1rem, 1.15vw, 1.35rem);
         background: #ffffff;
-        box-shadow: 0 20px 38px -34px rgba(15, 23, 42, 0.6);
+        box-shadow: 0 1.4vw 2.6vw -2.2vw rgba(15, 23, 42, 0.6);
     }
 
     .logistics-product-page .gallery-card {
-        padding: 10px;
+        padding: clamp(0.625rem, 0.7vw, 0.875rem);
+        height: 100%;
+        min-height: clamp(22rem, 32vw, 30rem);
     }
 
     .logistics-product-page .overview-card {
-        padding: 24px;
+        padding: clamp(1rem, 1.35vw, 1.5rem);
         display: flex;
         flex-direction: column;
-        gap: 16px;
-    }
-
-    .logistics-product-page .status-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .logistics-product-page .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: var(--public-font-label);
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-    }
-
-    .logistics-product-page .status-pill.is-available {
-        background: #ecfdf5;
-        color: #047857;
-        border: 1px solid #a7f3d0;
-    }
-
-    .logistics-product-page .status-pill.is-supplying {
-        background: #fff7ed;
-        color: #c2410c;
-        border: 1px solid #fdba74;
-    }
-
-    .logistics-product-page .status-pill.is-preorder {
-        background: #fffbeb;
-        color: #b45309;
-        border: 1px solid #fcd34d;
+        gap: clamp(0.75rem, 1vw, 1rem);
+        height: 100%;
+        min-height: clamp(22rem, 32vw, 30rem);
     }
 
     .logistics-product-page .product-name h1 {
@@ -154,31 +113,24 @@
         line-height: 1.1;
     }
 
-    .logistics-product-page .product-code-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-        font-size: var(--public-font-label);
-        font-weight: 700;
-        padding: 4px 10px;
-    }
-
     .logistics-product-page .short-description {
         color: #475569;
         font-size: var(--public-font-body);
         line-height: 1.7;
-        padding: 12px 0;
+        padding: clamp(0.75rem, 0.9vw, 1rem) 0;
         border-top: 1px solid #edf2f7;
         border-bottom: 1px solid #edf2f7;
     }
 
     .logistics-product-page .overview-info {
         display: grid;
-        gap: 10px;
+        gap: clamp(0.5rem, 0.7vw, 0.75rem);
+    }
+
+    .logistics-product-page .overview-info .additional-details {
+        display: grid;
+        gap: clamp(0.5rem, 0.7vw, 0.75rem);
+        min-width: 0;
     }
 
     .logistics-product-page .overview-info .stock,
@@ -186,26 +138,54 @@
     .logistics-product-page .overview-info .manufacturer-part-number,
     .logistics-product-page .overview-info .gtin,
     .logistics-product-page .overview-info .product-vendor,
-    .logistics-product-page .overview-info .delivery-date,
     .logistics-product-page .overview-info .free-shipping,
     .logistics-product-page .overview-info .product-poster {
-        border-radius: 10px;
+        display: grid;
+        grid-template-columns: minmax(8.5rem, 34%) minmax(0, 1fr);
+        align-items: center;
+        column-gap: 3%;
+        row-gap: clamp(0.35rem, 0.5vw, 0.5rem);
+        min-width: 0;
+        width: 100%;
+        border-radius: clamp(0.55rem, 0.7vw, 0.8rem);
         border: 1px solid #edf2f7;
         background: #f8fafc;
-        padding: 8px 10px;
+        padding: clamp(0.5rem, 0.6vw, 0.625rem) clamp(0.625rem, 0.8vw, 0.875rem);
         color: #334155;
         font-size: var(--public-font-control);
     }
 
+    .logistics-product-page .overview-info .product-poster {
+        position: relative;
+        overflow: visible;
+    }
+
+    .logistics-product-page .overview-info .product-poster-line {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(8.5rem, 34%) minmax(0, 1fr);
+        align-items: center;
+        column-gap: 3%;
+        row-gap: clamp(0.35rem, 0.5vw, 0.5rem);
+        min-width: 0;
+        width: 100%;
+    }
+
     .logistics-product-page .overview-info .label {
-        margin-right: 4px;
+        justify-self: start;
+        margin-right: 0;
+        max-width: 100%;
+        white-space: normal;
         font-weight: 700;
         color: #1e293b;
     }
 
     .logistics-product-page .overview-info .value,
     .logistics-product-page .overview-info a {
+        display: block;
+        min-width: 0;
         color: #334155;
+        overflow-wrap: anywhere;
     }
 
     .logistics-product-page .overview-info a:hover {
@@ -216,9 +196,20 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        max-width: 100%;
+        min-width: 0;
         cursor: pointer;
         list-style: none;
         font-weight: 700;
+        color: #0f172a;
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-name {
+        min-width: 0;
+        max-width: 100% !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .logistics-product-page .overview-info .product-poster .poster-details summary::-webkit-details-marker {
@@ -226,19 +217,33 @@
     }
 
     .logistics-product-page .overview-info .product-poster .poster-card {
-        margin-top: 8px;
+        position: absolute;
+        z-index: 60;
+        top: calc(100% + 0.45rem);
+        right: 0.75rem;
+        width: min(22rem, calc(100% - 1.5rem));
+        min-width: 0;
+        margin-top: 0;
         border-radius: 10px;
         border: 1px solid #e2e8f0;
         background: #fff;
-        padding: 8px;
+        padding: 10px;
         display: grid;
         gap: 6px;
+        white-space: normal;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+    }
+
+    .logistics-product-page .overview-info .product-poster .poster-details:not([open]) .poster-card {
+        display: none;
     }
 
     .logistics-product-page .overview-info .product-poster .poster-field {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: 6rem minmax(0, 1fr);
+        align-items: baseline;
+        column-gap: 0.5rem;
+        row-gap: 0.25rem;
     }
 
     .logistics-product-page .overview-info .product-poster .poster-field-label {
@@ -246,37 +251,55 @@
         font-weight: 700;
         text-transform: uppercase;
         color: #64748b;
+        white-space: nowrap;
     }
 
     .logistics-product-page .overview-info .product-reviews-overview {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
+        min-width: 0;
+        width: 100%;
         border-radius: 10px;
         border: 1px solid #edf2f7;
         background: #f8fafc;
-        padding: 8px 10px;
+        padding: 8px 8px 8px 10px;
+    }
+
+    .logistics-product-page .overview-info .review-links-group {
+        display: inline-flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0;
+    }
+
+    .logistics-product-page .overview-info .product-review-links {
+        display: inline-flex;
+        align-items: center;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
 
     .logistics-product-page .overview-info .product-review-links a {
         color: #2e0001;
         font-size: var(--public-font-meta);
         font-weight: 700;
+        white-space: nowrap;
     }
 
     .logistics-product-page .prices {
-        border-radius: 14px;
+        border-radius: clamp(0.8rem, 0.9vw, 1rem);
         border: 1px solid #dbe3ef;
         background: #f7f9ff;
-        padding: 12px;
+        padding: clamp(0.75rem, 0.9vw, 1rem);
         display: grid;
         gap: 6px;
     }
 
     .logistics-product-page .product-price {
         color: #2e0001;
-        font-size: 29px;
+        font-size: clamp(1.5rem, 2vw, 1.875rem);
         font-weight: 900;
         letter-spacing: -0.03em;
         line-height: 1.1;
@@ -290,8 +313,8 @@
     .logistics-product-page .overview-actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        padding-top: 8px;
+        gap: clamp(0.5rem, 0.7vw, 0.75rem);
+        padding-top: clamp(0.5rem, 0.6vw, 0.625rem);
         border-top: 1px solid #edf2f7;
     }
 
@@ -299,14 +322,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 40px;
-        border-radius: 10px;
+        min-height: clamp(2.3rem, 2.5vw, 2.75rem);
+        border-radius: clamp(0.55rem, 0.7vw, 0.8rem);
         border: 1px solid #dbe3ef;
         background: #f8fafc;
         color: #334155;
         font-size: var(--public-font-control);
         font-weight: 700;
-        padding: 0 12px;
+        padding: 0 clamp(0.75rem, 0.85vw, 1rem);
         transition: all 0.2s ease;
     }
 
@@ -347,7 +370,7 @@
     }
 
     .logistics-product-page .product-section {
-        padding: 24px;
+        padding: clamp(1rem, 1.35vw, 1.5rem);
     }
 
     .logistics-product-page .section-title {
@@ -410,6 +433,24 @@
             font-size: var(--public-font-page-title);
         }
     }
+
+    @@media (max-width: 520px) {
+        .logistics-product-page .overview-info .stock,
+        .logistics-product-page .overview-info .sku,
+        .logistics-product-page .overview-info .manufacturer-part-number,
+        .logistics-product-page .overview-info .gtin,
+        .logistics-product-page .overview-info .product-vendor,
+        .logistics-product-page .overview-info .free-shipping,
+        .logistics-product-page .overview-info .product-poster,
+        .logistics-product-page .overview-info .product-poster-line {
+            grid-template-columns: 1fr;
+        }
+
+        .logistics-product-page .overview-info .value,
+        .logistics-product-page .overview-info .product-poster .poster-details {
+            width: 100%;
+        }
+    }
 </style>
 
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsAfterBreadcrumb, additionalData = Model })
@@ -429,44 +470,23 @@
                     <aside class="overview-card">
                         @await Html.PartialAsync("_Discontinued", Model)
 
-                        <div class="status-row">
-                            <span class="status-pill @availabilityClass">
-                                <span class="material-symbols-outlined text-[15px]">verified</span>
-                                <span>@availabilityText</span>
-                            </span>
-                            <span class="product-code-chip">
-                                <span class="material-symbols-outlined text-[15px]">qr_code</span>
-                                <span>@codeHint</span>
-                            </span>
-                        </div>
-
                         <div class="product-name">
                             <h1>@Model.Name</h1>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                        @if (!string.IsNullOrEmpty(heroDescription))
                         {
-                            <div class="short-description">@Html.Raw(Model.ShortDescription)</div>
+                            <div class="short-description">@Html.Raw(heroDescription)</div>
                         }
 
                         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsOverviewTop, additionalData = Model })
 
                         <div class="overview-info">
-                            @await Html.PartialAsync("_ProductReviewOverview", Model.ProductReviewOverview)
                             @await Html.PartialAsync("_ProductPoster", Model)
                             @await Html.PartialAsync("_Availability", Model)
                             @await Html.PartialAsync("_SKU_Man_GTIN_Ven", Model)
-                            @await Html.PartialAsync("_DeliveryInfo", Model)
                             @await Html.PartialAsync("_DownloadSample", Model)
                         </div>
-
-                        @{
-                            var dataDictPrice = new ViewDataDictionary(ViewData);
-                            dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
-                            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceTop, additionalData = Model })
-                            @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
-                            @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductPriceBottom, additionalData = Model })
-                        }
 
                         <div class="overview-actions">
                             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsBefore, additionalData = Model })
@@ -478,29 +498,8 @@
                     </aside>
                 </section>
 
-                @if (!string.IsNullOrEmpty(Model.FullDescription))
-                {
-                    <section class="product-section">
-                        <h2 class="section-title">Mô tả chi tiết</h2>
-                        <div class="full-description">@Html.Raw(Model.FullDescription)</div>
-                    </section>
-                }
-
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductDetailsBeforeCollateral, additionalData = Model })
-
-                @if (hasSpecifications || hasTags)
-                {
-                    <section class="product-section product-collateral">
-                        <h2 class="section-title">Thông số và hồ sơ</h2>
-                        @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecificationModel)
-                        @await Html.PartialAsync("_ProductTags", Model.ProductTags)
-                    </section>
-                }
-
-                @await Component.InvokeAsync(typeof(ProductsAlsoPurchasedViewComponent), new { productId = Model.Id })
-                @await Component.InvokeAsync(typeof(RelatedProductsViewComponent), new { productId = Model.Id })
-                @await Component.InvokeAsync(typeof(CompatibleWithFilterLevelValuesViewComponent), new { productId = Model.Id })
             </article>
         </form>
 

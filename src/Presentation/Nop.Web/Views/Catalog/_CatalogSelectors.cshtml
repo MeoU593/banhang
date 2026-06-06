@@ -67,22 +67,43 @@
 
 <style>
     .product-selectors-refined {
-        border: 1px solid rgba(196, 198, 204, 0.45);
-        border-radius: 16px;
+        border: 1px solid #dbe3ef;
+        border-radius: clamp(0.875rem, 1vw, 1.15rem);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 62%, #fff7e6 100%);
+        padding: clamp(0.75rem, 1vw, 1rem);
+        box-shadow: 0 0.9rem 2rem -1.7rem rgba(15, 23, 42, 0.28);
+    }
+
+    .product-selectors-heading {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: clamp(0.75rem, 1vw, 1rem);
+    }
+
+    .product-selectors-count-chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #dbeafe;
+        border-radius: 999px;
         background: #ffffff;
-        padding: 16px;
-        box-shadow: 0 22px 34px -30px rgba(15, 23, 42, 0.45);
+        color: #0369a1;
+        font-weight: 800;
+        padding: 0.35rem 0.7rem;
+        white-space: nowrap;
     }
 
     .product-selectors-refined .selector-label {
-        margin-bottom: 6px;
+        margin-bottom: clamp(0.35rem, 0.45vw, 0.5rem);
         display: block;
-        color: #64748b;
+        color: #8a1114;
         font-size: var(--public-font-label);
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.14em;
-        padding: 0 4px;
+        padding: 0 clamp(0.25rem, 0.3vw, 0.375rem);
     }
 
     .product-selectors-refined > .selector-field {
@@ -103,16 +124,15 @@
         -webkit-appearance: none;
         box-sizing: border-box;
         width: 100%;
-        height: 44px;
-        min-height: 44px;
-        border: 1px solid #dbe3ef;
-        border-radius: 10px;
-        background: #edf4ff;
-        padding: 0 12px;
+        min-height: clamp(2.6rem, 2.8vw, 3rem);
+        border: 1px solid #cbd5e1;
+        border-radius: clamp(0.5rem, 0.6vw, 0.7rem);
+        background: #ffffff;
+        padding: 0 clamp(0.75rem, 0.85vw, 1rem) !important;
         color: #141c24;
         font-size: var(--public-font-control);
         font-weight: 600;
-        line-height: 44px;
+        line-height: 1.35;
         outline: none;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -137,7 +157,7 @@
     }
 
     .product-selectors-refined .selector-search {
-        padding-left: 42px;
+        padding-left: clamp(2.6rem, 2.8vw, 3.1rem) !important;
     }
 
     .product-selectors-refined .selector-search-icon,
@@ -145,24 +165,29 @@
         pointer-events: none;
         position: absolute;
         top: 50%;
-        left: 12px;
+        left: clamp(0.7rem, 0.8vw, 0.9rem);
         transform: translateY(-50%);
         color: #64748b;
         font-size: 18px;
         line-height: 1;
+        z-index: 3;
     }
 
     .product-selectors-refined .selector-select-wrap select {
         margin: 0;
-        padding-left: 42px;
-        padding-right: 12px;
+        padding-left: clamp(2.6rem, 2.8vw, 3.1rem) !important;
+        padding-right: clamp(0.75rem, 0.85vw, 1rem) !important;
+    }
+
+    .product-selectors-refined .selector-sort {
+        padding-left: clamp(0.75rem, 0.85vw, 1rem) !important;
     }
 
     .product-selectors-refined .selector-search:focus,
     .product-selectors-refined select:focus {
-        border-color: #2f5d31;
+        border-color: #b91d20;
         background: #ffffff;
-        box-shadow: 0 0 0 3px rgba(47, 93, 49, 0.12);
+        box-shadow: 0 0 0 3px rgba(185, 29, 32, 0.12);
     }
 
     .product-selectors-refined .selector-reset {
@@ -172,15 +197,14 @@
         gap: 5px;
         box-sizing: border-box;
         width: 100%;
-        height: 44px;
-        min-height: 44px;
-        border: 1px solid #dbe3ef;
-        border-radius: 10px;
-        background: #f8fbff;
+        min-height: clamp(2.6rem, 2.8vw, 3rem);
+        border: 1px solid #cbd5e1;
+        border-radius: clamp(0.5rem, 0.6vw, 0.7rem);
+        background: #ffffff;
         color: #475569;
-        font-size: 13px;
+        font-size: var(--public-font-control);
         font-weight: 700;
-        padding: 0 10px;
+        padding: 0 clamp(0.75rem, 0.8vw, 1rem);
         white-space: nowrap;
         transition: all 0.2s ease;
     }
@@ -191,9 +215,9 @@
     }
 
     .product-selectors-refined .selector-reset:hover {
-        border-color: #c4c6cc;
-        background: #f1f5f9;
-        color: #141c24;
+        border-color: #b91d20;
+        background: #fff4dc;
+        color: #2e0001;
     }
 
     .product-selectors-refined .selector-favorites {
@@ -203,15 +227,14 @@
         gap: 5px;
         box-sizing: border-box;
         width: 100%;
-        height: 44px;
-        min-height: 44px;
+        min-height: clamp(2.6rem, 2.8vw, 3rem);
         border: 1px solid #fecdd3;
-        border-radius: 10px;
-        background: #fff1f2;
-        color: #b22222;
-        font-size: 13px;
+        border-radius: clamp(0.5rem, 0.6vw, 0.7rem);
+        background: #ffffff;
+        color: #be123c;
+        font-size: var(--public-font-control);
         font-weight: 800;
-        padding: 0 10px;
+        padding: 0 clamp(0.75rem, 0.8vw, 1rem);
         white-space: nowrap;
         transition: all 0.2s ease;
     }
@@ -223,23 +246,22 @@
 
     .product-selectors-refined .selector-favorites:hover,
     .product-selectors-refined .selector-favorites.is-active {
-        border-color: #b22222;
-        background: #b22222;
-        color: #d4af37;
+        border-color: #2e0001;
+        background: #2e0001;
+        color: #ffffff;
     }
 </style>
 
-<div class="product-selectors-refined grid grid-cols-1 gap-4 @gridColumnsClass md:items-end" id="category-toolbar">
+<section class="product-selectors-refined" id="category-toolbar">
+<div class="grid grid-cols-1 gap-4 @gridColumnsClass md:items-end">
     <div class="selector-field">
-        <label class="selector-label" for="products-quick-search">Tìm kiếm nhanh</label>
         <div class="selector-search-wrap">
             <span class="material-symbols-outlined selector-search-icon">search</span>
-            <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm, đơn vị, mã..." autocomplete="off" />
+            <input id="products-quick-search" class="selector-search" type="search" placeholder="Tên sản phẩm, đơn vị, mã..." autocomplete="off" aria-label="Tìm kiếm nhanh" />
         </div>
     </div>
 
     <div class="selector-field">
-        <label class="selector-label" for="products-category-select">Danh mục</label>
         @if (lockCategorySelector)
         {
             <div class="selector-panel readonly">@(string.IsNullOrWhiteSpace(currentCategoryName) ? "Danh mục hiện tại" : currentCategoryName)</div>
@@ -269,7 +291,6 @@
     </div>
 
     <div class="selector-field">
-        <label class="selector-label" for="products-manufacturer-select">Đơn vị cung cấp</label>
         <div class="selector-select-wrap">
             <span class="material-symbols-outlined selector-select-icon">store</span>
             <select id="products-manufacturer-select" aria-label="Đơn vị cung cấp">
@@ -291,7 +312,6 @@
     </div>
 
     <div class="selector-field">
-        <label class="selector-label" for="products-status-filter">Trạng thái</label>
         <div class="selector-select-wrap">
             <span class="material-symbols-outlined selector-select-icon">flag</span>
             <select id="products-status-filter" aria-label="Trạng thái">
@@ -305,8 +325,7 @@
     @if (Model.AllowProductSorting)
     {
         <div class="product-sorting selector-field">
-            <label class="selector-label" for="products-orderby">Sắp xếp</label>
-            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-military-red focus:bg-white focus:ring-2 focus:ring-military-red/10" })
+            @Html.DropDownList("products-orderby", Model.AvailableSortOptions, new { aria_label = T("Catalog.OrderBy.Label"), @class = "public-control-text selector-sort" })
         </div>
         <script asp-location="Footer">
             $(function() {
@@ -326,25 +345,24 @@
     }
 
     <div class="selector-field">
-        <label class="selector-label" for="products-favorites-filter">Yêu thích</label>
         <button type="button"
                 class="selector-favorites @(Model.CanFilterByFavorites && Model.FavoritesOnly ? "is-active" : string.Empty)"
                 id="products-favorites-filter"
-                aria-label="Danh sách yêu thích"
+                aria-label="Danh sách sản phẩm quan tâm"
                 aria-pressed="@(Model.CanFilterByFavorites && Model.FavoritesOnly ? "true" : "false")">
             <span class="material-symbols-outlined">@(Model.CanFilterByFavorites && Model.FavoritesOnly ? "favorite" : "favorite_border")</span>
-            <span>Yêu thích</span>
+            <span>Quan tâm</span>
         </button>
     </div>
 
     <div class="selector-field">
-        <label class="selector-label" for="products-reset-filters">Bộ lọc</label>
         <button type="button" class="selector-reset" id="products-reset-filters" aria-label="Làm mới bộ lọc">
             <span class="material-symbols-outlined text-[18px]">restart_alt</span>
             <span>Làm mới bộ lọc</span>
         </button>
     </div>
 </div>
+</section>
 
 <script asp-location="Footer">
     $(function() {

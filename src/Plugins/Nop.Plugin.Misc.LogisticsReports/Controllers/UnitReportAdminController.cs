@@ -8,6 +8,8 @@ using Nop.Plugin.Misc.LogisticsReports.Enums;
 using Nop.Plugin.Misc.LogisticsReports.Infrastructure;
 using Nop.Plugin.Misc.LogisticsReports.Models.UnitReports;
 using Nop.Plugin.Misc.LogisticsReports.Services;
+using Nop.Services.Localization;
+using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Web.Areas.Admin.Controllers;
 using Nop.Web.Framework;
@@ -26,6 +28,8 @@ public class UnitReportAdminController : BaseAdminController
     private readonly IRepository<Vendor> _vendorRepository;
     private readonly IRepository<ReportIndicator> _indicatorRepository;
     private readonly IWorkContext _workContext;
+    private readonly ICustomerActivityService _customerActivityService;
+    private readonly ILocalizationService _localizationService;
     private readonly IPermissionService _permissionService;
 
     public UnitReportAdminController(
@@ -35,6 +39,8 @@ public class UnitReportAdminController : BaseAdminController
         IRepository<Vendor> vendorRepository,
         IRepository<ReportIndicator> indicatorRepository,
         IWorkContext workContext,
+        ICustomerActivityService customerActivityService,
+        ILocalizationService localizationService,
         IPermissionService permissionService)
     {
         _unitReportService = unitReportService;
@@ -43,6 +49,8 @@ public class UnitReportAdminController : BaseAdminController
         _vendorRepository = vendorRepository;
         _indicatorRepository = indicatorRepository;
         _workContext = workContext;
+        _customerActivityService = customerActivityService;
+        _localizationService = localizationService;
         _permissionService = permissionService;
     }
 
@@ -303,6 +311,8 @@ public class UnitReportAdminController : BaseAdminController
         try
         {
             await _unitReportService.SubmitAsync(id, customer.Id);
+            await _customerActivityService.InsertActivityAsync(customer, NopActivityLogDefaults.SubmitUnitReport,
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.SubmitUnitReport"), report.Id), report);
         }
         catch (InvalidOperationException)
         {

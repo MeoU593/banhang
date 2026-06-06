@@ -1,0 +1,287 @@
+@model VendorDetailsModel
+
+@{
+    ViewBag.PageTitle = Model.IsSystemDashboard ? "Dashboard tổng hệ thống" : $"Chi tiết đơn vị - {Model.Name}";
+    NopHtml.SetActiveMenuItemSystemName(Model.IsSystemDashboard ? "UnitDashboard" : $"Vendors.{Model.Id}");
+}
+
+<script src="~/lib_npm/chart.js/chart.umd.min.js"></script>
+
+<div class="content-header clearfix">
+    <h1 class="float-left">
+        @(Model.IsSystemDashboard ? "Dashboard tổng hệ thống" : $"Chi tiết đơn vị - {Model.Name}")
+        @if (!Model.IsSystemDashboard)
+        {
+            <small>@(string.IsNullOrWhiteSpace(Model.Code) ? string.Empty : Model.Code)</small>
+        }
+    </h1>
+    <div class="float-right">
+        @if (Model.IsSystemDashboard)
+        {
+            <a class="btn btn-success" asp-controller="UnitDirectory" asp-action="List">
+                <i class="far fa-address-book"></i>
+                Quản lý nhân sự
+            </a>
+        }
+        else if (Model.CanEditVendor)
+        {
+            <a class="btn btn-success" asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@Model.Id">
+                <i class="far fa-address-book"></i>
+                Quản lý nhân sự
+            </a>
+            <a class="btn btn-primary" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.Id">
+                <i class="fas fa-users"></i>
+                Quản lý tài khoản
+            </a>
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">
+                <i class="far fa-edit"></i>
+                Chỉnh sửa đơn vị
+            </a>
+        }
+        @if (!Model.IsSystemDashboard)
+        {
+            <a class="btn btn-default" asp-action="List" asp-route-searchRootVendorId="@Model.Id">
+                <i class="fas fa-list"></i>
+                Danh sách đơn vị
+            </a>
+        }
+    </div>
+</div>
+
+<section class="content">
+        <div class="container-fluid">
+        <div class="row">
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-dark">
+                    <div class="inner"><h3>@Model.ScopeUnitCount</h3><p>Tổng đơn vị</p></div>
+                    <div class="icon"><i class="fas fa-sitemap"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-info">
+                    <div class="inner"><h3>@Model.ProductCount</h3><p>Tổng sản phẩm</p></div>
+                    <div class="icon"><i class="fas fa-box-open"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-success">
+                    <div class="inner"><h3>@Model.NewsCount</h3><p>Tổng tin tức</p></div>
+                    <div class="icon"><i class="far fa-newspaper"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-warning">
+                    <div class="inner"><h3>@Model.BlogDocumentCount</h3><p>Tổng văn bản</p></div>
+                    <div class="icon"><i class="far fa-file-alt"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-primary">
+                    <div class="inner"><h3>@Model.PortalDocumentCount</h3><p>Tổng tài liệu</p></div>
+                    <div class="icon"><i class="fas fa-folder-open"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-secondary">
+                    <div class="inner"><h3>@Model.StaffCount</h3><p>Tổng nhân sự</p></div>
+                    <div class="icon"><i class="fas fa-users"></i></div>
+                </div>
+            </div>
+            <div class="col-xl col-lg-3 col-md-4 col-sm-6">
+                <div class="small-box bg-danger">
+                    <div class="inner"><h3>@Model.ReportCount</h3><p>Tổng báo cáo</p></div>
+                    <div class="icon"><i class="fas fa-chart-bar"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Biểu đồ hoạt động 6 tháng gần nhất</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="unit-dashboard-chart" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                @await Html.PartialAsync("_VendorDetailsList", new VendorDetailsSectionModel { Title = "Sản phẩm", Items = Model.Products })
+            </div>
+            <div class="col-lg-6">
+                @await Html.PartialAsync("_VendorDetailsList", new VendorDetailsSectionModel { Title = "Tin tức", Items = Model.News })
+            </div>
+            <div class="col-lg-6">
+                @await Html.PartialAsync("_VendorDetailsList", new VendorDetailsSectionModel { Title = "Văn bản", Items = Model.BlogDocuments })
+            </div>
+            <div class="col-lg-6">
+                @await Html.PartialAsync("_VendorDetailsList", new VendorDetailsSectionModel { Title = "Tài liệu", Items = Model.PortalDocuments })
+            </div>
+            <div class="col-lg-6">
+                @await Html.PartialAsync("_VendorDetailsList", new VendorDetailsSectionModel { Title = "Báo cáo", Items = Model.Reports })
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Thông tin đơn vị</h3>
+                    </div>
+                    <div class="card-body">
+                        <dl class="mb-0">
+                            <dt>@(Model.IsSystemDashboard ? "Phạm vi" : "Đơn vị cấp trên")</dt>
+                            <dd>@(Model.IsSystemDashboard ? "Toàn hệ thống" : string.IsNullOrWhiteSpace(Model.ParentName) ? "Không có" : Model.ParentName)</dd>
+                            <dt>Phạm vi thống kê</dt>
+                            <dd>@Model.ScopeUnitCount đơn vị</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Danh bạ đơn vị</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Cấp bậc</th>
+                            <th>Chức vụ</th>
+                            <th>Số điện thoại</th>
+                            <th>Số hiệu</th>
+                            <th>Đơn vị hiển thị</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DirectoryEntries.Any())
+                        {
+                            foreach (var entry in Model.DirectoryEntries)
+                            {
+                                <tr>
+                                    <td>@entry.FullName</td>
+                                    <td>@(string.IsNullOrWhiteSpace(entry.Rank) ? "Chưa rõ" : entry.Rank)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(entry.PositionTitle) ? "Chưa rõ" : entry.PositionTitle)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(entry.Phone) ? "Chưa cập nhật" : entry.Phone)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(entry.MilitaryCode) ? "Chưa cập nhật" : entry.MilitaryCode)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(entry.UnitName) ? "Chưa cập nhật" : entry.UnitName)</td>
+                                    <td>
+                                        @if (entry.Published)
+                                        {
+                                            <span class="badge badge-success">Hiển thị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">Ẩn</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="7" class="text-muted text-center">Chưa có dữ liệu danh bạ.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Danh sách tài khoản</h3>
+                @if (!Model.IsSystemDashboard)
+                {
+                    <div class="card-tools">
+                        <a class="btn btn-primary btn-sm" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.Id">
+                            <i class="fas fa-users"></i>
+                            Quản lý tài khoản
+                        </a>
+                    </div>
+                }
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Cấp bậc</th>
+                            <th>Chức vụ</th>
+                            <th>Số điện thoại</th>
+                            <th>Gmail</th>
+                            <th>Quyền hạn</th>
+                            @if (!Model.IsSystemDashboard)
+                            {
+                                <th class="text-center" style="width: 96px">Hành động</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Staff.Any())
+                        {
+                            foreach (var staff in Model.Staff)
+                            {
+                                <tr>
+                                    <td>
+                                        @staff.FullName
+                                        @if (staff.IsLeader)
+                                        {
+                                            <span class="badge badge-primary ml-1">Trưởng đơn vị</span>
+                                        }
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(staff.Rank) ? "Chưa rõ" : staff.Rank)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(staff.PositionTitle) ? "Chưa rõ" : staff.PositionTitle)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(staff.Phone) ? "Chưa cập nhật" : staff.Phone)</td>
+                                    <td>@staff.Email</td>
+                                    <td>@(string.IsNullOrWhiteSpace(staff.RoleNames) ? "Chưa có quyền" : staff.RoleNames)</td>
+                                    @if (!Model.IsSystemDashboard)
+                                    {
+                                        <td class="text-center">
+                                            <a class="btn btn-default btn-sm" asp-controller="UnitStaff" asp-action="List" asp-route-vendorId="@Model.Id" title="Quản lý tài khoản" aria-label="Quản lý tài khoản">
+                                                <i class="far fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="@(Model.IsSystemDashboard ? 6 : 7)" class="text-muted text-center">Chưa có tài khoản nhân sự.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script asp-location="Footer">
+    $(function () {
+        const ctx = document.getElementById('unit-dashboard-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Model.ChartLabelsJson),
+                datasets: [
+                    { label: 'Sản phẩm', data: @Html.Raw(Model.ProductSeriesJson), backgroundColor: 'rgba(23, 162, 184, .75)', borderColor: '#17a2b8', borderWidth: 1 },
+                    { label: 'Tin tức', data: @Html.Raw(Model.NewsSeriesJson), backgroundColor: 'rgba(40, 167, 69, .75)', borderColor: '#28a745', borderWidth: 1 },
+                    { label: 'Văn bản', data: @Html.Raw(Model.BlogDocumentSeriesJson), backgroundColor: 'rgba(255, 193, 7, .75)', borderColor: '#ffc107', borderWidth: 1 },
+                    { label: 'Tài liệu', data: @Html.Raw(Model.PortalDocumentSeriesJson), backgroundColor: 'rgba(0, 123, 255, .75)', borderColor: '#007bff', borderWidth: 1 },
+                    { label: 'Báo cáo', data: @Html.Raw(Model.ReportSeriesJson), backgroundColor: 'rgba(220, 53, 69, .75)', borderColor: '#dc3545', borderWidth: 1 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    });
+</script>

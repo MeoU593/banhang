@@ -60,7 +60,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex min-w-0 flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex min-w-0 flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
@@ -69,16 +69,20 @@
     </nav>
 }
 
-<div class="page forum-topic-page px-4 pb-8 lg:px-0">
+<div class="page forum-topic-page public-page-shell public-page-stack">
     @await Html.PartialAsync("_ForumHeader", null, new ViewDataDictionary(ViewData) { ["ForumId"] = Model.ForumId })
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsTopicAfterHeader, additionalData = Model })
 
-    <div class="mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <h1 class="public-hero-title max-w-4xl font-black tracking-tight text-white">@Model.Subject</h1>
-            <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
-                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Bài viết</p>
-                <p class="mt-1 text-base font-black sm:text-lg">@Model.PostsTotalRecords</p>
+    <div class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy">
+                <h1 class="public-hero-title public-blue-hero-title max-w-4xl font-black tracking-tight">@Model.Subject</h1>
+            </div>
+            <div class="public-blue-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em] text-sky-700">Bài viết</p>
+                    <p class="public-stat-value mt-1 font-black text-sky-950">@Model.PostsTotalRecords</p>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +116,7 @@
             {
                 <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-6 py-5">
-                        <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <div class="public-meta-text mb-3 flex flex-wrap items-center gap-2 text-slate-500">
                             @if (!string.IsNullOrWhiteSpace(Model.ForumName))
                             {
                                 <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="rounded-full bg-red-50 px-2.5 py-1 font-bold uppercase tracking-wide text-red-700">@Model.ForumName</a>
@@ -132,18 +136,18 @@
                                     <div class="flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-amber-300">@initial</div>
                                 }
                                 <div>
-                                    <p class="text-sm font-bold text-slate-900">@mainPost.CustomerName</p>
-                                    <p class="text-xs text-slate-500">@mainPost.Rank @(!string.IsNullOrWhiteSpace(mainPost.UnitName) ? $"- {mainPost.UnitName}" : string.Empty)</p>
+                                     <p class="public-list-title font-bold text-slate-900">@mainPost.CustomerName</p>
+                                     <p class="public-meta-text text-slate-500">@mainPost.Rank @(!string.IsNullOrWhiteSpace(mainPost.UnitName) ? $"- {mainPost.UnitName}" : string.Empty)</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4 text-xs text-slate-500">
+                             <div class="public-meta-text flex items-center gap-4 text-slate-500">
                                 <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">visibility</span>@Model.PostsTotalRecords</span>
                                 <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">forum</span>@(Model.PostsTotalRecords > 0 ? Model.PostsTotalRecords - 1 : 0)</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="prose prose-slate max-w-none px-6 py-6 text-sm leading-7 text-slate-700" data-post-content="@mainPost.Id">
+                     <div class="public-body-text prose prose-slate max-w-none px-6 py-6 text-slate-700" data-post-content="@mainPost.Id">
                         @Html.Raw(mainPost.FormattedText)
                     </div>
                 </article>
@@ -153,14 +157,14 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-6 py-4">
                     <h2 class="public-card-title font-bold text-slate-900">Bình luận (@(Model.PostsTotalRecords > 0 ? Model.PostsTotalRecords - 1 : 0))</h2>
                     <div class="flex flex-wrap items-center justify-end gap-2">
-                        <span class="text-xs font-semibold uppercase text-slate-500">Mới nhất</span>
+                         <span class="public-label-text font-semibold uppercase text-slate-500">Mới nhất</span>
                         @if (isAuthenticated)
                         {
-                            <a href="#quick-reply-form" class="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-xs font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Viết bình luận</a>
+                             <a href="#quick-reply-form" class="public-control-text inline-flex h-8 items-center justify-center rounded-lg border px-3 font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">Viết bình luận</a>
                         }
                         else
                         {
-                            @Html.RouteLink("Đăng nhập để bình luận", NopRouteNames.General.LOGIN, null, new { @class = "inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
+                             @Html.RouteLink("Đăng nhập để bình luận", NopRouteNames.General.LOGIN, null, new { @class = "public-control-text inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" })
                         }
                     </div>
                 </div>
@@ -168,7 +172,7 @@
                 <div class="space-y-3 bg-slate-50/40 p-4 sm:p-5">
                     @if (isAuthenticated && Model.IsCustomerAllowedToCreatePost)
                     {
-                        <form id="quick-reply-form" asp-route="@NopRouteNames.Standard.POST_CREATE" asp-route-id="@Model.Id" method="post" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <form id="quick-reply-form" asp-route="@NopRouteNames.Standard.POST_CREATE" asp-route-id="@Model.Id" method="post" class="rounded-2xl border border-slate-200 bg-white shadow-sm">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="FromTopicInline" value="true" />
                             <input type="hidden" name="ForumTopicId" value="@Model.Id" />
@@ -179,35 +183,30 @@
                             <input type="hidden" name="ForumTopicSubject" value="@Model.Subject" />
                             <input type="hidden" name="ForumTopicSeName" value="@Model.SeName" />
                             <input type="hidden" name="IsCustomerAllowedToSubscribe" value="@Model.IsCustomerAllowedToSubscribe" />
+                            <input type="hidden" name="Subscribed" value="false" />
                             <input type="hidden" name="DisplayCaptcha" value="false" />
 
-                            <label for="quick-reply-text" class="mb-2 block text-sm font-semibold text-slate-700">Nội dung bình luận</label>
-                            <textarea id="quick-reply-text" name="Text" rows="4" required
-                                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"
-                                      placeholder="Nhập bình luận của bạn..."></textarea>
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-white px-4 py-3 sm:px-5">
+                                <label for="quick-reply-text" class="public-card-title font-black text-slate-900">Nội dung bình luận</label>
+                                <span class="public-meta-text rounded-full bg-slate-100 px-3 py-1 font-bold text-slate-500">Phản hồi trực tiếp vào chủ đề</span>
+                            </div>
+                            <div class="p-4 sm:p-5">
+                                <textarea id="quick-reply-text" name="Text" rows="4" required
+                                          class="public-control-text min-h-[128px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white focus:ring-4 focus:ring-military-green/10"
+                                          placeholder="Nhập bình luận của bạn..."></textarea>
 
-                            <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-                                @if (Model.IsCustomerAllowedToSubscribe)
-                                {
-                                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-                                        <input type="checkbox" name="Subscribed" value="true" class="h-4 w-4 rounded border-slate-300 text-military-green focus:ring-military-green" />
-                                        <span>Nhận thông báo khi có phản hồi mới</span>
-                                    </label>
-                                }
-                                else
-                                {
-                                    <span></span>
-                                }
-                                <button type="submit" class="inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">
-                                    Gửi bình luận
-                                </button>
+                                <div class="mt-3 flex justify-end">
+                                    <button type="submit" class="public-control-text inline-flex h-10 min-w-[140px] items-center justify-center rounded-lg border px-4 font-semibold shadow-sm transition hover:brightness-110" style="background-color:#2f5e2b;border-color:#2f5e2b;color:#ffffff;">
+                                        Gửi bình luận
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     }
 
                     @if (!commentPosts.Any())
                     {
-                        <p class="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Chưa có bình luận nào cho chủ đề này.</p>
+                         <p class="public-body-text rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-slate-500">Chưa có bình luận nào cho chủ đề này.</p>
                     }
                     else
                     {
@@ -262,29 +261,29 @@
                             }
                         </div>
                         <h3 class="public-list-title font-black text-slate-900">@mainPost.CustomerName</h3>
-                        <p class="mt-1 text-sm text-slate-500">@(string.IsNullOrWhiteSpace(mainPost.Rank) ? "Thành viên diễn đàn" : mainPost.Rank)</p>
+                        <p class="public-meta-text mt-1 text-slate-500">@(string.IsNullOrWhiteSpace(mainPost.Rank) ? "Thành viên diễn đàn" : mainPost.Rank)</p>
                         @if (!string.IsNullOrWhiteSpace(mainPost.UnitName))
                         {
-                            <p class="text-xs text-slate-500">@mainPost.UnitName</p>
+                            <p class="public-meta-text text-slate-500">@mainPost.UnitName</p>
                         }
                     </div>
                 </section>
             }
 
             <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Bài viết liên quan</div>
+                <div class="public-label-text border-b border-slate-100 bg-slate-50 px-4 py-3 font-bold uppercase tracking-[0.14em] text-slate-500">Bài viết liên quan</div>
                 <div class="space-y-3 p-4">
                     @if (Model.RelatedTopics.Count == 0)
                     {
-                        <p class="text-sm text-slate-500">Chưa có bài viết liên quan.</p>
+                        <p class="public-body-text text-slate-500">Chưa có bài viết liên quan.</p>
                     }
                     else
                     {
                         @foreach (var topic in Model.RelatedTopics)
                         {
                             <a href="@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName })" class="block rounded-xl border border-slate-100 p-3 transition hover:border-military-green/50 hover:bg-slate-50">
-                                <p class="line-clamp-2 text-sm font-bold text-slate-800">@topic.Subject</p>
-                                <p class="mt-1 text-xs text-slate-500">@topic.CreatedOnStr</p>
+                                <p class="public-list-title line-clamp-2 font-bold text-slate-800">@topic.Subject</p>
+                                <p class="public-meta-text mt-1 text-slate-500">@topic.CreatedOnStr</p>
                             </a>
                         }
                     }
@@ -293,7 +292,7 @@
 
             <section class="overflow-hidden rounded-2xl bg-slate-900 p-5 text-white shadow-lg">
                 <h3 class="public-meta-text mb-2 font-bold uppercase tracking-[0.12em] text-secondary-container">Lưu ý bảo mật</h3>
-                <p class="text-xs leading-6 text-slate-300">Nội dung chia sẻ phải tuân thủ quy định bảo mật thông tin và quy tắc sử dụng diễn đàn của đơn vị.</p>
+                <p class="public-meta-text text-slate-300">Nội dung chia sẻ phải tuân thủ quy định bảo mật thông tin và quy tắc sử dụng diễn đàn của đơn vị.</p>
             </section>
         </aside>
     </div>

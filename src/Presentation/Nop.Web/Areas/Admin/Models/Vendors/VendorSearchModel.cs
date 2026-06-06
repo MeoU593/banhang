@@ -16,5 +16,7 @@ public partial record VendorSearchModel : BaseSearchModel
     [NopResourceDisplayName("Admin.Vendors.List.SearchEmail")]
     public string SearchEmail { get; set; }
 
+    public int SearchRootVendorId { get; set; }
+
     #endregion
 }

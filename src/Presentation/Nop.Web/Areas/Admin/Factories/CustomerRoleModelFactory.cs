@@ -43,6 +43,15 @@ public partial class CustomerRoleModelFactory : ICustomerRoleModelFactory
 
     #endregion
 
+    #region Utilities
+
+    protected virtual string GetDisplayCustomerRoleName(CustomerRole customerRole)
+    {
+        return customerRole?.Name;
+    }
+
+    #endregion
+
     #region Methods
 
     /// <summary>
@@ -85,6 +94,7 @@ public partial class CustomerRoleModelFactory : ICustomerRoleModelFactory
             {
                 //fill in model values from the entity
                 var customerRoleModel = role.ToModel<CustomerRoleModel>();
+                customerRoleModel.Name = GetDisplayCustomerRoleName(role);
 
                 //fill in additional values (not existing in the entity)
                 customerRoleModel.PurchasedWithProductName = (await _productService.GetProductByIdAsync(role.PurchasedWithProductId))?.Name;

@@ -177,7 +177,8 @@ public partial class TopicService : ITopicService
         if (!string.IsNullOrWhiteSpace(keywords))
         {
             return topics
-                .Where(topic => (topic.Title?.Contains(keywords, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                .Where(topic => (topic.SystemName?.Contains(keywords, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                                (topic.Title?.Contains(keywords, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
                                 (topic.Body?.Contains(keywords, StringComparison.InvariantCultureIgnoreCase) ?? false))
                 .ToList();
         }

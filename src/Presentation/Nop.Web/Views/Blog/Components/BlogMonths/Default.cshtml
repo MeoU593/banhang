@@ -10,14 +10,14 @@
                 @foreach (var yearItem in Model)
                 {
                     <li class="year">
-                        <strong class="number text-sm font-bold text-on-surface">@(yearItem.Year)</strong>
+                        <strong class="number public-list-title font-bold text-on-surface">@(yearItem.Year)</strong>
                         <ul class="sublist mt-2 space-y-1.5" id="blog-year-@(yearItem.Year)">
                             @foreach (var monthItem in yearItem.Months)
                             {
                                 <li class="month">
-                                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_MONTH, new { month = yearItem.Year + "-" + monthItem.Month })" class="inline-flex w-full items-center justify-between rounded-lg border border-outline-variant/30 bg-surface-container px-3 py-2 text-xs font-semibold text-on-surface-variant transition hover:border-military-green hover:text-military-green">
+                                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_BY_MONTH, new { month = yearItem.Year + "-" + monthItem.Month })" class="public-meta-text inline-flex w-full items-center justify-between rounded-lg border border-outline-variant/30 bg-surface-container px-3 py-2 font-semibold text-on-surface-variant transition hover:border-military-green hover:text-military-green">
                                         <span>@(new DateTime(yearItem.Year, monthItem.Month, 1).ToString("MMMM"))</span>
-                                        <span class="rounded-full bg-surface-container-lowest px-2 py-0.5 text-[11px] font-bold text-on-surface">@(monthItem.BlogPostCount)</span>
+                                        <span class="public-label-text rounded-full bg-surface-container-lowest px-2 py-0.5 font-bold text-on-surface">@(monthItem.BlogPostCount)</span>
                                     </a>
                                 </li>
                             }

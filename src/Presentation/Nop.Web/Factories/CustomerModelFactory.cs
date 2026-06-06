@@ -27,6 +27,7 @@ using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
+using Nop.Services.Vendors;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Customer;
 
@@ -71,6 +72,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     protected readonly IStoreContext _storeContext;
     protected readonly IStoreMappingService _storeMappingService;
     protected readonly IUrlRecordService _urlRecordService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
     protected readonly MediaSettings _mediaSettings;
     protected readonly OrderSettings _orderSettings;
@@ -114,6 +116,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         IStoreContext storeContext,
         IStoreMappingService storeMappingService,
         IUrlRecordService urlRecordService,
+        IVendorService vendorService,
         IWorkContext workContext,
         MediaSettings mediaSettings,
         OrderSettings orderSettings,
@@ -153,6 +156,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         _storeContext = storeContext;
         _storeMappingService = storeMappingService;
         _urlRecordService = urlRecordService;
+        _vendorService = vendorService;
         _workContext = workContext;
         _mediaSettings = mediaSettings;
         _orderSettings = orderSettings;
@@ -223,7 +227,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                 model.DateOfBirthMonth = currentCalendar.GetMonth(dateOfBirth.Value);
                 model.DateOfBirthYear = currentCalendar.GetYear(dateOfBirth.Value);
             }
-            model.Company = customer.Company;
             model.StreetAddress = customer.StreetAddress;
             model.StreetAddress2 = customer.StreetAddress2;
             model.ZipPostalCode = customer.ZipPostalCode;
@@ -326,8 +329,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.NeutralGenderEnabled = _customerSettings.NeutralGenderEnabled;
         model.DateOfBirthEnabled = _customerSettings.DateOfBirthEnabled;
         model.DateOfBirthRequired = _customerSettings.DateOfBirthRequired;
-        model.CompanyEnabled = _customerSettings.CompanyEnabled;
-        model.CompanyRequired = _customerSettings.CompanyRequired;
         model.StreetAddressEnabled = _customerSettings.StreetAddressEnabled;
         model.StreetAddressRequired = _customerSettings.StreetAddressRequired;
         model.StreetAddress2Enabled = _customerSettings.StreetAddress2Enabled;
@@ -429,8 +430,31 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.NeutralGenderEnabled = _customerSettings.NeutralGenderEnabled;
         model.DateOfBirthEnabled = _customerSettings.DateOfBirthEnabled;
         model.DateOfBirthRequired = _customerSettings.DateOfBirthRequired;
-        model.CompanyEnabled = _customerSettings.CompanyEnabled;
-        model.CompanyRequired = _customerSettings.CompanyRequired;
+        model.UnitEnabled = true;
+        model.UnitRequired = true;
+
+        //Load available units (vendors)
+        if (model.UnitEnabled)
+        {
+            model.AvailableVendors.Add(new SelectListItem
+            {
+                Text = "Chọn đơn vị",
+                Value = "0",
+                Selected = model.VendorId <= 0
+            });
+
+            var vendors = await _vendorService.GetAllVendorsAsync(showHidden: false);
+            foreach (var vendor in vendors)
+            {
+                model.AvailableVendors.Add(new SelectListItem
+                {
+                    Text = vendor.Name,
+                    Value = vendor.Id.ToString(),
+                    Selected = vendor.Id == model.VendorId
+                });
+            }
+        }
+
         model.StreetAddressEnabled = _customerSettings.StreetAddressEnabled;
         model.StreetAddressRequired = _customerSettings.StreetAddressRequired;
         model.StreetAddress2Enabled = _customerSettings.StreetAddress2Enabled;
@@ -516,18 +540,16 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     /// <summary>
     /// Prepare the login model
     /// </summary>
-    /// <param name="checkoutAsGuest">Whether to checkout as guest is enabled</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the login model
     /// </returns>
-    public virtual Task<LoginModel> PrepareLoginModelAsync(bool? checkoutAsGuest)
+    public virtual Task<LoginModel> PrepareLoginModelAsync()
     {
         var model = new LoginModel
         {
             UsernamesEnabled = _customerSettings.UsernamesEnabled,
             RegistrationType = _customerSettings.UserRegistrationType,
-            CheckoutAsGuest = checkoutAsGuest.GetValueOrDefault(),
             DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnLoginPage
         };
 
@@ -820,20 +842,6 @@ public partial class CustomerModelFactory : ICustomerModelFactory
     public virtual Task<GdprToolsModel> PrepareGdprToolsModelAsync()
     {
         var model = new GdprToolsModel();
-
-        return Task.FromResult(model);
-    }
-
-    /// <summary>
-    /// Prepare the check gift card balance madel
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the check gift card balance madel
-    /// </returns>
-    public virtual Task<CheckGiftCardBalanceModel> PrepareCheckGiftCardBalanceModelAsync()
-    {
-        var model = new CheckGiftCardBalanceModel { DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnCheckGiftCardBalance };
 
         return Task.FromResult(model);
     }

@@ -27,9 +27,6 @@ public class AdminMenuConsumer : IConsumer<AdminMenuCreatedEvent>
         var currentCustomer = await _workContext.GetCurrentCustomerAsync();
         var currentVendor = await _workContext.GetCurrentVendorAsync();
         var canViewSystemWide = await _permissionService.AuthorizeAsync(LogisticsReportsPermissionConfigManager.ViewSystemWideReports, currentCustomer);
-        var canManageDocuments = await _permissionService.AuthorizeAsync("DocumentPortal.ManageDocuments", currentCustomer);
-        var isUnitLeader = currentVendor != null && currentVendor.PmCustomerId == currentCustomer.Id;
-
         if (!canViewSystemWide && currentVendor == null)
             return;
 
@@ -42,21 +39,14 @@ public class AdminMenuConsumer : IConsumer<AdminMenuCreatedEvent>
             ChildNodes = new List<AdminMenuItem>()
         };
 
-rootItem.Title = "Quản lý báo cáo";
+        rootItem.Title = "Quản lý báo cáo";
         rootItem.IconClass = "fas fa-chart-bar";
+        RemoveMenuItem(rootItem.ChildNodes, "VendorStaffAccess");
 
         if (canViewSystemWide)
         {
             var managementNodes = new List<AdminMenuItem>
             {
-                new()
-                {
-                    SystemName = "LogisticsReports.Units",
-                    Title = "Quản lý đơn vị",
-                    Url = eventMessage.GetMenuItemUrl("Vendor", "List"),
-                    Visible = true,
-                    IconClass = "far fa-circle"
-                },
                 new()
                 {
                     SystemName = "LogisticsReports.Templates",
@@ -98,18 +88,6 @@ rootItem.Title = "Quản lý báo cáo";
             });
         }
 
-        if (isUnitLeader)
-        {
-            rootItem.ChildNodes.Add(new AdminMenuItem
-            {
-                SystemName = "LogisticsReports.StaffAccess",
-                Title = "Cấp quyền nhân viên",
-                Url = eventMessage.GetMenuItemUrl("VendorStaffAccess", "Index"),
-                Visible = true,
-                IconClass = "far fa-circle"
-            });
-        }
-
         if (!rootItem.ChildNodes.Any())
             return;
 
@@ -138,6 +116,17 @@ rootItem.Title = "Quản lý báo cáo";
             }
 
             eventMessage.RootMenuItem.ChildNodes.Insert(insertIndex >= 0 ? insertIndex + 1 : eventMessage.RootMenuItem.ChildNodes.Count, rootItem);
+        }
+    }
+
+    private static void RemoveMenuItem(IList<AdminMenuItem> items, string systemName)
+    {
+        for (var i = items.Count - 1; i >= 0; i--)
+        {
+            if (items[i].SystemName == systemName)
+                items.RemoveAt(i);
+            else if (items[i].ChildNodes?.Any() == true)
+                RemoveMenuItem(items[i].ChildNodes, systemName);
         }
     }
 }

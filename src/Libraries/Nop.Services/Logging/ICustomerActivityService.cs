@@ -99,6 +99,8 @@ public partial interface ICustomerActivityService
     /// <param name="createdOnTo">Log item creation to; pass null to load all records</param>
     /// <param name="customerId">Customer identifier; pass null to load all records</param>
     /// <param name="activityLogTypeId">Activity log type identifier; pass null to load all records</param>
+    /// <param name="customerIds">Customer identifiers; pass null to load all records</param>
+    /// <param name="activityLogTypeIds">Activity log type identifiers; pass null to load all records</param>
     /// <param name="ipAddress">IP address; pass null or empty to load all records</param>
     /// <param name="entityName">Entity name; pass null to load all records</param>
     /// <param name="entityId">Entity identifier; pass null to load all records</param>
@@ -109,8 +111,8 @@ public partial interface ICustomerActivityService
     /// The task result contains the activity log items
     /// </returns>
     Task<IPagedList<ActivityLog>> GetAllActivitiesAsync(DateTime? createdOnFrom = null, DateTime? createdOnTo = null,
-        int? customerId = null, int? activityLogTypeId = null, string ipAddress = null, string entityName = null, int? entityId = null,
-        int pageIndex = 0, int pageSize = int.MaxValue);
+        int? customerId = null, int? activityLogTypeId = null, int[] customerIds = null, string ipAddress = null, string entityName = null, int? entityId = null,
+        int pageIndex = 0, int pageSize = int.MaxValue, int[] activityLogTypeIds = null);
 
     /// <summary>
     /// Gets an activity log item

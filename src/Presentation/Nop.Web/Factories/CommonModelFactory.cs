@@ -150,30 +150,6 @@ public partial class CommonModelFactory : ICommonModelFactory
         return Uri.TryCreate(storeLocationUri, currentLanguage.UniqueSeoCode, out var result) && result.Equals(currentPageUri);
     }
 
-    /// <summary>
-    /// Get the number of unread private messages
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the number of private messages
-    /// </returns>
-    protected virtual async Task<int> GetUnreadPrivateMessagesAsync()
-    {
-        var result = 0;
-        var customer = await _workContext.GetCurrentCustomerAsync();
-        if (_forumSettings.AllowPrivateMessages && !await _customerService.IsGuestAsync(customer))
-        {
-            var store = await _storeContext.GetCurrentStoreAsync();
-            var privateMessages = await _forumService.GetAllPrivateMessagesAsync(store.Id,
-                0, customer.Id, false, null, false, string.Empty, 0, 1);
-
-            if (privateMessages.TotalCount > 0)
-                result = privateMessages.TotalCount;
-        }
-
-        return result;
-    }
-
     #endregion
 
     #region Methods
@@ -296,32 +272,11 @@ public partial class CommonModelFactory : ICommonModelFactory
     public virtual async Task<HeaderLinksModel> PrepareHeaderLinksModelAsync()
     {
         var customer = await _workContext.GetCurrentCustomerAsync();
-        var store = await _storeContext.GetCurrentStoreAsync();
-
-        var unreadMessageCount = await GetUnreadPrivateMessagesAsync();
-        var unreadMessage = string.Empty;
-        var alertMessage = string.Empty;
-        if (unreadMessageCount > 0)
-        {
-            unreadMessage = string.Format(await _localizationService.GetResourceAsync("PrivateMessages.TotalUnread"), unreadMessageCount);
-
-            //notifications here
-            if (_forumSettings.ShowAlertForPM &&
-                !await _genericAttributeService.GetAttributeAsync<bool>(customer, NopCustomerDefaults.NotifiedAboutNewPrivateMessagesAttribute, store.Id))
-            {
-                await _genericAttributeService.SaveAttributeAsync(customer, NopCustomerDefaults.NotifiedAboutNewPrivateMessagesAttribute, true, store.Id);
-                alertMessage = string.Format(await _localizationService.GetResourceAsync("PrivateMessages.YouHaveUnreadPM"), unreadMessageCount);
-            }
-        }
-
         var model = new HeaderLinksModel
         {
             RegistrationType = _customerSettings.UserRegistrationType,
             IsAuthenticated = await _customerService.IsRegisteredAsync(customer),
             CustomerName = await _customerService.IsRegisteredAsync(customer) ? await _customerService.FormatUsernameAsync(customer) : string.Empty,
-            AllowPrivateMessages = await _customerService.IsRegisteredAsync(customer) && _forumSettings.AllowPrivateMessages,
-            UnreadPrivateMessages = unreadMessage,
-            AlertMessage = alertMessage,
         };
 
         return model;

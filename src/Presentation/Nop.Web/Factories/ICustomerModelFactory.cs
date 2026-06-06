@@ -41,12 +41,11 @@ public partial interface ICustomerModelFactory
     /// <summary>
     /// Prepare the login model
     /// </summary>
-    /// <param name="checkoutAsGuest">Whether to checkout as guest is enabled</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the login model
     /// </returns>
-    Task<LoginModel> PrepareLoginModelAsync(bool? checkoutAsGuest);
+    Task<LoginModel> PrepareLoginModelAsync();
 
     /// <summary>
     /// Prepare the password recovery model
@@ -136,15 +135,6 @@ public partial interface ICustomerModelFactory
     /// The task result contains the gDPR tools model
     /// </returns>
     Task<GdprToolsModel> PrepareGdprToolsModelAsync();
-
-    /// <summary>
-    /// Prepare the check gift card balance model
-    /// </summary>
-    /// <returns>
-    /// A task that represents the asynchronous operation
-    /// The task result contains the check gift card balance model
-    /// </returns>
-    Task<CheckGiftCardBalanceModel> PrepareCheckGiftCardBalanceModelAsync();
 
     /// <summary>
     /// Prepare the multi-factor authentication model

@@ -17,6 +17,7 @@ public partial record CustomerSearchModel : BaseSearchModel, IAclSupportedModel
         SelectedCustomerRoleIds = new List<int>();
         AvailableCustomerRoles = new List<SelectListItem>();
         AvailableActiveValues = new List<SelectListItem>();
+        AvailableVendors = new List<SelectListItem>();
     }
 
     #endregion
@@ -73,6 +74,10 @@ public partial record CustomerSearchModel : BaseSearchModel, IAclSupportedModel
     public string SearchCompany { get; set; }
 
     public bool CompanyEnabled { get; set; }
+
+    public int SearchVendorId { get; set; }
+
+    public IList<SelectListItem> AvailableVendors { get; set; }
 
     [DataType(DataType.PhoneNumber)]
     [NopResourceDisplayName("Admin.Customers.Customers.List.SearchPhone")]

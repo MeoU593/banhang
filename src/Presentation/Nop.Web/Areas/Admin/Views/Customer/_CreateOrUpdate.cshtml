@@ -15,12 +15,7 @@
     const string hideActivityLogBlockAttributeName = "CustomerPage.HideActivityLogBlock";
     var hideActivityLogBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideActivityLogBlockAttributeName, defaultValue: true);
 
-    const string hidePlaceOrderBlockAttributeName = "CustomerPage.HidePlaceOrderBlock";
-    var hidePlaceOrderBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hidePlaceOrderBlockAttributeName, defaultValue: true);
-
-
     var hasViewCustomerActivityPermission = await permissionService.AuthorizeAsync(StandardPermission.Customers.ACTIVITY_LOG_VIEW);
-    var hasCustomerImpersonationPermission = await permissionService.AuthorizeAsync(StandardPermission.Customers.CUSTOMERS_IMPERSONATION);
 }
 
 <section class="content">
@@ -34,10 +29,6 @@
                     @if (hasViewCustomerActivityPermission)
                     {
                         <nop-card asp-name="customer-activitylog" asp-icon="fas fa-list-alt" asp-title="@T("Admin.Customers.Customers.ActivityLog")" asp-hide-block-attribute-name="@hideActivityLogBlockAttributeName" asp-hide="@hideActivityLogBlock" asp-advanced="true">@await Html.PartialAsync("_CreateOrUpdate.ActivityLog", Model)</nop-card>
-                    }
-                    @if (hasCustomerImpersonationPermission)
-                    {
-                        <nop-card asp-name="customer-impersonate" asp-icon="fas fa-shopping-basket" asp-title="@T("Admin.Customers.Customers.Impersonate")" asp-hide-block-attribute-name="@hidePlaceOrderBlockAttributeName" asp-hide="@hidePlaceOrderBlock" asp-advanced="true">@await Html.PartialAsync("_CreateOrUpdate.Impersonate", Model)</nop-card>
                     }
                 }
 

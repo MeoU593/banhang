@@ -26,12 +26,12 @@
                                 <span class="material-symbols-outlined text-[18px] text-slate-500">location_on</span>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="font-bold text-sm text-slate-900 truncate">@address.FirstName @address.LastName</p>
-                                <p class="text-xs text-slate-500 mt-0.5">@address.Email</p>
+                                <p class="public-list-title truncate font-bold text-slate-900">@address.FirstName @address.LastName</p>
+                                <p class="public-meta-text mt-0.5 text-slate-500">@address.Email</p>
                             </div>
                         </div>
 
-                        <ul class="space-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                        <ul class="public-meta-text space-y-1 border-t border-slate-100 pt-3 text-slate-600">
                             @if (address.PhoneEnabled && !string.IsNullOrEmpty(address.PhoneNumber))
                             {
                                 <li class="flex items-center gap-2">
@@ -88,7 +88,7 @@
         }
         else
         {
-            <div class="account-card flex items-center gap-3 text-sm text-slate-500">
+            <div class="public-body-text account-card flex items-center gap-3 text-slate-500">
                 <span class="material-symbols-outlined text-slate-400">info</span>
                 @T("Account.CustomerAddresses.NoAddresses")
             </div>

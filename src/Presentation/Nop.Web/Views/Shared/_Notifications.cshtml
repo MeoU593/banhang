@@ -31,6 +31,11 @@
             }
         }
     }
+
+    int GetNotificationTimeout(NotifyType type)
+    {
+        return notes?.Where(note => note.Type == type && note.Timeout > 0).Select(note => note.Timeout).FirstOrDefault() ?? 0;
+    }
 }
 @if (successMessages.Any() || warningMessages.Any() || errorMessages.Any())
 {
@@ -55,14 +60,14 @@
     {
         <script asp-location="Footer">
             $(function() {
-                var successMsg = [ @Html.Raw(string.Join(", ", successMessages.Select(x => $" '{JavaScriptEncoder.Default.Encode(x)}' "))) ];
-                displayBarNotification(successMsg, 'success', false);
+                var successMsg = [ @Html.Raw(string.Join(", ", successMessages.Select(x => JsonConvert.SerializeObject(JavaScriptEncoder.Default.Encode(x))))) ];
+                displayBarNotification(successMsg, 'success', @GetNotificationTimeout(NotifyType.Success));
 
-                var errorMsg = [ @Html.Raw(string.Join(", ", errorMessages.Select(x => $" '{JavaScriptEncoder.Default.Encode(x)}' "))) ];
-                displayBarNotification(errorMsg, 'error', false);
+                var errorMsg = [ @Html.Raw(string.Join(", ", errorMessages.Select(x => JsonConvert.SerializeObject(JavaScriptEncoder.Default.Encode(x))))) ];
+                displayBarNotification(errorMsg, 'error', @GetNotificationTimeout(NotifyType.Error));
 
-                var warningMsg = [ @Html.Raw(string.Join(", ", warningMessages.Select(x => $" '{JavaScriptEncoder.Default.Encode(x)}' "))) ];
-                displayBarNotification(warningMsg, 'warning', false);
+                var warningMsg = [ @Html.Raw(string.Join(", ", warningMessages.Select(x => JsonConvert.SerializeObject(JavaScriptEncoder.Default.Encode(x))))) ];
+                displayBarNotification(warningMsg, 'warning', @GetNotificationTimeout(NotifyType.Warning));
             });
         </script>
     }

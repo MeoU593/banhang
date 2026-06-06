@@ -1,5 +1,6 @@
 ﻿using Nop.Web.Framework.Models;
 using Nop.Web.Framework.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Blogs;
 
@@ -23,6 +24,14 @@ public partial record BlogContentModel : BaseNopModel
 
     [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.List.SearchTitle")]
     public string SearchTitle { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnFrom")]
+    [UIHint("DateNullable")]
+    public DateTime? CreatedOnFrom { get; set; }
+
+    [NopResourceDisplayName("Admin.ContentManagement.Blog.BlogPosts.List.CreatedOnTo")]
+    [UIHint("DateNullable")]
+    public DateTime? CreatedOnTo { get; set; }
 
     public BlogPostSearchModel BlogPosts { get; set; }
 

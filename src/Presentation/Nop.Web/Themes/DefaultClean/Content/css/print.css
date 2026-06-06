@@ -95,23 +95,9 @@ a {
     justify-content: flex-end;
 }
 
-.order-details-page .tax-shipping-info,
-.order-details-page .selected-checkout-attributes {
+.order-details-page .tax-shipping-info {
 	margin: 20px 0;
 	text-align:end;
-}
-
-.order-details-page .cart-total-right {
-    white-space: nowrap;
-}
-.order-details-page .cart-total td {
-  padding-inline-start: 10px;
-  padding-block: 5px;
-  text-align: end;
-}
-.order-details-page td.cart-total-left {
-	font-weight: bold;
-  text-align: start;
 }
 
 .order-details-page .total-info

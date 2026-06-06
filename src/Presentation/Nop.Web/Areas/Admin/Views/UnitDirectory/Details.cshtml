@@ -1,0 +1,95 @@
+@model UnitDirectoryAdminModel
+
+@{
+    ViewBag.PageTitle = $"Chi tiết nhân sự - {Model.Entry.FullName}";
+    NopHtml.SetActiveMenuItemSystemName("UnitDirectory");
+    var returnVendorId = Model.SelectedVendorId;
+}
+
+<div class="content-header clearfix">
+    <h1 class="float-left">Chi tiết nhân sự - @Model.Entry.FullName</h1>
+    <div class="float-right">
+        <button type="submit" form="unit-directory-details-form" class="btn btn-primary">
+            <i class="far fa-save"></i>
+            Lưu thay đổi
+        </button>
+        <a class="btn btn-default" asp-controller="UnitDirectory" asp-action="List" asp-route-vendorId="@returnVendorId" asp-route-page="@Model.Page" asp-route-pageSize="@Model.PageSize">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Xem và chỉnh sửa thông tin nhân sự</h3>
+            </div>
+            <form id="unit-directory-details-form" asp-controller="UnitDirectory" asp-action="Edit" method="post">
+                <input type="hidden" name="Id" value="@Model.Entry.Id" />
+                <input type="hidden" name="FilterVendorId" value="@returnVendorId" />
+                <input type="hidden" name="Page" value="@Model.Page" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                <div class="card-body">
+                    <h4 class="mb-3">Thông tin cơ bản</h4>
+                    @if (Model.CanSelectVendor)
+                    {
+                        <div class="form-group">
+                            <label>Đơn vị quản lý</label>
+                            <select name="VendorId" asp-items="Model.AvailableVendors" class="form-control"></select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" name="VendorId" value="@Model.Entry.VendorId" />
+                    }
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Họ tên</label>
+                            <input name="FullName" value="@Model.Entry.FullName" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Quân hàm</label>
+                            <input name="Rank" value="@Model.Entry.Rank" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Chức vụ</label>
+                            <input name="PositionTitle" value="@Model.Entry.PositionTitle" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Số điện thoại</label>
+                            <input name="Phone" value="@Model.Entry.Phone" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Số hiệu quân nhân</label>
+                            <input name="MilitaryCode" value="@Model.Entry.MilitaryCode" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Đơn vị hiển thị</label>
+                            <input name="UnitName" value="@Model.Entry.UnitName" class="form-control" placeholder="Để trống sẽ dùng tên đơn vị quản lý" />
+                        </div>
+                    </div>
+
+                    <h4 class="mb-3 mt-2">Thông tin danh bạ</h4>
+                    <div class="form-group">
+                        <label class="mb-0">
+                            <input type="checkbox" name="Published" value="true" checked="@Model.Entry.Published" />
+                            Hiển thị public trong danh bạ
+                        </label>
+                        <input type="hidden" name="Published" value="false" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Lý lịch</label>
+                        <textarea name="Biography" class="form-control" rows="8">@Model.Entry.Biography</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

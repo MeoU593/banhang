@@ -21,6 +21,8 @@ public partial record ProductOverviewModel : BaseNopEntityModel
 
     public string Sku { get; set; }
 
+    public int VendorId { get; set; }
+
     public ProductType ProductType { get; set; }
 
     public bool MarkAsNew { get; set; }

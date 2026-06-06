@@ -36,7 +36,7 @@ public class DocumentCategoryAdminController : BasePluginController
 
     private async Task<bool> CheckPermissionAsync()
     {
-        return await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENTS);
+        return await _permissionService.AuthorizeAsync(DocumentPortalDefaults.Permissions.MANAGE_DOCUMENT_SETTINGS);
     }
 
     public async Task<IActionResult> List()

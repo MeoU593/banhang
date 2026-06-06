@@ -18,26 +18,56 @@
 }
 <div class="page login-page min-h-[100dvh] bg-slate-100">
     @await Html.PartialAsync("_ExternalAuthentication.Errors")
-    <div class="page-body grid min-h-[100dvh] lg:grid-cols-2">
-        @await Html.PartialAsync("_AuthLeftPanel")
+    <div class="page-body auth-page-body flex min-h-[100dvh]">
+        <div class="auth-composite-card">
+            @await Html.PartialAsync("_AuthLeftPanel")
 
-        <section class="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-10 sm:px-6 lg:px-10">
-            <div class="w-full max-w-md space-y-6">
+            <section class="auth-form-pane flex items-center justify-center px-[4%] py-[3vh]">
+            <div class="auth-card-shell w-[92%] space-y-[2vh] sm:w-[84%] lg:w-[78%] xl:w-[68%]">
                 <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 backdrop-blur lg:hidden">
-                    <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-700">Bộ Tư lệnh Tăng Thiết Giáp</p>
-                    <p class="text-[11px] text-slate-500">Cổng thông tin Hậu cần - Quân nhu</p>
+                    <p class="public-label-text font-bold uppercase tracking-[0.22em] text-slate-700">BINH CHỦNG TĂNG THIẾT GIÁP</p>
+                    <p class="public-meta-text text-slate-500">Cổng thông tin Hậu cần - Quân nhu</p>
                 </div>
 
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LoginTop, additionalData = Model })
 
-                <div class="rounded-2xl border border-slate-200 bg-white p-7 shadow-[0_18px_44px_-30px_rgba(15,23,42,0.32)] sm:p-8">
-                    <div class="space-y-2">
-                        <p class="auth-red-text text-sm font-semibold uppercase tracking-[0.28em] text-military-red">Truy cập bảo mật</p>
-                        <h2 class="public-page-title font-black tracking-tight text-slate-900">Đăng nhập hệ thống</h2>
-                        <p class="text-sm leading-6 text-slate-500">Sử dụng tài khoản nghiệp vụ được cấp để truy cập cổng hậu cần - quân nhu.</p>
+                <div class="auth-card rounded-2xl border border-slate-200 bg-white p-[6%] shadow-[0_18px_44px_-30px_rgba(15,23,42,0.32)]">
+                    <div class="text-center">
+                        <h2 class="public-page-title font-black leading-tight text-slate-950">Đăng nhập hệ thống</h2>
                     </div>
 
                     <style>
+                        .login-auth-field {
+                            display: grid;
+                            gap: 0.38rem;
+                        }
+                        .login-page .auth-card-shell {
+                            max-width: 36rem;
+                        }
+                        .login-page .auth-card {
+                            max-height: 94vh;
+                            overflow: hidden;
+                        }
+                        @@media (max-height: 760px) {
+                            .login-page .auth-card { padding: 4.5% !important; }
+                            .login-page form { margin-top: 1.1rem !important; gap: 0.65rem !important; }
+                            .login-page .support-box { display: none; }
+                        }
+                        .login-page .auth-card label.login-field-label {
+                            display: block !important;
+                            width: auto !important;
+                            min-height: 0 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            border: 0 !important;
+                            background: transparent !important;
+                            box-shadow: none !important;
+                            color: #475569 !important;
+                            font-size: var(--public-font-label, 0.75rem) !important;
+                            font-weight: 800 !important;
+                            line-height: 1.25 !important;
+                            letter-spacing: 0.01em !important;
+                        }
                         .login-input-wrap { position: relative; }
                         .login-input-icon {
                             position: absolute;
@@ -60,10 +90,10 @@
                             z-index: 1;
                             display: block !important;
                             width: 100% !important;
-                            height: 40px !important;
-                            padding: 0 0.875rem 0 2.25rem !important;
+                            height: 43px !important;
+                            padding: 0 0.875rem 0 2.45rem !important;
                             border: 1px solid #e2e8f0 !important;
-                            border-radius: 10px !important;
+                            border-radius: 12px !important;
                             background: #f8fafc !important;
                             font-size: var(--public-font-control) !important;
                             color: #334155 !important;
@@ -73,9 +103,9 @@
                             -webkit-appearance: none !important;
                         }
                         .login-field:focus {
-                            border-color: rgba(45,58,34,0.5) !important;
+                            border-color: rgba(185,29,32,0.55) !important;
                             background: #ffffff !important;
-                            box-shadow: 0 0 0 3px rgba(45,58,34,0.10) !important;
+                            box-shadow: 0 0 0 3px rgba(185,29,32,0.10) !important;
                         }
                         /* Chặn Chrome autofill phủ màu lên icon */
                         .login-field:-webkit-autofill,
@@ -108,37 +138,92 @@
                             font-family: 'Material Symbols Outlined' !important;
                         }
                         .login-field-password { padding-right: 3rem !important; }
+                        .login-remember-row {
+                            margin-top: 0.1rem;
+                        }
+                        .login-page .auth-card label.login-remember-label {
+                            display: inline-flex !important;
+                            align-items: center !important;
+                            gap: 0.55rem !important;
+                            width: auto !important;
+                            min-height: 0 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            border: 0 !important;
+                            background: transparent !important;
+                            box-shadow: none !important;
+                            color: #64748b !important;
+                            font-size: var(--public-font-control) !important;
+                            font-weight: 700 !important;
+                            line-height: 1.25 !important;
+                            cursor: pointer;
+                        }
+                        .login-page .auth-card input.login-remember-checkbox {
+                            display: inline-block !important;
+                            flex: 0 0 16px !important;
+                            width: 16px !important;
+                            height: 16px !important;
+                            min-height: 16px !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            border: 1px solid #cbd5e1 !important;
+                            border-radius: 4px !important;
+                            background-color: #ffffff !important;
+                            background-position: center !important;
+                            background-repeat: no-repeat !important;
+                            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+                            vertical-align: middle !important;
+                            -webkit-appearance: none !important;
+                            appearance: none !important;
+                            cursor: pointer;
+                        }
+                        .login-page .auth-card input.login-remember-checkbox:checked {
+                            border-color: #b91d20 !important;
+                            background-color: #b91d20 !important;
+                            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.4l2.7 2.7 6.3-6.5'/%3E%3C/svg%3E") !important;
+                        }
+                        .login-page .auth-card input.login-remember-checkbox:focus-visible {
+                            outline: 2px solid rgba(185, 29, 32, 0.28) !important;
+                            outline-offset: 2px !important;
+                        }
+                        .login-submit-button {
+                            letter-spacing: 0.08em !important;
+                        }
+                        .login-footer {
+                            letter-spacing: 0.08em !important;
+                            opacity: 0.88;
+                        }
                     </style>
 
-                    <form asp-route="@NopRouteNames.General.LOGIN" asp-route-returnurl="@Context.Request.Query["ReturnUrl"]" method="post" autocomplete="off" class="mt-8 space-y-5">
+                    <form asp-route="@NopRouteNames.General.LOGIN" asp-route-returnurl="@Context.Request.Query["ReturnUrl"]" method="post" autocomplete="off" class="mt-[4.2%] space-y-[1.25vh]">
                         @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">@T("Account.Login.Unsuccessful")</div>
+                        <div asp-validation-summary="ModelOnly" class="public-control-text rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">@T("Account.Login.Unsuccessful")</div>
 
                         @if (Model.UsernamesEnabled)
                         {
-                            <div class="space-y-2">
-                                <label asp-for="Username" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
+                            <div class="login-auth-field">
+                                <label for="@Html.IdFor(m => m.Username)" class="login-field-label">Tên đăng nhập</label>
                                 <div class="login-input-wrap">
                                     <span class="login-input-icon"><span class="material-symbols-outlined">person</span></span>
                                     <input asp-for="Username" class="login-field" autofocus="autofocus" placeholder="Ví dụ: btl_ttg_admin" />
                                 </div>
-                                <span asp-validation-for="Username" class="text-sm text-rose-600"></span>
+                                <span asp-validation-for="Username" class="public-meta-text text-rose-600"></span>
                             </div>
                         }
                         else
                         {
-                            <div class="space-y-2">
-                                <label asp-for="Email" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
+                            <div class="login-auth-field">
+                                <label for="@Html.IdFor(m => m.Email)" class="login-field-label">Email đăng nhập</label>
                                 <div class="login-input-wrap">
                                     <span class="login-input-icon"><span class="material-symbols-outlined">mail</span></span>
                                     <input asp-for="Email" class="login-field" autofocus="autofocus" placeholder="example@btl-ttg.mil.vn" />
                                 </div>
-                                <span asp-validation-for="Email" class="text-sm text-rose-600"></span>
+                                <span asp-validation-for="Email" class="public-meta-text text-rose-600"></span>
                             </div>
                         }
 
-                        <div class="space-y-2">
-                            <label asp-for="Password" asp-postfix=":" class="block text-sm font-semibold text-slate-700"></label>
+                        <div class="login-auth-field">
+                            <label for="@Html.IdFor(m => m.Password)" class="login-field-label">Mật khẩu</label>
                             <div class="login-input-wrap login-field-password-wrap">
                                 <span class="login-input-icon"><span class="material-symbols-outlined">lock</span></span>
                                 <input asp-for="Password" class="login-field login-field-password" placeholder="Nhập mật khẩu" />
@@ -146,20 +231,20 @@
                                     <span class="material-symbols-outlined password-eye-icon">visibility</span>
                                 </button>
                             </div>
-                            <span asp-validation-for="Password" class="text-sm text-rose-600"></span>
+                            <span asp-validation-for="Password" class="public-meta-text text-rose-600"></span>
                         </div>
 
-                        <div class="flex items-center justify-between gap-4 text-sm">
-                        <label class="flex items-center gap-3 text-slate-600">
-                                <input asp-for="RememberMe" class="h-4 w-4 rounded border-slate-300 text-military-red focus:ring-military-red" />
+                        <div class="login-remember-row public-control-text flex items-center justify-between gap-4">
+                            <label for="@Html.IdFor(m => m.RememberMe)" class="login-remember-label">
+                                <input asp-for="RememberMe" class="login-remember-checkbox" />
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
-                            <a asp-route="@NopRouteNames.Standard.PASSWORD_RECOVERY" class="auth-red-text font-semibold text-military-red transition hover:text-rose-700">Quên mật khẩu?</a>
+                            <a asp-route="@NopRouteNames.Standard.PASSWORD_RECOVERY" class="font-semibold text-military-red transition hover:text-rose-700">Quên mật khẩu?</a>
                         </div>
 
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        <div class="public-control-text rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600">
                             Chưa có tài khoản?
-                            <a href="@registerUrl" class="auth-red-text font-semibold text-military-red transition hover:text-rose-700">Đăng ký ngay</a>
+                            <a href="@registerUrl" class="font-semibold text-military-red transition hover:text-rose-700">Đăng ký ngay</a>
                         </div>
 
                         @if (Model.DisplayCaptcha)
@@ -169,10 +254,10 @@
                             </div>
                         }
 
-                        <button type="submit" class="auth-red-action flex h-10 w-full items-center justify-center rounded-xl bg-military-red px-4 text-sm font-bold uppercase tracking-[0.18em] text-[#d4af37] shadow-[0_16px_36px_-20px_rgba(178,34,34,0.7)] transition hover:-translate-y-[1px] active:scale-[0.98]">ĐĂNG NHẬP HỆ THỐNG</button>
+                        <button type="submit" class="login-submit-button public-control-text flex min-h-11 w-full items-center justify-center rounded-xl bg-military-red px-4 font-bold uppercase text-[#fed65b] shadow-[0_16px_36px_-20px_rgba(178,34,34,0.7)] transition hover:-translate-y-[1px] active:scale-[0.98]">ĐĂNG NHẬP HỆ THỐNG</button>
                     </form>
 
-                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 space-y-0.5">
+                    <div class="support-box public-meta-text mt-[5%] space-y-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500">
                         <div>Hỗ trợ kỹ thuật: <span class="font-semibold text-slate-700">@dutyMessageSettings.SupportDepartment@(string.IsNullOrWhiteSpace(dutyMessageSettings.SupportUnit) ? "" : " - " + dutyMessageSettings.SupportUnit)</span></div>
                         @if (!string.IsNullOrWhiteSpace(dutyMessageSettings.SupportContactName))
                         {
@@ -189,12 +274,13 @@
 
                 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LoginBottom, additionalData = Model })
 
-                <footer class="flex flex-wrap items-center justify-between gap-3 px-2 text-xs uppercase tracking-[0.18em] text-slate-400">
-                    <span>© 2024 Bộ Tư lệnh Tăng Thiết Giáp</span>
+                <footer class="login-footer public-label-text flex flex-wrap items-center justify-between gap-3 px-2 uppercase text-slate-400">
+                    <span>© 2024 Binh chủng Tăng Thiết Giáp</span>
                     <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-500">v5.00</span>
                 </footer>
             </div>
-        </section>
+            </section>
+        </div>
     </div>
 </div>
 

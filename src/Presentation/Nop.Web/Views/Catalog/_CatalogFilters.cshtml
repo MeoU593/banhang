@@ -10,14 +10,16 @@
 
 <style>
     .catalog-filter-shell {
-        border: 1px solid #e2e8f0;
-        background: #ffffff;
-        padding: 16px;
+        border: 1px solid #dbe3ef;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 14px;
+        box-shadow: 0 14px 30px -26px rgba(15, 23, 42, 0.42);
     }
 
     .catalog-filter-shell .catalog-filter-heading {
         margin-bottom: 16px;
-        color: #0f172a;
+        color: #8a1114;
         font-size: var(--public-font-label);
         font-weight: 700;
         text-transform: uppercase;
@@ -30,7 +32,8 @@
     }
 
     .catalog-filter-shell .product-filter {
-        border: 1px solid #e2e8f0;
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
         background: #ffffff;
         overflow: hidden;
     }
@@ -41,8 +44,8 @@
         justify-content: space-between;
         margin: 0;
         padding: 14px 16px;
-        background: #f8fafc;
-        color: #334155;
+        background: #fff7e6;
+        color: #2e0001;
         font-size: var(--public-font-label);
         font-weight: 700;
         text-transform: uppercase;
@@ -72,6 +75,8 @@
         padding: 10px 0;
         border-bottom: 1px solid #eef2f7;
         color: #475569;
+        border-radius: 10px;
+        padding-inline: 8px;
     }
 
     .catalog-filter-shell .item:last-child {
@@ -87,6 +92,7 @@
         font-size: var(--public-font-control);
         line-height: 1.5;
         cursor: pointer;
+        font-weight: 650;
     }
 
     .catalog-filter-shell .selected-price-range {
@@ -94,7 +100,8 @@
         justify-content: space-between;
         margin-bottom: 12px;
         padding: 12px 14px;
-        background: #f8fafc;
+        border-radius: 12px;
+        background: #fff7e6;
         color: #0f172a;
         font-size: var(--public-font-control);
         font-weight: 600;
@@ -102,7 +109,7 @@
 </style>
 
 <section class="catalog-filter-shell block">
-    <div class="catalog-filter-heading">Bo loc</div>
+    <div class="catalog-filter-heading">Bộ lọc</div>
 
     <section class="product-filters">
         @if (Model.PriceRangeFilter.Enabled)
@@ -123,12 +130,12 @@
         @if (Model.CanFilterByFavorites)
         {
             <div class="product-filter product-favorites-filter">
-                <h2 class="filter-title">San pham yeu thich</h2>
+                <h2 class="filter-title">Sản phẩm quan tâm</h2>
                 <div class="filter-content">
                     <ul class="group">
                         <li class="item">
                             <input id="filter-favorites-only" type="checkbox" checked="@Model.FavoritesOnly" />
-                            <label for="filter-favorites-only">Chi hien thi san pham da danh dau</label>
+                            <label for="filter-favorites-only">Chỉ hiển thị sản phẩm quan tâm</label>
                         </li>
                     </ul>
                 </div>

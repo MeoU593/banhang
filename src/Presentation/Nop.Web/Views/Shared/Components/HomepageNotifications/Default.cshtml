@@ -1,0 +1,52 @@
+@model IList<Nop.Web.Models.Home.HomepageNotificationItemModel>
+
+<section class="home-notification-board">
+    <div class="home-notification-grid">
+        @foreach (var item in Model)
+        {
+            <section class="home-notification-card">
+                <div class="home-notification-card-header">
+                    <div class="home-notification-icon @item.IconColorClass">
+                        <span class="material-symbols-outlined">@item.Icon</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="public-card-title truncate font-black text-slate-900">@item.AreaTitle</h3>
+                    </div>
+                </div>
+
+                @if (item.Entries.Any())
+                {
+                    <ul class="home-notification-list">
+                        @foreach (var entry in item.Entries.Take(3))
+                        {
+                            <li>
+                                <a href="@entry.Url" class="home-notification-entry group">
+                                    <span class="home-notification-entry-dot"></span>
+                                    <span class="home-notification-entry-viewport">
+                                        <span class="home-notification-entry-marquee">
+                                            <span class="home-notification-entry-title">@entry.Title</span>
+                                            <span class="home-notification-entry-separator">•</span>
+                                            <span class="home-notification-entry-actor">@(string.IsNullOrWhiteSpace(entry.Subtitle) ? "Hệ thống" : entry.Subtitle) đăng @entry.Badge</span>
+                                            <span class="home-notification-entry-separator">•</span>
+                                            <span class="home-notification-entry-meta">@entry.DateText</span>
+                                            @if (!string.IsNullOrWhiteSpace(entry.Badge))
+                                            {
+                                                <span class="home-notification-entry-separator">•</span>
+                                                <span class="home-notification-entry-meta">@entry.Badge</span>
+                                            }
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="home-notification-empty public-body-text">@item.EmptyText</div>
+                }
+
+            </section>
+        }
+    </div>
+</section>

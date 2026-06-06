@@ -54,6 +54,11 @@ public partial class Customer : BaseEntity, ISoftDeletedEntity
     public string Company { get; set; }
 
     /// <summary>
+    /// Gets or sets the company/vendor id
+    /// </summary>
+    public int? CompanyId { get; set; }
+
+    /// <summary>
     /// Gets or sets the street address
     /// </summary>
     public string StreetAddress { get; set; }

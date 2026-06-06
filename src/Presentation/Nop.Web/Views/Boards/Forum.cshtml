@@ -50,7 +50,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
@@ -62,28 +62,28 @@
     </nav>
 }
 
-<div class="page forum-page px-4 pb-8 lg:px-0">
-    <div class="mb-6 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-1.5">
-                <h1 class="public-hero-title font-black tracking-tight text-white">@Model.Name</h1>
+<div class="page forum-page public-page-shell public-page-stack">
+    <div class="public-blue-hero forum-main-hero">
+        <div class="public-blue-hero-content forum-main-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@Model.Name</h1>
                 @if (!string.IsNullOrWhiteSpace(Model.Description))
                 {
-                    <p class="max-w-none text-xs leading-5 text-white/80 sm:text-sm lg:whitespace-nowrap">@Model.Description</p>
+                    <p class="public-hero-subtitle public-blue-hero-subtitle max-w-none lg:whitespace-nowrap">@Model.Description</p>
                 }
                 else
                 {
-                    <p class="max-w-none text-xs leading-5 text-white/80 sm:text-sm lg:whitespace-nowrap">Theo dõi các chủ đề trao đổi nghiệp vụ, cập nhật kinh nghiệm và tài liệu hỗ trợ trong chuyên mục này.</p>
+                    <p class="public-hero-subtitle public-blue-hero-subtitle max-w-none lg:whitespace-nowrap">Theo dõi các chủ đề trao đổi nghiệp vụ, cập nhật kinh nghiệm và tài liệu hỗ trợ trong chuyên mục này.</p>
                 }
             </div>
-            <div class="space-y-3">
-                <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
-                    <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Chủ đề</p>
-                    <p class="mt-1 text-base font-black sm:text-lg">@Model.TopicTotalRecords</p>
+            <div class="public-blue-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em]">Chủ đề</p>
+                    <p class="public-stat-value mt-1 font-black">@Model.TopicTotalRecords</p>
                 </div>
                 @if (Model.ForumFeedsEnabled)
                 {
-                    <a href="@Url.RouteUrl(NopRouteNames.Standard.FORUM_RSS, new { id = Model.Id })" class="inline-flex h-10 w-full items-center justify-center rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20" title="@T("Forum.ForumRSSLinkTitle")">@T("Forum.RSS")</a>
+                    <a href="@Url.RouteUrl(NopRouteNames.Standard.FORUM_RSS, new { id = Model.Id })" class="public-control-text public-blue-hero-action inline-flex min-h-10 items-center justify-center font-semibold transition" title="@T("Forum.ForumRSSLinkTitle")">@T("Forum.RSS")</a>
                 }
             </div>
         </div>
@@ -97,26 +97,26 @@
     <div class="grid grid-cols-12 gap-6">
         <section class="col-span-12 lg:col-span-8" id="boards-topic-list">
             @await Html.PartialAsync("_ForumTopicCards", Model.TopicCards)
-            <div id="boards-unread-empty" class="hidden rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+            <div id="boards-unread-empty" class="public-body-text hidden rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-slate-500">
                 Không còn chủ đề chưa xem trong trang hiện tại.
             </div>
         </section>
 
         <aside class="col-span-12 space-y-4 lg:col-span-4">
             <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Bài viết đáng chú ý</div>
+                <div class="public-label-text border-b border-slate-100 bg-slate-50 px-4 py-3 font-bold uppercase tracking-[0.14em] text-slate-500">Bài viết đáng chú ý</div>
                 <div class="space-y-3 p-4">
                     @if (Model.FeaturedTopicCards.Count == 0)
                     {
-                        <p class="text-sm text-slate-500">Chưa có chủ đề nổi bật.</p>
+                        <p class="public-body-text text-slate-500">Chưa có chủ đề nổi bật.</p>
                     }
                     else
                     {
                         @foreach (var topic in Model.FeaturedTopicCards)
                         {
                             <a href="@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = topic.Id, slug = topic.SeName })" class="block rounded-xl border border-slate-100 p-3 transition hover:border-military-green/50 hover:bg-slate-50">
-                                <p class="line-clamp-2 text-sm font-bold text-slate-800">@topic.Subject</p>
-                                <p class="mt-1 text-xs text-slate-500">@topic.CreatedOnStr • @topic.Views lượt xem</p>
+                                <p class="public-list-title line-clamp-2 font-bold text-slate-800">@topic.Subject</p>
+                                <p class="public-meta-text mt-1 text-slate-500">@topic.CreatedOnStr • @topic.Views lượt xem</p>
                             </a>
                         }
                     }
@@ -124,13 +124,13 @@
             </section>
 
             <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="border-b border-slate-100 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Công cụ nhanh</div>
+                <div class="public-label-text border-b border-slate-100 bg-slate-50 px-4 py-3 font-bold uppercase tracking-[0.14em] text-slate-500">Công cụ nhanh</div>
                 <div class="space-y-2 p-4">
-                    <a href="@Url.RouteUrl(NopRouteNames.Standard.ACTIVE_DISCUSSIONS)" class="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                    <a href="@Url.RouteUrl(NopRouteNames.Standard.ACTIVE_DISCUSSIONS)" class="public-control-text flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
                         <span>Thảo luận mới nhất</span>
                         <span class="material-symbols-outlined text-[18px]">north_east</span>
                     </a>
-                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BOARDS_SEARCH)" class="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
+                    <a href="@Url.RouteUrl(NopRouteNames.Standard.BOARDS_SEARCH)" class="public-control-text flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2.5 font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green">
                         <span>Tìm kiếm trong diễn đàn</span>
                         <span class="material-symbols-outlined text-[18px]">search</span>
                     </a>

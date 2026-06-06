@@ -81,12 +81,12 @@
     }.Where(value => !string.IsNullOrWhiteSpace(value)));
 
     var favoriteIcon = Model.IsFavorite ? "favorite" : "favorite_border";
-    var favoriteTitle = Model.IsFavorite ? "Bo yeu thich" : "Danh dau yeu thich";
+    var favoriteTitle = Model.IsFavorite ? "Bỏ quan tâm" : "Đánh dấu quan tâm";
 }
 
-<article class="command-product-card product-item group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_32px_-28px_rgba(15,23,42,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-30px_rgba(15,23,42,0.55)]" data-productid="@Model.Id" data-product-search="@searchData" data-product-status="@availabilityStatus">
-    <div class="picture relative h-48 overflow-hidden bg-slate-100">
-        <div class="absolute left-3 top-3 z-20 rounded-sm bg-slate-900/80 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
+<article class="command-product-card catalog-product-card product-item group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_14px_32px_-28px_rgba(15,23,42,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-30px_rgba(15,23,42,0.55)]" data-productid="@Model.Id" data-product-search="@searchData" data-product-status="@availabilityStatus">
+    <div class="picture relative overflow-hidden bg-slate-100">
+        <div class="public-label-text absolute left-3 top-3 z-20 rounded-sm bg-slate-900/80 px-2 py-1 font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
             @leftBadge
         </div>
         <a class="block h-full w-full" href="@productUrl" title="@(picture?.Title ?? Model.Name)">
@@ -97,7 +97,7 @@
             else
             {
                 <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-slate-500">
-                    <span class="material-symbols-outlined text-4xl">inventory_2</span>
+                    <span class="material-symbols-outlined text-4xl">restaurant</span>
                 </div>
             }
         </a>
@@ -107,7 +107,7 @@
     <div class="details flex flex-1 flex-col p-4">
         <div class="flex-1 space-y-2">
             <div class="flex items-start gap-2">
-                <h2 class="product-title public-list-title min-w-0 flex-1 font-bold text-slate-900 line-clamp-2">
+                <h2 class="product-title public-card-title min-w-0 flex-1 font-bold text-slate-900 line-clamp-2">
                     <a class="transition group-hover:text-primary" href="@productUrl">@Model.Name</a>
                 </h2>
                 <button type="button"
@@ -120,7 +120,7 @@
                 </button>
             </div>
 
-            <p class="min-h-[34px] text-[11px] leading-[1.5] text-slate-500 line-clamp-2">
+            <p class="catalog-product-description public-body-text min-h-[42px] text-slate-600 line-clamp-2">
                 @if (!string.IsNullOrWhiteSpace(descriptionText))
                 {
                     @Html.Raw(descriptionText)
@@ -132,7 +132,7 @@
             }
             @if (showSupplierText)
             {
-                <p class="truncate text-[11px] text-slate-500">@Html.Raw(supplierText)</p>
+                <p class="public-meta-text truncate text-slate-500">@Html.Raw(supplierText)</p>
             }
 
         </div>
@@ -143,21 +143,21 @@
             <div class="flex items-center justify-between border-t border-slate-100 pt-2.5">
                 <div class="flex items-center gap-1.5">
                     <span class="h-1.5 w-1.5 rounded-full flex-shrink-0 @availabilityDotClass @(availabilityStatus == "available" ? "animate-pulse" : string.Empty)"></span>
-                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-500">@availabilityText</span>
+                    <span class="public-label-text font-semibold uppercase tracking-wide text-slate-500">@availabilityText</span>
                 </div>
                 @if (hasPrice)
                 {
-                    <span class="text-sm font-black tracking-tight text-primary">@Html.Raw(Model.ProductPrice.Price)</span>
+                    <span class="public-control-text font-black tracking-tight text-primary">@Html.Raw(Model.ProductPrice.Price)</span>
                 }
                 else if (hasSku)
                 {
-                    <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-500">@Model.Sku</span>
+                    <span class="public-label-text rounded bg-slate-100 px-1.5 py-0.5 font-mono font-semibold text-slate-500">@Model.Sku</span>
                 }
             </div>
 
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ProductBoxAddinfoMiddle, additionalData = Model })
 
-            <a href="@productUrl" class="product-detail-btn inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 transition hover:border-primary hover:bg-primary hover:text-white active:scale-[0.98]">
+            <a href="@productUrl" class="product-detail-btn public-control-text inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 transition hover:border-primary hover:bg-primary hover:text-white active:scale-[0.98]">
                 <span>Xem chi tiết</span>
                 <span class="material-symbols-outlined text-[15px]">arrow_right_alt</span>
             </a>
@@ -200,8 +200,8 @@
 
                         var isFavorite = !!response.isFavorite;
                         $btn.data('is-favorite', isFavorite ? 'true' : 'false');
-                        $btn.attr('title', isFavorite ? 'Bo yeu thich' : 'Danh dau yeu thich');
-                        $btn.attr('aria-label', isFavorite ? 'Bo yeu thich' : 'Danh dau yeu thich');
+                        $btn.attr('title', isFavorite ? 'Bỏ quan tâm' : 'Đánh dấu quan tâm');
+                        $btn.attr('aria-label', isFavorite ? 'Bỏ quan tâm' : 'Đánh dấu quan tâm');
 
                         var $icon = $btn.find('.material-symbols-outlined');
                         $icon.text(isFavorite ? 'favorite' : 'favorite_border');

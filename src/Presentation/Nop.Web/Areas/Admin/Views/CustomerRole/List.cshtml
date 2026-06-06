@@ -1,15 +1,15 @@
 @model CustomerRoleSearchModel
 @{
-    ViewBag.PageTitle = "Vai trò khách hàng";
+    ViewBag.PageTitle = "Phân quyền tài khoản";
     NopHtml.SetActiveMenuItemSystemName("Customer roles");
 }
 
 <div class="content-header clearfix">
-    <h1 class="float-left">Vai trò khách hàng</h1>
+    <h1 class="float-left">Phân quyền tài khoản</h1>
     <div class="float-right">
         <a asp-action="Create" class="btn btn-primary">
             <i class="fas fa-square-plus"></i>
-            Thêm mới
+            Thêm phân quyền
         </a>
     </div>
 </div>
@@ -30,26 +30,26 @@
                             {
                                 new ColumnProperty(nameof(CustomerRoleModel.Name))
                                 {
-                                    Title = "Tên vai trò",
+                                    Title = "Tên phân quyền",
                                     Width = "300"
                                 },
                                 new ColumnProperty(nameof(CustomerRoleModel.Active))
                                 {
-                                    Title = "Hoạt động",
+                                    Title = "Trạng thái",
                                     Width = "100",
                                     ClassName = NopColumnClassDefaults.CenterAll,
                                     Render = new RenderBoolean()
                                 },
                                 new ColumnProperty(nameof(CustomerRoleModel.IsSystemRole))
                                 {
-                                    Title = "Vai trò hệ thống",
+                                    Title = "Quyền hệ thống",
                                     Width = "130",
                                     ClassName = NopColumnClassDefaults.CenterAll,
                                     Render = new RenderBoolean()
                                 },
                                 new ColumnProperty(nameof(CustomerRoleModel.Id))
                                 {
-                                    Title = "Sửa",
+                                    Title = "Thao tác",
                                     Width = "80",
                                     ClassName = NopColumnClassDefaults.Button,
                                     Render = new RenderButtonEdit(new DataUrl("~/Admin/CustomerRole/Edit"))

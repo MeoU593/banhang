@@ -96,20 +96,32 @@ public partial class TopicController : BaseAdminController
 
     public virtual IActionResult Index()
     {
-        return NotFound();
+        return RedirectToAction("List");
     }
 
+    [HttpGet]
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_VIEW)]
-    public virtual Task<IActionResult> List()
+    public virtual async Task<IActionResult> List([FromQuery(Name = nameof(TopicSearchModel.SearchKeywords))] string searchKeywords = null,
+        [FromQuery(Name = nameof(TopicSearchModel.SearchStoreId))] int searchStoreId = 0)
     {
-        return Task.FromResult<IActionResult>(NotFound());
+        //prepare model
+        var model = await _topicModelFactory.PrepareTopicSearchModelAsync(new TopicSearchModel
+        {
+            SearchKeywords = searchKeywords,
+            SearchStoreId = searchStoreId
+        });
+
+        return View(model);
     }
 
     [HttpPost]
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_VIEW)]
-    public virtual Task<IActionResult> List(TopicSearchModel searchModel)
+    public virtual async Task<IActionResult> List(TopicSearchModel searchModel)
     {
-        return Task.FromResult<IActionResult>(NotFound());
+        //prepare model
+        var model = await _topicModelFactory.PrepareTopicListModelAsync(searchModel);
+
+        return Json(model);
     }
 
     #endregion
@@ -117,36 +129,137 @@ public partial class TopicController : BaseAdminController
     #region Create / Edit / Delete
 
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_CREATE_EDIT_DELETE)]
-    public virtual Task<IActionResult> Create()
+    public virtual async Task<IActionResult> Create()
     {
-        return Task.FromResult<IActionResult>(NotFound());
-    }
+        //prepare model
+        var model = await _topicModelFactory.PrepareTopicModelAsync(new TopicModel(), null);
 
-    [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-    [CheckPermission(StandardPermission.ContentManagement.TOPICS_CREATE_EDIT_DELETE)]
-    public virtual Task<IActionResult> Create(TopicModel model, bool continueEditing)
-    {
-        return Task.FromResult<IActionResult>(NotFound());
+        return View(model);
     }
 
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_VIEW)]
-    public virtual Task<IActionResult> Edit(int id)
+    public virtual async Task<IActionResult> EditUserGuide()
     {
-        return Task.FromResult<IActionResult>(NotFound());
+        var topic = await _topicService.GetTopicBySystemNameAsync("UserGuide");
+        if (topic == null)
+            return RedirectToAction("List", new { SearchKeywords = "UserGuide" });
+
+        return RedirectToAction("Edit", new { id = topic.Id });
     }
 
     [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_CREATE_EDIT_DELETE)]
-    public virtual Task<IActionResult> Edit(TopicModel model, bool continueEditing)
+    public virtual async Task<IActionResult> Create(TopicModel model, bool continueEditing)
     {
-        return Task.FromResult<IActionResult>(NotFound());
+        if (ModelState.IsValid)
+        {
+            var topic = model.ToEntity<Topic>();
+            await _topicService.InsertTopicAsync(topic);
+
+            //search engine name
+            var seName = await _urlRecordService.ValidateSeNameAsync(topic, model.SeName, topic.Title, true);
+            await _urlRecordService.SaveSlugAsync(topic, seName, 0);
+
+            //locales
+            await UpdateLocalesAsync(topic, model);
+
+            //stores
+            await _storeMappingService.SaveStoreMappingsAsync(topic, model.SelectedStoreIds);
+
+            //activity log
+            await _customerActivityService.InsertActivityAsync("AddNewTopic",
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewTopic"), topic.Title), topic);
+
+            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Topics.Added"));
+
+            if (!continueEditing)
+                return RedirectToAction("List");
+
+            return RedirectToAction("Edit", new { id = topic.Id });
+        }
+
+        //prepare model
+        model = await _topicModelFactory.PrepareTopicModelAsync(model, null, true);
+
+        //if we got this far, something failed, redisplay form
+        return View(model);
+    }
+
+    [CheckPermission(StandardPermission.ContentManagement.TOPICS_VIEW)]
+    public virtual async Task<IActionResult> Edit(int id)
+    {
+        //try to get a topic with the specified id
+        var topic = await _topicService.GetTopicByIdAsync(id);
+        if (topic == null)
+            return RedirectToAction("List");
+
+        //prepare model
+        var model = await _topicModelFactory.PrepareTopicModelAsync(null, topic);
+
+        return View(model);
+    }
+
+    [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
+    [CheckPermission(StandardPermission.ContentManagement.TOPICS_CREATE_EDIT_DELETE)]
+    public virtual async Task<IActionResult> Edit(TopicModel model, bool continueEditing)
+    {
+        //try to get a topic with the specified id
+        var topic = await _topicService.GetTopicByIdAsync(model.Id);
+        if (topic == null)
+            return RedirectToAction("List");
+
+        if (ModelState.IsValid)
+        {
+            topic = model.ToEntity(topic);
+            await _topicService.UpdateTopicAsync(topic);
+
+            //search engine name
+            var seName = await _urlRecordService.ValidateSeNameAsync(topic, model.SeName, topic.Title, true);
+            await _urlRecordService.SaveSlugAsync(topic, seName, 0);
+
+            //locales
+            await UpdateLocalesAsync(topic, model);
+
+            //stores
+            await _storeMappingService.SaveStoreMappingsAsync(topic, model.SelectedStoreIds);
+
+            //activity log
+            await _customerActivityService.InsertActivityAsync("EditTopic",
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.EditTopic"), topic.Title), topic);
+
+            _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Topics.Updated"));
+
+            if (!continueEditing)
+                return RedirectToAction("List");
+
+            return RedirectToAction("Edit", new { id = topic.Id });
+        }
+
+        //prepare model
+        model = await _topicModelFactory.PrepareTopicModelAsync(model, topic, true);
+
+        //if we got this far, something failed, redisplay form
+        return View(model);
     }
 
     [HttpPost]
     [CheckPermission(StandardPermission.ContentManagement.TOPICS_CREATE_EDIT_DELETE)]
-    public virtual Task<IActionResult> Delete(int id)
+    public virtual async Task<IActionResult> Delete(int id)
     {
-        return Task.FromResult<IActionResult>(NotFound());
+        //try to get a topic with the specified id
+        var topic = await _topicService.GetTopicByIdAsync(id);
+        if (topic == null)
+            return RedirectToAction("List");
+
+        await _topicService.DeleteTopicAsync(topic);
+
+        //activity log
+        await _customerActivityService.InsertActivityAsync("DeleteTopic",
+            string.Format(await _localizationService.GetResourceAsync("ActivityLog.DeleteTopic"), topic.Title), topic);
+
+        _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.ContentManagement.Topics.Deleted"));
+
+        return RedirectToAction("List");
     }
 
     #endregion

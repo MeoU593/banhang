@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem *)",
+      "Bash(pandoc *)",
+      "Bash(Select-Object Name, Extension)",
+      "Bash(Sort-Object Name)"
+    ]
+  }
+}

@@ -1,4 +1,5 @@
-﻿using Nop.Core.Domain.Catalog;
+﻿using Nop.Core;
+using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Vendors;
@@ -34,6 +35,7 @@ public partial class VendorModelFactory : IVendorModelFactory
     protected readonly IAddressService _addressService;
     protected readonly IAttributeParser<VendorAttribute, VendorAttributeValue> _vendorAttributeParser;
     protected readonly IAttributeService<VendorAttribute, VendorAttributeValue> _vendorAttributeService;
+    protected readonly ICustomerMilitaryProfileService _customerMilitaryProfileService;
     protected readonly ICustomerService _customerService;
     protected readonly ICountryService _countryService;
     protected readonly IDateTimeHelper _dateTimeHelper;
@@ -43,6 +45,7 @@ public partial class VendorModelFactory : IVendorModelFactory
     protected readonly IUrlRecordService _urlRecordService;
     protected readonly IVendorService _vendorService;
     protected readonly VendorSettings _vendorSettings;
+    protected readonly IWorkContext _workContext;
 
     #endregion
 
@@ -54,6 +57,7 @@ public partial class VendorModelFactory : IVendorModelFactory
         IAddressService addressService,
         IAttributeParser<VendorAttribute, VendorAttributeValue> vendorAttributeParser,
         IAttributeService<VendorAttribute, VendorAttributeValue> vendorAttributeService,
+        ICustomerMilitaryProfileService customerMilitaryProfileService,
         ICustomerService customerService,
         ICountryService countryService,
         IDateTimeHelper dateTimeHelper,
@@ -62,7 +66,8 @@ public partial class VendorModelFactory : IVendorModelFactory
         ILocalizedModelFactory localizedModelFactory,
         IUrlRecordService urlRecordService,
         IVendorService vendorService,
-        VendorSettings vendorSettings)
+        VendorSettings vendorSettings,
+        IWorkContext workContext)
     {
         _currencySettings = currencySettings;
         _currencyService = currencyService;
@@ -70,6 +75,7 @@ public partial class VendorModelFactory : IVendorModelFactory
         _addressService = addressService;
         _vendorAttributeParser = vendorAttributeParser;
         _vendorAttributeService = vendorAttributeService;
+        _customerMilitaryProfileService = customerMilitaryProfileService;
         _customerService = customerService;
         _countryService = countryService;
         _dateTimeHelper = dateTimeHelper;
@@ -79,6 +85,7 @@ public partial class VendorModelFactory : IVendorModelFactory
         _urlRecordService = urlRecordService;
         _vendorService = vendorService;
         _vendorSettings = vendorSettings;
+        _workContext = workContext;
     }
 
     #endregion
@@ -100,12 +107,25 @@ public partial class VendorModelFactory : IVendorModelFactory
         var associatedCustomers = await _customerService.GetAllCustomersAsync(vendorId: vendor.Id);
         foreach (var customer in associatedCustomers)
         {
+            var militaryProfile = await _customerMilitaryProfileService.GetByCustomerIdAsync(customer.Id);
+            var roles = await _customerService.GetCustomerRolesAsync(customer, showHidden: true);
             models.Add(new VendorAssociatedCustomerModel
             {
                 Id = customer.Id,
-                Email = customer.Email
+                Email = customer.Email,
+                FullName = await _customerService.GetCustomerFullNameAsync(customer),
+                Phone = customer.Phone ?? string.Empty,
+                Rank = militaryProfile?.Rank ?? string.Empty,
+                PositionTitle = militaryProfile?.PositionTitle ?? string.Empty,
+                RoleNames = string.Join(", ", roles.Where(role => role.Active).Select(GetRoleDisplayName)),
+                IsLeader = vendor.PmCustomerId.HasValue && vendor.PmCustomerId.Value == customer.Id
             });
         }
+    }
+
+    protected virtual string GetRoleDisplayName(CustomerRole role)
+    {
+        return role.Name;
     }
 
     /// <summary>
@@ -314,11 +334,34 @@ public partial class VendorModelFactory : IVendorModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
+        int[] vendorIds = null;
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        var rootVendorId = searchModel.SearchRootVendorId;
+
+        if (currentVendor != null)
+        {
+            var allowedVendorIds = (await _vendorService.GetDescendantVendorIdsAsync(currentVendor.Id, includeSelf: true)).ToHashSet();
+            if (rootVendorId <= 0 || !allowedVendorIds.Contains(rootVendorId))
+                rootVendorId = currentVendor.Id;
+
+            vendorIds = (await _vendorService.GetDescendantVendorIdsAsync(rootVendorId, includeSelf: true))
+                .Where(allowedVendorIds.Contains)
+                .ToArray();
+        }
+        else if (rootVendorId > 0)
+        {
+            vendorIds = (await _vendorService.GetDescendantVendorIdsAsync(rootVendorId, includeSelf: true)).ToArray();
+        }
+
+        if (rootVendorId > 0 && (vendorIds == null || vendorIds.Length == 0))
+            vendorIds = [-1];
+
         //get vendors
         var vendors = await _vendorService.GetAllVendorsAsync(showHidden: true,
             name: searchModel.SearchName,
             email: searchModel.SearchEmail,
-            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
+            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize,
+            vendorIds: vendorIds);
 
         //prepare list model
         var model = await new VendorListModel().PrepareToGridAsync(searchModel, vendors, () =>

@@ -8,7 +8,15 @@
     Layout = "_Root.Head";
     var isAuthStandalone = ViewData["AuthStandalone"] as bool? ?? false;
     var isAuthenticated = Context.User.Identity?.IsAuthenticated == true;
+    var hasHeaderBreadcrumb = !isAuthStandalone && IsSectionDefined("Breadcrumb") && (ViewData["HasBreadcrumb"] as bool? ?? true);
+    var canAccessAdminPanel = await _rootPermissionService.AuthorizeAsync(Nop.Services.Security.StandardPermission.Security.ACCESS_ADMIN_PANEL);
+    var unitReportsUrl = Url.Content("~/Admin/UnitReportAdmin/Index");
     ViewData["HasAdminRibbon"] = false;
+
+    if (isAuthStandalone && IsSectionDefined("Breadcrumb"))
+    {
+        IgnoreSection("Breadcrumb");
+    }
 
     string displayName = "Đồng chí";
     string avatarInitial = "Đ";
@@ -53,44 +61,65 @@
 @{ await Html.RenderPartialAsync("_Notifications"); }
 @{ await Html.RenderPartialAsync("_JavaScriptDisabledWarning"); }
 
-<div class="master-wrapper-page flex min-h-screen bg-surface-container-low text-on-surface">
+<div class="master-wrapper-page public-tactical-root flex min-h-screen w-full bg-surface-container-low text-on-surface" style="width: 100%; height: auto;">
     @if (!isAuthStandalone)
     {
         await Html.RenderPartialAsync("_Header");
     }
 
-    <div class="flex min-w-0 flex-1 flex-col @(isAuthStandalone ? string.Empty : "lg:pl-72")">
+    <div class="flex min-w-0 flex-1 flex-col @(isAuthStandalone ? string.Empty : "public-main-offset")">
         @if (!isAuthStandalone)
         {
             <div class="sticky top-0 z-40">
                 @await Component.InvokeAsync(typeof(HomepageBannerViewComponent))
 
-                <div class="border-b border-slate-200 bg-white/85 backdrop-blur-md">
-                    <header class="flex h-10 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                <div class="public-command-toolbar border-b border-slate-300 bg-white/95 backdrop-blur-md">
+                    <header class="public-command-toolbar-inner flex min-h-10 items-center gap-3 px-5 py-1 sm:px-7 lg:px-9">
                         <button type="button" class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden" aria-label="Mở điều hướng">
                             <span class="material-symbols-outlined">menu</span>
                         </button>
-                        <form method="get" action="/search" class="m-0 hidden min-w-0 flex-1 lg:flex lg:items-center">
-                            <span class="pointer-events-none absolute pl-3 text-slate-400">
-                                <span class="material-symbols-outlined text-lg">search</span>
-                            </span>
-                            <input type="search" name="q" class="h-9 w-full rounded-lg border-none bg-slate-100 pl-10 pr-4 py-0 text-sm text-slate-700 outline-none ring-0 transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/25" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
-                        </form>
-                        <div class="flex flex-1 items-center justify-end lg:flex-none">
+                        @if (hasHeaderBreadcrumb)
+                        {
+                            <div class="app-header-breadcrumb hidden min-w-0 flex-1 items-center overflow-visible whitespace-nowrap mr-6 lg:flex">
+                                @RenderSection("Breadcrumb")
+                            </div>
+                        }
+                        else
+                        {
+                            if (IsSectionDefined("Breadcrumb"))
+                            {
+                                IgnoreSection("Breadcrumb");
+                            }
+                            <div class="hidden min-w-0 flex-1 lg:block"></div>
+                        }
+                        <div class="flex flex-1 items-center justify-end gap-2 lg:flex-none">
+                            <div id="live-clock" class="public-live-clock hidden items-center whitespace-nowrap lg:flex">
+                                <span class="material-symbols-outlined public-live-clock-icon">calendar_today</span>
+                                <span id="clock-display">--/--/---- --:--</span>
+                            </div>
+                            <form method="get" action="/search" class="public-toolbar-search relative m-0 hidden min-w-0 max-w-full lg:flex lg:items-center">
+                                <span class="public-toolbar-search-icon pointer-events-none absolute text-slate-400">
+                                    <span class="material-symbols-outlined text-lg">search</span>
+                                </span>
+                                <input type="search" name="q" class="public-toolbar-search-input" placeholder="Tìm kiếm tài liệu, sản phẩm, đơn vị..." />
+                            </form>
 
-                            <button type="button" class="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800" aria-label="Thông báo">
+                            <a href="@(canAccessAdminPanel ? unitReportsUrl : Url.Content("~/tai-lieu-huong-dan"))" class="relative inline-flex rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800" aria-label="Thông báo báo cáo đơn vị" title="Thông báo báo cáo đơn vị">
                                 <span class="material-symbols-outlined">notifications</span>
                                 <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-rose-500"></span>
-                            </button>
-                            <button type="button" class="hidden rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 sm:inline-flex" aria-label="Trợ giúp">
+                            </a>
+                            <button type="button" class="hidden rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 sm:inline-flex" aria-label="Trợ giúp" title="Trợ giúp">
                                 <span class="material-symbols-outlined">help</span>
+                            </button>
+                            <button id="fullscreen-btn" type="button" class="hidden rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 sm:inline-flex" aria-label="Toàn màn hình" title="Toàn màn hình">
+                                <span class="material-symbols-outlined" id="fullscreen-icon">fullscreen</span>
                             </button>
                             <div class="mx-1 hidden h-8 w-px bg-slate-200 sm:block"></div>
                             <div class="flex items-center gap-3">
                                 <div class="hidden text-right sm:block">
                                     <p class="font-bold text-slate-800">@displayName</p>
                                 </div>
-                                <div class="relative flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 font-bold" style="background:#0f172a;color:#f6dc9a;">
+                                <div class="relative flex size-9 items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 font-bold" style="background:#0f172a;color:#f6dc9a;">
                                     <span class="flex h-full w-full items-center justify-center">@avatarInitial</span>
                                     @if (!string.IsNullOrWhiteSpace(avatarUrl))
                                     {
@@ -104,15 +133,8 @@
             </div>
         }
 
-        <main class="master-wrapper-content flex-1 bg-slate-50" id="main">
+        <main class="master-wrapper-content public-workspace flex-1 bg-slate-100" id="main">
             @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.ContentBefore })
-
-            @if (IsSectionDefined("Breadcrumb"))
-            {
-                <div class="center-1 w-full px-4 pt-4 sm:px-6 lg:px-8 xl:px-10">
-                    @RenderSection("Breadcrumb")
-                </div>
-            }
 
             <div class="master-column-wrapper">
                 @RenderBody()
@@ -123,7 +145,7 @@
 
         @if (!isAuthStandalone)
         {
-            <div class="border-t border-slate-200 bg-white px-4 py-5 text-sm text-slate-500 sm:px-6 lg:px-8">
+            <div class="public-footer-shell public-body-text border-t-2 border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.06)] px-4 py-5 text-slate-500 sm:px-6 lg:px-8">
                 @await Component.InvokeAsync(typeof(FooterViewComponent))
             </div>
         }
@@ -132,3 +154,57 @@
 
 @await Component.InvokeAsync(typeof(EuCookieLawViewComponent))
 @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BodyEndHtmlTagBefore })
+
+<script>
+(function() {
+    var DAYS = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    function pad(n) { return n < 10 ? '0' + n : n; }
+    function updateClock() {
+        var clockDisplay = document.getElementById('clock-display');
+        if (!clockDisplay) return;
+        var d = new Date();
+        var display = DAYS[d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear()
+                    + ' | ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        clockDisplay.textContent = display;
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+})();
+
+(function() {
+    var btn = document.getElementById('fullscreen-btn');
+    if (!btn) return;
+
+    var icon = document.getElementById('fullscreen-icon');
+    var wrapper = document.querySelector('.master-wrapper-page');
+    if (!wrapper) return;
+
+    var fsStyle = document.createElement('style');
+    fsStyle.id = 'fullscreen-styles';
+    fsStyle.textContent = 'html:fullscreen, html:fullscreen body { width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; }';
+
+    btn.addEventListener('click', function() {
+        if (!document.fullscreenElement) {
+            if (!document.getElementById('fullscreen-styles')) {
+                document.head.appendChild(fsStyle);
+            }
+            document.documentElement.requestFullscreen().catch(function(){});
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', function() {
+        if (icon) icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+        if (wrapper) {
+            if (document.fullscreenElement) {
+                wrapper.style.width = '100vw';
+                wrapper.style.height = '100vh';
+            } else {
+                wrapper.style.width = '';
+                wrapper.style.height = '';
+            }
+        }
+    });
+})();
+</script>

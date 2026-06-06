@@ -165,6 +165,11 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
     #region Utilities
 
+    protected virtual string GetDisplayCustomerRoleName(CustomerRole customerRole)
+    {
+        return customerRole?.Name;
+    }
+
     /// <summary>
     /// Prepare customer associated external authorization models
     /// </summary>
@@ -447,7 +452,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         searchModel.FirstNameEnabled = _customerSettings.FirstNameEnabled;
         searchModel.LastNameEnabled = _customerSettings.LastNameEnabled;
         searchModel.DateOfBirthEnabled = _customerSettings.DateOfBirthEnabled;
-        searchModel.CompanyEnabled = _customerSettings.CompanyEnabled;
+        searchModel.CompanyEnabled = true;
         searchModel.PhoneEnabled = _customerSettings.PhoneEnabled;
         searchModel.ZipPostalCodeEnabled = _customerSettings.ZipPostalCodeEnabled;
 
@@ -456,11 +461,16 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         if (registeredRole != null)
             searchModel.SelectedCustomerRoleIds.Add(registeredRole.Id);
 
-        searchModel.AvailableActiveValues = new List<SelectListItem> {
-            new(await _localizationService.GetResourceAsync("Admin.Common.All"), string.Empty),
-            new(await _localizationService.GetResourceAsync("Admin.Common.Yes"), true.ToString(), true),
-            new(await _localizationService.GetResourceAsync("Admin.Common.No"), false.ToString())
+        searchModel.AvailableActiveValues = new List<SelectListItem>
+        {
+            new(await _localizationService.GetResourceAsync("Admin.Common.All"), string.Empty, !searchModel.SearchIsActive.HasValue),
+            new(await _localizationService.GetResourceAsync("Admin.Common.Yes"), true.ToString(), searchModel.SearchIsActive == true),
+            new(await _localizationService.GetResourceAsync("Admin.Common.No"), false.ToString(), searchModel.SearchIsActive == false)
         };
+
+        await _baseAdminModelFactory.PrepareVendorsAsync(searchModel.AvailableVendors);
+        foreach (var vendorItem in searchModel.AvailableVendors)
+            vendorItem.Selected = int.TryParse(vendorItem.Value, out var vendorId) && vendorId == searchModel.SearchVendorId;
 
         //prepare page parameters
         searchModel.SetGridPageSize();
@@ -511,13 +521,14 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
         //get customers
         var customers = await _customerService.GetAllCustomersAsync(customerRoleIds: searchModel.SelectedCustomerRoleIds.ToArray(),
+            vendorId: searchModel.SearchVendorId,
             email: searchModel.SearchEmail,
             username: searchModel.SearchUsername,
             firstName: searchModel.SearchFirstName,
             lastName: searchModel.SearchLastName,
             dayOfBirth: dayOfBirth,
             monthOfBirth: monthOfBirth,
-            company: searchModel.SearchCompany,
+            company: searchModel.SearchVendorId > 0 ? null : searchModel.SearchCompany,
             createdFromUtc: createdFromUtc,
             createdToUtc: createdToUtc,
             lastActivityFromUtc: lastActivityFromUtc,
@@ -544,16 +555,17 @@ public partial class CustomerModelFactory : ICustomerModelFactory
                 customerModel.FullName = await _customerService.GetCustomerFullNameAsync(customer);
 
                 var companyName = customer.Company;
-                if (customer.VendorId > 0)
+                var unitVendorId = customer.VendorId > 0 ? customer.VendorId : customer.CompanyId.GetValueOrDefault();
+                if (unitVendorId > 0)
                 {
-                    if (!vendorNameById.TryGetValue(customer.VendorId, out var vendorName))
+                    if (!vendorNameById.TryGetValue(unitVendorId, out var companyNameFromId))
                     {
-                        vendorName = (await _vendorService.GetVendorByIdAsync(customer.VendorId))?.Name ?? string.Empty;
-                        vendorNameById[customer.VendorId] = vendorName;
+                        companyNameFromId = (await _vendorService.GetVendorByIdAsync(unitVendorId))?.Name ?? string.Empty;
+                        vendorNameById[unitVendorId] = companyNameFromId;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(vendorName))
-                        companyName = vendorName;
+                    if (!string.IsNullOrWhiteSpace(companyNameFromId))
+                        companyName = companyNameFromId;
                 }
 
                 customerModel.Company = companyName;
@@ -565,7 +577,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
                 //fill in additional values (not existing in the entity)
                 customerModel.CustomerRoleNames = string.Join(", ",
-                    (await _customerService.GetCustomerRolesAsync(customer)).Select(role => role.Name));
+                    (await _customerService.GetCustomerRolesAsync(customer)).Select(GetDisplayCustomerRoleName));
                 if (_customerSettings.AllowCustomersToUploadAvatars)
                 {
                     var avatarPictureId = await _genericAttributeService.GetAttributeAsync<int>(customer, NopCustomerDefaults.AvatarPictureIdAttribute);
@@ -611,7 +623,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
             {
                 model.Email = customer.Email;
                 model.Username = customer.Username;
-                model.VendorId = customer.VendorId;
+                model.VendorId = customer.VendorId > 0 ? customer.VendorId : customer.CompanyId.GetValueOrDefault();
                 model.AdminComment = customer.AdminComment;
                 model.IsTaxExempt = customer.IsTaxExempt;
                 model.Active = customer.Active;
@@ -689,7 +701,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         model.GenderEnabled = _customerSettings.GenderEnabled;
         model.NeutralGenderEnabled = _customerSettings.NeutralGenderEnabled;
         model.DateOfBirthEnabled = _customerSettings.DateOfBirthEnabled;
-        model.CompanyEnabled = _customerSettings.CompanyEnabled;
+        model.CompanyEnabled = true;
         model.StreetAddressEnabled = _customerSettings.StreetAddressEnabled;
         model.StreetAddress2Enabled = _customerSettings.StreetAddress2Enabled;
         model.ZipPostalCodeEnabled = _customerSettings.ZipPostalCodeEnabled;
@@ -709,7 +721,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
 
         //prepare available vendors
         await _baseAdminModelFactory.PrepareVendorsAsync(model.AvailableVendors,
-            defaultItemText: await _localizationService.GetResourceAsync("Admin.Customers.Customers.Fields.Vendor.None"));
+            defaultItemText: "Chọn đơn vị");
 
         //prepare model customer attributes
         await PrepareCustomerAttributeModelsAsync(model.CustomerAttributes, customer);
@@ -718,7 +730,7 @@ public partial class CustomerModelFactory : ICustomerModelFactory
         var availableRoles = await _customerService.GetAllCustomerRolesAsync(showHidden: true);
         model.AvailableCustomerRoles = availableRoles.Select(role => new SelectListItem
         {
-            Text = role.Name,
+            Text = GetDisplayCustomerRoleName(role),
             Value = role.Id.ToString(),
             Selected = model.SelectedCustomerRoleIds.Contains(role.Id)
         }).ToList();

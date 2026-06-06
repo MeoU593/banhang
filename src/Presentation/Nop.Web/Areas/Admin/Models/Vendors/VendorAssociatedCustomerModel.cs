@@ -11,5 +11,17 @@ public partial record VendorAssociatedCustomerModel : BaseNopEntityModel
 
     public string Email { get; set; }
 
+    public string FullName { get; set; }
+
+    public string Phone { get; set; }
+
+    public string Rank { get; set; }
+
+    public string PositionTitle { get; set; }
+
+    public string RoleNames { get; set; }
+
+    public bool IsLeader { get; set; }
+
     #endregion
 }

@@ -129,10 +129,16 @@ public partial class BlogModelFactory : IBlogModelFactory
     {
         ArgumentNullException.ThrowIfNull(searchModel);
 
+        var createdOnFromValue = searchModel.CreatedOnFrom == null ? null
+            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(searchModel.CreatedOnFrom.Value, await _dateTimeHelper.GetCurrentTimeZoneAsync());
+        var createdOnToValue = searchModel.CreatedOnTo == null ? null
+            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(searchModel.CreatedOnTo.Value, await _dateTimeHelper.GetCurrentTimeZoneAsync()).AddDays(1);
+
         //get blog posts
         var vendorScopeIds = await GetCurrentVendorScopeIdsAsync();
         var blogPosts = await _blogService.GetAllBlogPostsAsync(storeId: searchModel.SearchStoreId, showHidden: true,
-            pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize, title: searchModel.SearchTitle, vendorIds: vendorScopeIds);
+            dateFrom: createdOnFromValue, dateTo: createdOnToValue, pageIndex: searchModel.Page - 1,
+            pageSize: searchModel.PageSize, title: searchModel.SearchTitle, vendorIds: vendorScopeIds);
 
         //prepare list model
         var model = await new BlogPostListModel().PrepareToGridAsync(searchModel, blogPosts, () =>

@@ -3,6 +3,7 @@
     const string hideInfoBlockAttributeName = "TopicDetailsPage.HideInfoBlock";
     var customer = await workContext.GetCurrentCustomerAsync();
     var hideInfoBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideInfoBlockAttributeName);
+    var isUserGuideTopic = string.Equals(Model.SystemName, "UserGuide", StringComparison.OrdinalIgnoreCase);
 
     const string hideDisplayBlockAttributeName = "TopicDetailsPage.HideDisplayBlock";
     var hideDisplayBlock = await genericAttributeService.GetAttributeAsync<bool>(customer, hideDisplayBlockAttributeName, defaultValue: true);
@@ -19,8 +20,11 @@
         <div class="form-horizontal">
             <nop-cards id="topic-details-cards">
                 <nop-card asp-name="topic-info" asp-icon="fas fa-info" asp-title="Nội dung" asp-hide-block-attribute-name="@hideInfoBlockAttributeName" asp-hide="@hideInfoBlock" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.Info", Model)</nop-card>
-                <nop-card asp-name="topic-display" asp-icon="fas fa-tv" asp-title="Hiển thị" asp-hide-block-attribute-name="@hideDisplayBlockAttributeName" asp-hide="@hideDisplayBlock" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.Display", Model)</nop-card>
-                <nop-card asp-name="topic-seo" asp-icon="fas fa-magnifying-glass-plus" asp-title="SEO" asp-hide-block-attribute-name="@hideSeoBlockAttributeName" asp-hide="@hideSeoBlock" asp-advanced="true">@await Html.PartialAsync("_CreateOrUpdate.Seo", Model)</nop-card>
+                @if (!isUserGuideTopic)
+                {
+                    <nop-card asp-name="topic-display" asp-icon="fas fa-tv" asp-title="Hiển thị" asp-hide-block-attribute-name="@hideDisplayBlockAttributeName" asp-hide="@hideDisplayBlock" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.Display", Model)</nop-card>
+                    <nop-card asp-name="topic-seo" asp-icon="fas fa-magnifying-glass-plus" asp-title="SEO" asp-hide-block-attribute-name="@hideSeoBlockAttributeName" asp-hide="@hideSeoBlock" asp-advanced="true">@await Html.PartialAsync("_CreateOrUpdate.Seo", Model)</nop-card>
+                }
             </nop-cards>
         </div>
     </div>

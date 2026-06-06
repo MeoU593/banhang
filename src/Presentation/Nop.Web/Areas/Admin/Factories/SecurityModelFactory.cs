@@ -40,6 +40,15 @@ public partial class SecurityModelFactory : ISecurityModelFactory
 
     #endregion
 
+    #region Utilities
+
+    protected virtual string GetDisplayCustomerRoleName(CustomerRole customerRole)
+    {
+        return customerRole?.Name;
+    }
+
+    #endregion
+
     #region Methods
 
     /// <summary>
@@ -79,7 +88,7 @@ public partial class SecurityModelFactory : ISecurityModelFactory
 
         var names = await mapping
             .Select(m => availableRoles.FirstOrDefault(p => p.Id == m.CustomerRoleId))
-            .Where(r => r != null).Select(r => _htmlEncoder.Encode(r.Name)).ToListAsync();
+            .Where(r => r != null).Select(r => _htmlEncoder.Encode(GetDisplayCustomerRoleName(r))).ToListAsync();
 
         var (ids, appliedFor) = (mapping.Select(m => m.CustomerRoleId).ToList(), string.Join(", ", names));
 
@@ -92,7 +101,7 @@ public partial class SecurityModelFactory : ISecurityModelFactory
             SelectedCustomerRoleIds = ids.ToList(),
             AvailableCustomerRoles = availableRoles.Select(role => new SelectListItem
             {
-                Text = role.Name,
+                Text = GetDisplayCustomerRoleName(role),
                 Value = role.Id.ToString(),
                 Selected = ids.Contains(role.Id)
             }).ToList()

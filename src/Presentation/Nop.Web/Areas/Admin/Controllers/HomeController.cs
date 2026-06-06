@@ -62,6 +62,14 @@ public partial class HomeController : BaseAdminController
 
     public virtual async Task<IActionResult> Index()
     {
+        var currentCustomer = await _workContext.GetCurrentCustomerAsync();
+        var currentVendor = await _workContext.GetCurrentVendorAsync();
+        if (currentVendor != null)
+            return RedirectToAction("Details", "Vendor", new { id = currentVendor.Id });
+
+        if (currentVendor == null && await _permissionService.AuthorizeAsync(StandardPermission.Customers.VENDORS_VIEW, currentCustomer))
+            return RedirectToAction("Dashboard", "Vendor");
+
         //progress of localization
         var currentLanguage = await _workContext.GetWorkingLanguageAsync();
         var progress = await _genericAttributeService.GetAttributeAsync<string>(currentLanguage, NopCommonDefaults.LanguagePackProgressAttribute);

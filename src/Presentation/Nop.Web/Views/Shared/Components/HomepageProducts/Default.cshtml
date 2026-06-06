@@ -5,8 +5,6 @@
 @if (Model.Count > 0)
 {
     var previewProducts = Model.Take(4).ToList();
-    var hiddenProductsCount = Model.Count - previewProducts.Count;
-    var allProductsUrl = Url.RouteUrl(NopRouteNames.General.CATEGORIES) ?? "#";
 
     <div class="space-y-4">
         @foreach (var item in previewProducts)
@@ -14,36 +12,25 @@
             var picture = item.PictureModels.FirstOrDefault();
             var productUrl = await NopUrl.RouteGenericUrlAsync<Product>(new { SeName = item.SeName });
 
-            <article class="group flex gap-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+            <article class="home-card home-card-pad group flex gap-4 transition-shadow">
                 <a href="@productUrl" class="size-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                     <img alt="@picture?.AlternateText" class="size-full object-cover transition duration-300 group-hover:scale-105" src="@picture?.ImageUrl" title="@picture?.Title" />
                 </a>
                 <div class="min-w-0 flex-1">
-                    <p class="line-clamp-1 font-bold text-slate-800">@item.Name</p>
-                    <p class="mb-2 text-[10px] text-slate-500 truncate">@(string.IsNullOrWhiteSpace(item.Sku) ? "Danh mục sản phẩm" : item.Sku)</p>
+                    <p class="public-list-title line-clamp-1 font-bold text-slate-800">@item.Name</p>
+                    <p class="public-label-text mb-2 truncate text-slate-500">@(string.IsNullOrWhiteSpace(item.Sku) ? "Danh mục sản phẩm" : item.Sku)</p>
                     <div class="flex items-center gap-2">
-                        <span class="rounded bg-emerald-100 px-2 py-0.5 text-[9px] font-bold uppercase text-emerald-700">Sẵn sàng</span>
-                        <span class="text-[10px] text-slate-400">@(!string.IsNullOrWhiteSpace(item.ProductPrice.Price) ? item.ProductPrice.Price : "Liên hệ")</span>
+                        <span class="public-label-text rounded bg-emerald-100 px-2 py-0.5 font-bold uppercase text-emerald-700">Sẵn sàng</span>
+                        <span class="public-label-text text-slate-400">@(!string.IsNullOrWhiteSpace(item.ProductPrice.Price) ? item.ProductPrice.Price : "Liên hệ")</span>
                     </div>
                 </div>
             </article>
-        }
-
-        <a href="@allProductsUrl" class="inline-flex w-full items-center justify-center rounded-lg bg-slate-100 py-2 text-xs font-bold transition-colors hover:bg-slate-200">
-            Xem toàn bộ danh mục
-        </a>
-
-        @if (hiddenProductsCount > 0)
-        {
-            <div class="text-center text-[11px] font-medium text-slate-500">
-                Còn @hiddenProductsCount sản phẩm đang hiển thị ở các trang danh mục.
-            </div>
         }
     </div>
 }
 else
 {
-    <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-slate-500">
+    <div class="public-body-text rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-slate-500">
         Chưa có sản phẩm tiêu biểu được cấu hình trên trang chủ
     </div>
 }

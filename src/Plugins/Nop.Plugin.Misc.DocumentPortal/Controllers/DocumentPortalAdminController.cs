@@ -7,6 +7,7 @@ using Nop.Plugin.Misc.DocumentPortal.Models.Admin;
 using Nop.Plugin.Misc.DocumentPortal.Services;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
+using Nop.Services.Logging;
 using Nop.Services.Messages;
 using Nop.Services.Security;
 using Nop.Core;
@@ -27,6 +28,7 @@ public class DocumentPortalAdminController : BasePluginController
     private readonly IPermissionService _permissionService;
     private readonly ISettingService _settingService;
     private readonly ILocalizationService _localizationService;
+    private readonly ICustomerActivityService _customerActivityService;
     private readonly INotificationService _notificationService;
     private readonly IWorkContext _workContext;
 
@@ -36,6 +38,7 @@ public class DocumentPortalAdminController : BasePluginController
         IPermissionService permissionService,
         ISettingService settingService,
         ILocalizationService localizationService,
+        ICustomerActivityService customerActivityService,
         INotificationService notificationService,
         IWorkContext workContext)
     {
@@ -44,6 +47,7 @@ public class DocumentPortalAdminController : BasePluginController
         _permissionService = permissionService;
         _settingService = settingService;
         _localizationService = localizationService;
+        _customerActivityService = customerActivityService;
         _notificationService = notificationService;
         _workContext = workContext;
     }
@@ -130,6 +134,9 @@ public class DocumentPortalAdminController : BasePluginController
             entity.UploadedByCustomerId = currentCustomer.Id;
 
         await _documentPortalService.InsertAsync(entity);
+
+        await _customerActivityService.InsertActivityAsync(currentCustomer, NopActivityLogDefaults.AddNewPortalDocument,
+            string.Format(await _localizationService.GetResourceAsync("ActivityLog.AddNewPortalDocument"), entity.Title), entity);
 
         _notificationService.SuccessNotification(await _localizationService.GetResourceAsync("Admin.Common.DataSaved"));
         return continueEditing

@@ -864,6 +864,22 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             filteredSpecOptions: filteredSpecs,
             orderBy: (ProductSortingEnum)command.OrderBy);
 
+        var productsForUnitCount = await _productService.SearchProductsAsync(
+            0,
+            int.MaxValue,
+            categoryIds: categoryIds,
+            storeId: currentStore.Id,
+            productIds: favoriteProductIds,
+            visibleIndividuallyOnly: true,
+            excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+            priceMin: selectedPriceRange?.From,
+            priceMax: selectedPriceRange?.To,
+            manufacturerIds: command.Ms,
+            filteredSpecOptions: filteredSpecs,
+            orderBy: (ProductSortingEnum)command.OrderBy);
+
+        model.PostingUnitCount = productsForUnitCount.Select(product => product.VendorId).Where(vendorId => vendorId > 0).Distinct().Count();
+
         var isFiltering = filterableOptions.Any() || selectedPriceRange?.From is not null || command.FavoritesOnly;
         await PrepareCatalogProductsAsync(model, products, isFiltering);
 
@@ -1248,10 +1264,8 @@ public partial class CatalogModelFactory : ICatalogModelFactory
             });
         }
 
-        if (_forumSettings.AllowPrivateMessages)
-            model.PmCustomerId = vendor.PmCustomerId;
-        else
-            model.ContactCustomerId = null;
+        model.PmCustomerId = 0;
+        model.ContactCustomerId = null;
 
         return model;
     }

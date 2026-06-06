@@ -1,0 +1,86 @@
+@model Nop.Web.Models.Guide.UserGuideModel
+
+@{
+    Layout = "_ColumnsOne";
+    var pageTitle = string.IsNullOrWhiteSpace(Model.CustomTitle) ? "Tài liệu hướng dẫn sử dụng" : Model.CustomTitle;
+    var guideDownloadUrl = Url.Content("~/files/user-guide/huong-dan-su-dung.doc");
+    NopHtml.AddTitleParts(pageTitle);
+    NopHtml.AppendPageCssClassParts("html-user-guide-page");
+}
+
+@section Breadcrumb
+{
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Tài liệu hướng dẫn</span>
+    </nav>
+}
+
+<div class="page user-guide-page public-page-shell public-page-stack">
+    <section class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <p class="public-label-text font-black uppercase tracking-[0.18em] text-amber-100">Tiện ích</p>
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@pageTitle</h1>
+                <div class="pt-3">
+                    <a href="@guideDownloadUrl" download class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-100 px-4 py-2 public-control-text font-black text-slate-950 transition hover:bg-white hover:text-[#2e0001]">
+                        <span class="material-symbols-outlined text-[18px]">download</span>
+                        Tải hướng dẫn sử dụng
+                    </a>
+                </div>
+            </div>
+            <div class="public-blue-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em] text-amber-100">Chuyên mục</p>
+                    <p class="public-stat-value mt-1 font-black text-white">@Model.Sections.Count</p>
+                </div>
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em] text-amber-100">Cập nhật</p>
+                    <p class="public-control-text mt-1 font-black uppercase text-white">Linh hoạt</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid gap-4 lg:grid-cols-[minmax(15rem,24%)_minmax(0,1fr)]">
+        <aside class="h-fit rounded-3xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-32">
+            <h2 class="public-card-title mb-3 font-black text-slate-950">Mục lục nhanh</h2>
+            <div class="space-y-1">
+                @foreach (var guideSection in Model.Sections)
+                {
+                    <a href="#@guideSection.Anchor" class="flex items-center gap-2 rounded-xl px-3 py-2 public-control-text font-bold text-slate-600 transition hover:bg-sky-50 hover:text-sky-700">
+                        <span class="material-symbols-outlined text-[18px] @guideSection.IconColorClass">@guideSection.Icon</span>
+                        <span>@guideSection.Title</span>
+                    </a>
+                }
+            </div>
+        </aside>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            @foreach (var guideSection in Model.Sections)
+            {
+                <article id="@guideSection.Anchor" class="scroll-mt-32 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-sky-200 hover:shadow-md">
+                    <div class="mb-4 flex items-start gap-3">
+                        <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-50">
+                            <span class="material-symbols-outlined @guideSection.IconColorClass">@guideSection.Icon</span>
+                        </div>
+                        <div class="min-w-0">
+                            <h2 class="public-card-title font-black text-slate-950">@guideSection.Title</h2>
+                            <p class="public-body-text mt-1 text-slate-500">@guideSection.Description</p>
+                        </div>
+                    </div>
+                    <ol class="space-y-2 pl-0">
+                        @for (var i = 0; i < guideSection.Steps.Count; i++)
+                        {
+                            <li class="flex gap-3 rounded-2xl bg-slate-50 p-3 public-control-text font-semibold text-slate-700">
+                                <span class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-100 text-xs font-black text-sky-700">@(i + 1)</span>
+                                <span>@guideSection.Steps[i]</span>
+                            </li>
+                        }
+                    </ol>
+                </article>
+            }
+        </div>
+    </section>
+</div>

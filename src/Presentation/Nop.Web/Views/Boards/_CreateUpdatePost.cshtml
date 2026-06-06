@@ -6,33 +6,37 @@
 }
 
 @await Html.PartialAsync("_ForumHeader")
-<div class="page forum-edit-page px-4 pb-8 lg:px-0">
-    <div class="page-title mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6">
+<div class="page forum-edit-page public-page-shell public-page-stack">
+    <div class="page-title public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy">
         @if (Model.IsEdit)
         {
-            <h1 class="public-page-title font-black tracking-tight">@T("Forum.EditPost")</h1>
-            <p class="mt-2 text-sm text-white/80">Cập nhật bình luận để bổ sung thông tin đúng bối cảnh thảo luận.</p>
+            <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@T("Forum.EditPost")</h1>
+            <p class="public-hero-subtitle public-blue-hero-subtitle mt-2">Cập nhật bình luận để bổ sung thông tin đúng bối cảnh thảo luận.</p>
         }
         else
         {
-            <h1 class="public-page-title font-black tracking-tight">@T("Forum.NewPost")</h1>
-            <p class="mt-2 text-sm text-white/80">Thêm phản hồi mới và giữ mạch trao đổi thông suốt.</p>
+            <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@T("Forum.NewPost")</h1>
+            <p class="public-hero-subtitle public-blue-hero-subtitle mt-2">Thêm phản hồi mới và giữ mạch trao đổi thông suốt.</p>
         }
+            </div>
+        </div>
     </div>
     <div class="page-body">
-        <div asp-validation-summary="ModelOnly" class="message-error mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+        <div asp-validation-summary="ModelOnly" class="public-body-text message-error mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700"></div>
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="ForumTopicId" />
-        <section class="fieldset rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="form-fields space-y-4">
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="space-y-4">
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                        <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">@T("Forum.ForumName")</p>
-                        <p class="mt-1 text-sm font-semibold text-slate-900">@Model.ForumName</p>
+                        <p class="public-label-text font-bold uppercase tracking-[0.12em] text-slate-500">@T("Forum.ForumName")</p>
+                        <p class="public-list-title mt-1 font-semibold text-slate-900">@Model.ForumName</p>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                        <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">@T("Forum.TopicTitle")</p>
-                        <p class="mt-1 text-sm font-semibold text-slate-900">@Model.ForumTopicSubject</p>
+                        <p class="public-label-text font-bold uppercase tracking-[0.12em] text-slate-500">@T("Forum.TopicTitle")</p>
+                        <p class="public-list-title mt-1 font-semibold text-slate-900">@Model.ForumTopicSubject</p>
                     </div>
                 </div>
                 @if (Model.ForumEditor == EditorType.MarkdownEditor)
@@ -41,25 +45,22 @@
                 }
                 @if (Model.ForumEditor == EditorType.BBCodeEditor)
                 {
-                    <div class="inputs">
+                    <div class="public-form-row space-y-2">
                         <nop-bb-code-editor asp-for="Text" />
-                        <textarea aria-label="@T("Forum.Post.Text")" asp-for="Text" class="forum-post-text min-h-[220px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></textarea>
+                        <textarea aria-label="@T("Forum.Post.Text")" asp-for="Text" class="public-control-text forum-post-text min-h-[220px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></textarea>
                         <span asp-validation-for="Text"></span>
                     </div>
                 }
                 @if ((Model.ForumEditor == EditorType.SimpleTextBox))
                 {
-                    <div class="inputs">
-                        <textarea aria-label="@T("Forum.Post.Text")" asp-for="Text" class="forum-post-text min-h-[220px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></textarea>
+                    <div class="public-form-row space-y-2">
+                        <textarea aria-label="@T("Forum.Post.Text")" asp-for="Text" class="public-control-text forum-post-text min-h-[220px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-military-green focus:bg-white"></textarea>
                         <span asp-validation-for="Text"></span>
                     </div>
                 }
                 @if (Model.IsCustomerAllowedToSubscribe)
                 {
-                    <div class="inputs reversed inline-flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">
-                        <input asp-for="Subscribed" class="h-4 w-4 rounded border-slate-300 text-military-green focus:ring-military-green" />
-                        <label asp-for="Subscribed" class="text-sm font-medium text-slate-700">@T("Forum.NotifyWhenSomeonePostsInThisTopic")</label>
-                    </div>
+                    <input type="hidden" asp-for="Subscribed" value="false" />
                 }
                 @if (Model.DisplayCaptcha)
                 {
@@ -68,8 +69,8 @@
             </div>
         </section>
         <section class="buttons mt-4 flex flex-wrap items-center gap-2">
-            <button type="submit" class="button-1 submit-post-button inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.Submit")</button>
-            <button type="button" class="button-2 cancel-post-button inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName })')">@T("Forum.Cancel")</button>
+            <button type="submit" class="public-control-text button-1 submit-post-button inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-5 font-semibold text-white transition hover:brightness-110">@T("Forum.Submit")</button>
+            <button type="button" class="public-control-text button-2 cancel-post-button inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 font-semibold text-slate-700 transition hover:border-military-green hover:text-military-green" onclick="setLocation('@Url.RouteUrl(NopRouteNames.Standard.TOPIC_SLUG, new { id = Model.ForumTopicId, slug = Model.ForumTopicSeName })')">@T("Forum.Cancel")</button>
         </section>
     </div>
 </div>

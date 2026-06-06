@@ -79,22 +79,63 @@
         <div class="form-group row">
             <div class="col-md-3">
                 <div class="label-wrapper">
-                    <label class="col-form-label">Tài khoản thuộc đơn vị</label>
+                    <label class="col-form-label">Danh sách nhân viên</label>
                 </div>
             </div>
             <div class="col-md-9">
+                <div class="mb-2 text-right">
+                    <form asp-action="ExportStaffExcel" asp-controller="Vendor" method="post" style="display:inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="far fa-file-excel"></i>
+                            Xuất Excel
+                        </button>
+                    </form>
+                    <form asp-action="ExportStaffPdf" asp-controller="Vendor" method="post" style="display:inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="far fa-file-pdf"></i>
+                            Xuất PDF
+                        </button>
+                    </form>
+                </div>
                 @if (Model.AssociatedCustomers.Count > 0)
                 {
-                    for (var i = 0; i < Model.AssociatedCustomers.Count; i++)
-                    {
-                        <a asp-action="Edit" asp-controller="Customer" asp-route-id="@Model.AssociatedCustomers[i].Id">
-                            @Model.AssociatedCustomers[i].Email
-                        </a>
-                        if (i != Model.AssociatedCustomers.Count - 1)
-                        {
-                            <text>, </text>
-                        }
-                    }
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tên</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Gmail</th>
+                                    <th>Cấp bậc</th>
+                                    <th>Chức vụ</th>
+                                    <th>Quyền hạn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var customer in Model.AssociatedCustomers)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Edit" asp-controller="Customer" asp-route-id="@customer.Id">
+                                                @(string.IsNullOrWhiteSpace(customer.FullName) ? customer.Email : customer.FullName)
+                                            </a>
+                                            @if (customer.IsLeader)
+                                            {
+                                                <span class="badge badge-primary ml-1">Trưởng đơn vị</span>
+                                            }
+                                        </td>
+                                        <td>@(string.IsNullOrWhiteSpace(customer.Phone) ? "Chưa cập nhật" : customer.Phone)</td>
+                                        <td>@customer.Email</td>
+                                        <td>@(string.IsNullOrWhiteSpace(customer.Rank) ? "Chưa rõ" : customer.Rank)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(customer.PositionTitle) ? "Chưa rõ" : customer.PositionTitle)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(customer.RoleNames) ? "Chưa có quyền" : customer.RoleNames)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
                 else
                 {

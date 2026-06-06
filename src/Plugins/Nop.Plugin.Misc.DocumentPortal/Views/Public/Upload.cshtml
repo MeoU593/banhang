@@ -6,7 +6,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="/tai-lieu" class="transition hover:text-military-green">Kho tài liệu</a>
@@ -17,11 +17,15 @@
 
 <div class="page document-upload-page">
     <div class="page-body">
-        <div class="mx-auto max-w-2xl space-y-6">
+        <div class="public-page-shell mx-auto max-w-2xl space-y-6">
 
-            <section class="overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-                <h1 class="public-hero-title font-black tracking-tight text-white">Gửi tài liệu mới</h1>
-                <p class="mt-1.5 text-xs leading-5 text-slate-200 sm:text-sm">Tài liệu sẽ được kiểm duyệt trước khi xuất bản.</p>
+            <section class="public-blue-hero">
+                <div class="public-blue-hero-content">
+                    <div class="public-blue-hero-copy space-y-1.5">
+                        <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">Gửi tài liệu mới</h1>
+                        <p class="public-hero-subtitle public-blue-hero-subtitle max-w-2xl">Tài liệu sẽ được kiểm duyệt trước khi xuất bản.</p>
+                    </div>
+                </div>
             </section>
 
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -30,7 +34,7 @@
                         <span class="material-symbols-outlined text-military-green" style="font-size:24px">upload_file</span>
                         Gửi tài liệu mới
                     </h1>
-                    <p class="mt-1 text-sm text-slate-500">Tài liệu sẽ được kiểm duyệt trước khi xuất bản.</p>
+                    <p class="public-body-text mt-1 text-slate-500">Tài liệu sẽ được kiểm duyệt trước khi xuất bản.</p>
                 </div>
 
                 <form method="post" action="/tai-lieu/upload" enctype="multipart/form-data" class="space-y-5 px-6 py-6">

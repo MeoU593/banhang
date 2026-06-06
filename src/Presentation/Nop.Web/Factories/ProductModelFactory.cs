@@ -184,6 +184,21 @@ public partial class ProductModelFactory : IProductModelFactory
 
     #region Utilities
 
+    protected virtual async Task<string> GetProductPosterAccountNameAsync(Customer customer)
+    {
+        var fullName = await _customerService.GetCustomerFullNameAsync(customer);
+        if (!string.IsNullOrWhiteSpace(fullName))
+            return fullName.Trim();
+
+        if (!string.IsNullOrWhiteSpace(customer.Username))
+            return customer.Username.Trim();
+
+        if (!string.IsNullOrWhiteSpace(customer.Email))
+            return customer.Email.Split('@')[0].Trim();
+
+        return $"Tài khoản #{customer.Id}";
+    }
+
     /// <summary>
     /// Prepare the grouped product overview price model
     /// </summary>
@@ -1293,6 +1308,7 @@ public partial class ProductModelFactory : IProductModelFactory
                 FullDescription = await _localizationService.GetLocalizedAsync(product, x => x.FullDescription),
                 SeName = await _urlRecordService.GetSeNameAsync(product),
                 Sku = product.Sku,
+                VendorId = product.VendorId,
                 ProductType = product.ProductType,
                 IsFavorite = favoriteStates.TryGetValue(product.Id, out var isFavorite) && isFavorite,
                 MarkAsNew = product.MarkAsNew &&
@@ -1479,7 +1495,7 @@ public partial class ProductModelFactory : IProductModelFactory
                 model.ProductPoster = new ProductDetailsModel.ProductPosterModel
                 {
                     CustomerId = posterCustomer.Id,
-                    Name = await _customerService.GetCustomerFullNameAsync(posterCustomer),
+                    Name = await GetProductPosterAccountNameAsync(posterCustomer),
                     PhoneNumber = posterCustomer.Phone,
                     Email = posterCustomer.Email,
                     Rank = militaryProfile?.Rank,

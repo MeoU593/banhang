@@ -87,17 +87,17 @@ public partial class ProductReviewModelFactory : IProductReviewModelFactory
         //prepare "approved" property (0 - all; 1 - approved only; 2 - disapproved only)
         searchModel.AvailableApprovedOptions.Add(new SelectListItem
         {
-            Text = await _localizationService.GetResourceAsync("Admin.Catalog.ProductReviews.List.SearchApproved.All"),
+            Text = "Tất cả",
             Value = "0"
         });
         searchModel.AvailableApprovedOptions.Add(new SelectListItem
         {
-            Text = await _localizationService.GetResourceAsync("Admin.Catalog.ProductReviews.List.SearchApproved.ApprovedOnly"),
+            Text = "Đã duyệt",
             Value = "1"
         });
         searchModel.AvailableApprovedOptions.Add(new SelectListItem
         {
-            Text = await _localizationService.GetResourceAsync("Admin.Catalog.ProductReviews.List.SearchApproved.DisapprovedOnly"),
+            Text = "Chưa duyệt",
             Value = "2"
         });
 

@@ -1,13 +1,15 @@
 ﻿@{
     Layout = "_Root";
     var isAuthStandalone = ViewData["AuthStandalone"] as bool? ?? false;
+    var hasBreadcrumb = IsSectionDefined("Breadcrumb");
+    ViewData["HasBreadcrumb"] = hasBreadcrumb;
 }
 
-@if (IsSectionDefined("Breadcrumb"))
-{
-    <div class="center-1 w-full px-4 pt-4 sm:px-6 lg:px-8 xl:px-10">
+@section Breadcrumb {
+    @if (hasBreadcrumb)
+    {
         @await RenderSectionAsync("Breadcrumb")
-    </div>
+    }
 }
 
 @if (isAuthStandalone)
@@ -20,7 +22,7 @@
 }
 else
 {
-    <section class="center-1 min-h-screen w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
+    <section class="center-1 public-layout-section min-h-screen w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
         @RenderBody()
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })

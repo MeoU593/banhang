@@ -57,6 +57,8 @@ public partial record BlogPagingFilteringModel : BasePageableModel
 
     public string Tag { get; set; }
 
+    public string Author { get; set; }
+
     public int? PostTypeId { get; set; }
 
     public int VendorId { get; set; }

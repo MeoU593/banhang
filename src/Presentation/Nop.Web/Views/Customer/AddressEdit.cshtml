@@ -17,7 +17,7 @@
         <div class="page-body">
             <div class="account-card max-w-2xl">
                 <p class="account-card-title">@T("Account.CustomerAddresses.Edit")</p>
-                <div asp-validation-summary="ModelOnly" class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+                <div asp-validation-summary="ModelOnly" class="public-body-text mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700"></div>
                 @{
                     var dataDictAddress = new ViewDataDictionary(ViewData);
                     dataDictAddress.TemplateInfo.HtmlFieldPrefix = "Address";

@@ -1,5 +1,7 @@
-﻿using Nop.Services.Customers;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Services.Customers;
 using Nop.Services.Helpers;
+using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Logging;
@@ -18,6 +20,7 @@ public partial class ActivityLogModelFactory : IActivityLogModelFactory
     protected readonly ICustomerActivityService _customerActivityService;
     protected readonly ICustomerService _customerService;
     protected readonly IDateTimeHelper _dateTimeHelper;
+    protected readonly ILocalizationService _localizationService;
 
     #endregion
 
@@ -26,12 +29,14 @@ public partial class ActivityLogModelFactory : IActivityLogModelFactory
     public ActivityLogModelFactory(IBaseAdminModelFactory baseAdminModelFactory,
         ICustomerActivityService customerActivityService,
         ICustomerService customerService,
-        IDateTimeHelper dateTimeHelper)
+        IDateTimeHelper dateTimeHelper,
+        ILocalizationService localizationService)
     {
         _baseAdminModelFactory = baseAdminModelFactory;
         _customerActivityService = customerActivityService;
         _customerService = customerService;
         _dateTimeHelper = dateTimeHelper;
+        _localizationService = localizationService;
     }
 
     #endregion
@@ -49,9 +54,35 @@ public partial class ActivityLogModelFactory : IActivityLogModelFactory
     {
         //prepare available activity log types
         var availableActivityTypes = await _customerActivityService.GetAllActivityTypesAsync();
-        var models = availableActivityTypes.Select(activityType => activityType.ToModel<ActivityLogTypeModel>()).ToList();
+        var models = availableActivityTypes
+            .Where(activityType => activityType.Enabled)
+            .Select(activityType => activityType.ToModel<ActivityLogTypeModel>())
+            .ToList();
 
         return models;
+    }
+
+    protected virtual async Task<IList<Nop.Core.Domain.Logging.ActivityLogType>> GetAllowedSystemActivityLogTypesAsync()
+    {
+        var allowedKeywords = NopActivityLogDefaults.SystemActivityLogKeywords.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var availableActivityTypes = await _customerActivityService.GetAllActivityTypesAsync();
+
+        return availableActivityTypes
+            .Where(activityType => activityType.Enabled && allowedKeywords.Contains(activityType.SystemKeyword))
+            .OrderBy(activityType => Array.IndexOf(NopActivityLogDefaults.SystemActivityLogKeywords, activityType.SystemKeyword))
+            .ToList();
+    }
+
+    protected virtual async Task PrepareAllowedSystemActivityLogTypesAsync(IList<SelectListItem> items)
+    {
+        items.Add(new SelectListItem
+        {
+            Value = "0",
+            Text = await _localizationService.GetResourceAsync("Admin.Common.All")
+        });
+
+        foreach (var activityType in await GetAllowedSystemActivityLogTypesAsync())
+            items.Add(new SelectListItem { Value = activityType.Id.ToString(), Text = activityType.Name });
     }
 
     #endregion
@@ -91,7 +122,7 @@ public partial class ActivityLogModelFactory : IActivityLogModelFactory
         ArgumentNullException.ThrowIfNull(searchModel);
 
         //prepare available activity log types
-        await _baseAdminModelFactory.PrepareActivityLogTypesAsync(searchModel.ActivityLogType);
+        await PrepareAllowedSystemActivityLogTypesAsync(searchModel.ActivityLogType);
 
         //prepare grid
         searchModel.SetGridPageSize();
@@ -117,11 +148,27 @@ public partial class ActivityLogModelFactory : IActivityLogModelFactory
         var endDateValue = searchModel.CreatedOnTo == null ? null
             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(searchModel.CreatedOnTo.Value, await _dateTimeHelper.GetCurrentTimeZoneAsync()).AddDays(1);
 
+        int[] filterCustomerIds = null;
+        if (!string.IsNullOrWhiteSpace(searchModel.SearchCustomerEmail))
+        {
+            var customers = await _customerService.GetAllCustomersAsync(email: searchModel.SearchCustomerEmail, pageSize: int.MaxValue);
+            filterCustomerIds = customers.Select(customer => customer.Id).DefaultIfEmpty(-1).ToArray();
+        }
+
+        var allowedActivityLogTypeIds = (await GetAllowedSystemActivityLogTypesAsync())
+            .Select(activityType => activityType.Id)
+            .DefaultIfEmpty(-1)
+            .ToArray();
+        var selectedActivityLogTypeId = allowedActivityLogTypeIds.Contains(searchModel.ActivityLogTypeId)
+            ? searchModel.ActivityLogTypeId
+            : 0;
+
         //get log
         var activityLog = await _customerActivityService.GetAllActivitiesAsync(createdOnFrom: startDateValue,
             createdOnTo: endDateValue,
-            activityLogTypeId: searchModel.ActivityLogTypeId,
-            ipAddress: searchModel.IpAddress,
+            activityLogTypeId: selectedActivityLogTypeId,
+            customerIds: filterCustomerIds,
+            activityLogTypeIds: allowedActivityLogTypeIds,
             pageIndex: searchModel.Page - 1, pageSize: searchModel.PageSize);
 
         if (activityLog is null)

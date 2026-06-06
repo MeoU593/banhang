@@ -1,0 +1,293 @@
+@model Nop.Web.Models.Directory.UnitDirectoryModel
+
+@{
+    Layout = "_ColumnsOne";
+    NopHtml.AddTitleParts("Danh bạ đơn vị");
+    NopHtml.AppendPageCssClassParts("html-unit-directory-page");
+}
+
+<style>
+    .unit-directory-page {
+        --directory-max-height: calc(100vh - 10.5rem);
+    }
+
+    .unit-directory-layout {
+        min-height: 0;
+        max-height: var(--directory-max-height);
+        overflow: hidden;
+    }
+
+    .unit-directory-panel {
+        min-height: 0;
+        max-height: var(--directory-max-height);
+        overflow: hidden;
+    }
+
+    .unit-directory-scroll {
+        min-height: 0;
+        max-height: calc(var(--directory-max-height) - 4.1rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 0.25rem;
+    }
+
+    .unit-directory-detail {
+        min-height: 0;
+        max-height: var(--directory-max-height);
+        overflow-y: auto;
+    }
+
+    .unit-directory-person-card {
+        display: block;
+        border-radius: 1rem;
+        border: 1px solid rgb(226 232 240);
+        background: #fff;
+        padding: 0.7rem 0.8rem;
+        text-decoration: none !important;
+        transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .unit-directory-person-role {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: transparent !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        font-size: 0.78rem !important;
+        line-height: 1.32 !important;
+        text-align: left;
+    }
+
+    .unit-directory-person-role strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: transparent !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        color: rgb(2 6 23);
+        font-size: 0.9rem !important;
+        line-height: 1.2 !important;
+        font-weight: 900;
+        text-align: left;
+    }
+
+    .unit-directory-person-position {
+        display: block;
+        margin-top: 0.18rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    .unit-directory-person-card:hover {
+        border-color: rgb(147 197 253);
+        background: rgb(248 250 252);
+    }
+
+    .unit-directory-person-card.active {
+        border-color: rgb(253 224 71);
+        background: linear-gradient(135deg, #fde68a 0%, #fff7cc 100%);
+        box-shadow: 0 12px 24px -20px rgba(15, 23, 42, 0.45);
+    }
+
+    .unit-directory-scroll::-webkit-scrollbar,
+    .unit-directory-detail::-webkit-scrollbar {
+        width: 0.45rem;
+    }
+
+    .unit-directory-scroll::-webkit-scrollbar-thumb,
+    .unit-directory-detail::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgb(203 213 225);
+    }
+
+    @@media (max-width: 1023px) {
+        .unit-directory-layout,
+        .unit-directory-panel,
+        .unit-directory-scroll,
+        .unit-directory-detail {
+            max-height: none;
+            overflow: visible;
+        }
+    }
+</style>
+
+@section Breadcrumb
+{
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
+        <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
+        <span class="text-slate-700">Danh bạ đơn vị</span>
+    </nav>
+}
+
+<div class="page unit-directory-page public-page-shell public-page-stack">
+    <section class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">Danh bạ đơn vị</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle">Tra cứu nhanh hồ sơ liên hệ nhân sự theo cây đơn vị.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <form method="get" action="@Url.RouteUrl(NopRouteNames.General.UNIT_DIRECTORY)" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_repeat(2,minmax(10rem,14rem))_auto]">
+            <input type="hidden" name="vendorId" value="@Model.SelectedVendorId" />
+            <input name="q" value="@Model.SearchKeyword" class="public-control-text h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none transition focus:border-military-green focus:bg-white" placeholder="Tìm họ tên, SĐT, số hiệu..." />
+            <input name="rank" value="@Model.SearchRank" class="public-control-text h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none transition focus:border-military-green focus:bg-white" placeholder="Quân hàm" />
+            <input name="positionTitle" value="@Model.SearchPositionTitle" class="public-control-text h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none transition focus:border-military-green focus:bg-white" placeholder="Chức vụ" />
+            <div class="flex gap-2">
+                <button type="submit" class="public-control-text inline-flex h-11 items-center justify-center rounded-xl bg-military-green px-4 font-bold text-white">Lọc</button>
+                <a href="@Url.RouteUrl(NopRouteNames.General.UNIT_DIRECTORY, new { vendorId = Model.SelectedVendorId })" class="public-control-text inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-4 font-bold text-slate-600">Làm mới</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="unit-directory-layout grid gap-4 lg:grid-cols-[minmax(18rem,28%)_minmax(0,1fr)]">
+        <aside class="unit-directory-panel rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 class="public-card-title mb-3 font-black text-slate-900">Cây đơn vị</h2>
+            <div class="unit-directory-scroll space-y-1">
+                @foreach (var vendor in Model.Vendors)
+                {
+                    <a href="@Url.RouteUrl(NopRouteNames.General.UNIT_DIRECTORY, new { vendorId = vendor.Id, q = Model.SearchKeyword, rank = Model.SearchRank, positionTitle = Model.SearchPositionTitle })"
+                       class="flex items-center rounded-xl px-3 py-2 font-semibold transition @(vendor.Active ? "bg-sky-100 text-sky-800" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")"
+                       style="margin-left:@(Math.Max(0, vendor.Level) * 0.85)rem">
+                        <span class="material-symbols-outlined mr-2 text-[18px]">corporate_fare</span>
+                        <span class="truncate">@vendor.Name</span>
+                    </a>
+                }
+            </div>
+        </aside>
+
+        <div class="grid min-h-0 gap-4 xl:grid-cols-[minmax(16rem,32%)_minmax(0,1fr)]">
+            <aside class="unit-directory-panel rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h2 class="public-card-title mb-3 font-black text-slate-900">Nhân sự</h2>
+                @if (!Model.People.Any())
+                {
+                    <p class="public-body-text rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-slate-500">Đơn vị này chưa có dữ liệu danh bạ.</p>
+                }
+                else
+                {
+                    <div class="unit-directory-scroll space-y-2">
+                        @foreach (var person in Model.People)
+                        {
+                            <a href="@Url.RouteUrl(NopRouteNames.General.UNIT_DIRECTORY, new { vendorId = Model.SelectedVendorId, personId = person.Id, q = Model.SearchKeyword, rank = Model.SearchRank, positionTitle = Model.SearchPositionTitle })"
+                               class="unit-directory-person-card js-unit-directory-person @(person.Id == Model.SelectedPersonId ? "active" : string.Empty)"
+                               data-person-id="@person.Id"
+                               data-full-name="@person.FullName"
+                               data-rank="@person.Rank"
+                               data-position-title="@person.PositionTitle"
+                               data-phone="@person.Phone"
+                               data-military-code="@person.MilitaryCode"
+                               data-unit-name="@person.UnitName">
+                                <span class="unit-directory-person-role public-meta-text text-slate-600">
+                                    <strong>@person.FullName</strong>
+                                    <span class="unit-directory-person-position">@person.Rank - @person.PositionTitle</span>
+                                </span>
+                            </a>
+                        }
+                    </div>
+                }
+            </aside>
+
+            <article class="unit-directory-detail rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                @if (Model.SelectedPerson == null)
+                {
+                    <div class="flex min-h-[18rem] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-center public-body-text text-slate-500">
+                        Chọn một nhân sự để xem chi tiết hồ sơ.
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-5 flex items-center gap-4">
+                        <div id="unit-directory-selected-initial" class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-xl font-black text-amber-200">
+                            @Model.SelectedPerson.FullName.Trim().Substring(0, 1).ToUpper()
+                        </div>
+                        <div>
+                            <h2 id="unit-directory-selected-name" class="public-section-title font-black text-slate-950">@Model.SelectedPerson.FullName</h2>
+                            <p id="unit-directory-selected-role" class="public-body-text text-slate-500">@Model.SelectedPerson.Rank - @Model.SelectedPerson.PositionTitle</p>
+                        </div>
+                    </div>
+
+                    <dl class="grid gap-3 md:grid-cols-2">
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Tên</dt><dd id="unit-directory-selected-full-name" class="public-body-text mt-1 font-bold text-slate-900">@Model.SelectedPerson.FullName</dd></div>
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Quân hàm</dt><dd id="unit-directory-selected-rank" class="public-body-text mt-1 font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.SelectedPerson.Rank) ? "Chưa cập nhật" : Model.SelectedPerson.Rank)</dd></div>
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Chức vụ</dt><dd id="unit-directory-selected-position" class="public-body-text mt-1 font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.SelectedPerson.PositionTitle) ? "Chưa cập nhật" : Model.SelectedPerson.PositionTitle)</dd></div>
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Số điện thoại</dt><dd id="unit-directory-selected-phone" class="public-body-text mt-1 font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.SelectedPerson.Phone) ? "Chưa cập nhật" : Model.SelectedPerson.Phone)</dd></div>
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Số hiệu quân nhân</dt><dd id="unit-directory-selected-military-code" class="public-body-text mt-1 font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.SelectedPerson.MilitaryCode) ? "Chưa cập nhật" : Model.SelectedPerson.MilitaryCode)</dd></div>
+                        <div class="rounded-xl bg-slate-50 p-4"><dt class="public-label-text font-bold uppercase text-slate-500">Đơn vị</dt><dd id="unit-directory-selected-unit" class="public-body-text mt-1 font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.SelectedPerson.UnitName) ? "Chưa cập nhật" : Model.SelectedPerson.UnitName)</dd></div>
+                    </dl>
+                }
+            </article>
+        </div>
+    </section>
+</div>
+
+<script>
+    (() => {
+        const personLinks = Array.from(document.querySelectorAll('.js-unit-directory-person'));
+        if (!personLinks.length) {
+            return;
+        }
+
+        const fields = {
+            initial: document.getElementById('unit-directory-selected-initial'),
+            name: document.getElementById('unit-directory-selected-name'),
+            role: document.getElementById('unit-directory-selected-role'),
+            fullName: document.getElementById('unit-directory-selected-full-name'),
+            rank: document.getElementById('unit-directory-selected-rank'),
+            position: document.getElementById('unit-directory-selected-position'),
+            phone: document.getElementById('unit-directory-selected-phone'),
+            militaryCode: document.getElementById('unit-directory-selected-military-code'),
+            unit: document.getElementById('unit-directory-selected-unit')
+        };
+
+        if (!fields.name || !fields.role) {
+            return;
+        }
+
+        const valueOrDefault = value => value && value.trim() ? value : 'Chưa cập nhật';
+        const roleText = link => `${valueOrDefault(link.dataset.rank)} - ${valueOrDefault(link.dataset.positionTitle)}`;
+
+        const selectPerson = (link, updateUrl) => {
+            personLinks.forEach(item => item.classList.toggle('active', item === link));
+
+            const fullName = valueOrDefault(link.dataset.fullName);
+            fields.initial.textContent = fullName === 'Chưa cập nhật' ? '?' : fullName.trim().charAt(0).toUpperCase();
+            fields.name.textContent = fullName;
+            fields.role.textContent = roleText(link);
+            fields.fullName.textContent = fullName;
+            fields.rank.textContent = valueOrDefault(link.dataset.rank);
+            fields.position.textContent = valueOrDefault(link.dataset.positionTitle);
+            fields.phone.textContent = valueOrDefault(link.dataset.phone);
+            fields.militaryCode.textContent = valueOrDefault(link.dataset.militaryCode);
+            fields.unit.textContent = valueOrDefault(link.dataset.unitName);
+
+            if (updateUrl) {
+                window.history.pushState({ personId: link.dataset.personId }, '', link.href);
+            }
+        };
+
+        personLinks.forEach(link => {
+            link.addEventListener('click', event => {
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                event.preventDefault();
+                selectPerson(link, true);
+            });
+        });
+
+        window.addEventListener('popstate', () => {
+            const personId = new URLSearchParams(window.location.search).get('personId');
+            const link = personLinks.find(item => item.dataset.personId === personId) || personLinks[0];
+            selectPerson(link, false);
+        });
+    })();
+</script>

@@ -1,50 +1,71 @@
 @model List<Nop.Plugin.Misc.LogisticsReports.Models.VendorStaff.VendorStaffAccessModel>
+@inject Nop.Web.Framework.UI.INopHtmlHelper NopHtml
 
 @{
     Layout = "_AdminLayout";
-    ViewBag.Title = "Cấp quyền nhân viên";
+    ViewBag.Title = "Danh sách nhân viên";
+    NopHtml.SetActiveMenuItemSystemName("VendorStaffAccess");
 }
 
 <div class="content-header clearfix">
-    <h1 class="float-left">Cấp quyền truy cập nhân viên</h1>
+    <h1 class="float-left">Danh sách nhân viên</h1>
+    <div class="float-right">
+        <form asp-controller="VendorStaffAccess" asp-action="ExportExcel" method="post" style="display:inline">
+            <button type="submit" class="btn btn-success">
+                <i class="far fa-file-excel"></i>
+                Xuất Excel
+            </button>
+        </form>
+        <form asp-controller="VendorStaffAccess" asp-action="ExportPdf" method="post" style="display:inline">
+            <button type="submit" class="btn btn-danger">
+                <i class="far fa-file-pdf"></i>
+                Xuất PDF
+            </button>
+        </form>
+    </div>
 </div>
 
 <section class="content">
     <div class="container-fluid">
         <div class="card card-default">
             <div class="card-header">
-                <h3 class="card-title">Danh sách nhân viên trong đơn vị</h3>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">
-                    Nhân viên có quyền truy cập sẽ có thể đăng nhập vào khu vực quản lý đơn vị.
-                    Bạn không thể thay đổi quyền của chính mình (trưởng đơn vị).
-                </p>
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Họ tên</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
+                    <h3 class="card-title">Danh sách nhân viên trong đơn vị</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Nhân viên có quyền truy cập sẽ có thể đăng nhập vào khu vực quản lý đơn vị.
+                        Bạn không thể thay đổi quyền của chính mình (trưởng đơn vị).
+                    </p>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Số điện thoại</th>
+                                <th>Gmail</th>
+                                <th>Cấp bậc</th>
+                                <th>Chức vụ</th>
+                                <th>Quyền hạn</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Email</td>
-                                <td>@item.FullName</td>
                                 <td>
+                                    @item.FullName
                                     @if (item.IsLeader)
                                     {
-                                        <span class="badge badge-primary">Trưởng đơn vị</span>
+                                        <span class="badge badge-primary ml-1">Trưởng đơn vị</span>
                                     }
-                                    else
-                                    {
-                                        <span class="badge badge-secondary">Nhân viên</span>
-                                    }
+                                </td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Phone) ? "Chưa cập nhật" : item.Phone)</td>
+                                <td>@item.Email</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Rank) ? "Chưa rõ" : item.Rank)</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.PositionTitle) ? "Chưa rõ" : item.PositionTitle)</td>
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(item.RoleNames) ? "Chưa có quyền" : item.RoleNames)
                                 </td>
                                 <td>
                                     @if (item.HasAccess)

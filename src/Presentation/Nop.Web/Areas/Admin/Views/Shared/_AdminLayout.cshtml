@@ -48,8 +48,130 @@
     @await Component.InvokeAsync(typeof(FaviconViewComponent))
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <style>
+        .main-sidebar .nav-sidebar > .nav-item > .nav-link {
+            border-radius: 0.65rem;
+            margin: 0.12rem 0.45rem;
+            transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .main-sidebar .nav-sidebar .nav-link .nav-icon {
+            transition: color 160ms ease, transform 160ms ease;
+        }
+
+        .main-sidebar .nav-sidebar .nav-link.active {
+            background: linear-gradient(90deg, rgba(254, 214, 91, 0.32), rgba(255, 255, 255, 0.11)) !important;
+            color: #ffffff !important;
+            box-shadow: inset 0.25rem 0 0 #fed65b, 0 0.75rem 1.55rem -1rem rgba(254, 214, 91, 0.65);
+            font-weight: 700;
+        }
+
+        .main-sidebar .nav-sidebar .nav-link.active .nav-icon {
+            color: #fed65b !important;
+            transform: translateX(1px);
+        }
+
+        .main-sidebar .nav-sidebar .nav-link.active-parent {
+            color: #fff7d6 !important;
+            background: rgba(254, 214, 91, 0.1) !important;
+            box-shadow: inset 0.18rem 0 0 rgba(254, 214, 91, 0.75);
+        }
+
+        .main-sidebar .nav-sidebar .menu-open > .nav-link {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system="UnitManagement"] > .nav-link .nav-icon { color: #38bdf8; }
+        .main-sidebar .nav-sidebar [data-menu-system="AccountManagement"] > .nav-link .nav-icon { color: #a78bfa; }
+        .main-sidebar .nav-sidebar [data-menu-system="SystemLogs"] > .nav-link .nav-icon { color: #fb7185; }
+        .main-sidebar .nav-sidebar [data-menu-system="ProductManagement"] > .nav-link .nav-icon { color: #fbbf24; }
+        .main-sidebar .nav-sidebar [data-menu-system="DocumentPortal.Root"] > .nav-link .nav-icon { color: #2dd4bf; }
+        .main-sidebar .nav-sidebar [data-menu-system="LogisticsReports.Root"] > .nav-link .nav-icon { color: #4ade80; }
+        .main-sidebar .nav-sidebar [data-menu-system="SystemManagement"] > .nav-link .nav-icon { color: #f97316; }
+
+        .main-sidebar .nav-sidebar [data-menu-system="UnitDashboard"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="UnitDirectory"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="UnitStaff"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="UnitActivityLog"] > .nav-link .nav-icon { color: #7dd3fc; }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Customers list"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Customer roles"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Pending customers"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Online customers"] > .nav-link .nav-icon { color: #c4b5fd; }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Activity logs"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Activity types"] > .nav-link .nav-icon { color: #fda4af; }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Products"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Categories"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Product reviews"] > .nav-link .nav-icon { color: #fde68a; }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Access control list"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Log"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Maintenance"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Schedule tasks"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system="Topics"] > .nav-link .nav-icon { color: #fdba74; }
+
+        .main-sidebar .nav-sidebar .nav-treeview .nav-link.active {
+            background: rgba(254, 214, 91, 0.24) !important;
+            color: #fff7d6 !important;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Vendors"] > .nav-link,
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link {
+            align-items: flex-start;
+            min-height: 2.35rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Vendors"] > .nav-link .nav-icon,
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link .nav-icon {
+            flex: 0 0 1.15rem;
+            width: 1.15rem;
+            margin-top: 0.12rem;
+            margin-right: 0.55rem;
+            text-align: center;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link .nav-icon {
+            color: #9fb3c8;
+            font-size: 0.82rem;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Vendors"] > .nav-link p,
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link p {
+            position: relative;
+            min-width: 0;
+            margin: 0;
+            padding-right: 1.25rem;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            line-height: 1.35;
+            word-break: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system="Vendors"] > .nav-link .nav-tree-toggle,
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link .nav-tree-toggle {
+            position: absolute;
+            top: 0.08rem;
+            right: 0;
+            margin: 0;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link {
+            color: #d7dee8;
+        }
+
+        .main-sidebar .nav-sidebar [data-menu-system^="Vendors."] > .nav-link:hover {
+            color: #ffffff;
+            background: rgba(148, 163, 184, 0.12) !important;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed control-sidebar-slide-open">
     <div class="throbber">
@@ -78,7 +200,7 @@
             <nav class="main-header navbar navbar-expand-md navbar-dark bg-dark">
                 <ul class="navbar-nav pl-2 pl-md-0">
                     <li class="nav-item">
-                        <a class="nav-link" id="nopSideBarPusher" data-widget="pushmenu" href="#"><i class="fa fa-bars"></i></a>
+                        <a class="nav-link" id="nopSideBarPusher" data-widget="pushmenu" href="#" title="Thu gọn menu" data-toggle="tooltip"><i class="fa fa-bars"></i></a>
                     </li>
                     @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.HeaderToggleAfter })
                 </ul>
@@ -104,12 +226,12 @@
                             @await Component.InvokeAsync(typeof(AdminWidgetViewComponent), new { widgetZone = AdminWidgetZones.HeaderMiddle })
                         </li>
                         <li class="nav-item">
-                            <a asp-controller="Home" asp-action="Index" asp-area="" class="nav-link">@T("Admin.Header.PublicStore")</a>
+                            <a asp-controller="Home" asp-action="Index" asp-area="" class="nav-link" title="Trang người dùng" data-toggle="tooltip">Trang người dùng</a>
                         </li>
                         @if (canManageMaintenance)
                         {
                             <li class="nav-item dropdown">
-                                <a class="nav-link" href="#" data-toggle="dropdown">
+                                <a class="nav-link" href="#" data-toggle="dropdown" title="Công cụ hệ thống">
                                     <i class="fas fa-gears"></i>
                                 </a>
                                 <ul class="maintenance-menu dropdown-menu dropdown-menu-right" role="menu">
@@ -156,13 +278,10 @@
         {
             <aside class="main-sidebar sidebar-dark-primary elevation-4">
                 <!-- Brand Logo -->
-                <a href="@Url.Content("~/Admin")" class="brand-link navbar-dark" style="text-decoration:none;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;overflow:hidden">
-                    <div style="width:40px;height:40px;min-width:40px;background:linear-gradient(145deg,#3d5129,#2d3a22);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.06)">
-                        <span class="material-symbols-outlined" style="font-size:22px;color:#fed65b;font-variation-settings:'FILL' 1;filter:drop-shadow(0 1px 3px rgba(254,214,91,0.4))">military_tech</span>
-                    </div>
-                    <div class="brand-text" style="line-height:1.25;min-width:0">
-                        <div style="font-size:13px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap">Hậu Cần - Quân Nhu</div>
-                        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.38);white-space:nowrap;margin-top:3px">BTL Tăng Thiết Giáp</div>
+                <a href="@Url.Content("~/Admin")" class="brand-link navbar-dark" style="text-decoration:none;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center">
+                    <div class="brand-text" style="line-height:1.2;min-width:0;text-align:center;font-family:inherit">
+                        <div style="font-size:15px;font-weight:600;color:#ffffff;white-space:nowrap">Hậu Cần - Quân Nhu</div>
+                        <div style="font-size:14px;font-weight:600;color:#fed65b;white-space:nowrap;margin-top:2px">BC Tăng Thiết Giáp</div>
                     </div>
                 </a>
                 <div class="sidebar">
@@ -276,7 +395,42 @@
             $('#backTop').backTop();
 
             //enable tooltips
-            $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' });
+            $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom', trigger: 'hover' })
+                .on('mouseleave click', function () {
+                    $(this).tooltip('hide');
+                });
+
+            $('.nav-sidebar').on('click', '.nav-item.has-treeview > a.nav-link', function (event) {
+                if ($(event.target).closest('.nav-tree-toggle').length) {
+                    return;
+                }
+
+                var href = $(this).attr('href');
+                if (href && href !== '#') {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    window.location.href = href;
+                }
+            });
+
+            $('.nav-sidebar').on('click', '.nav-tree-toggle', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                var $item = $(this).closest('.nav-item.has-treeview');
+                var $tree = $item.children('.nav-treeview').first();
+                if ($item.hasClass('menu-open')) {
+                    $tree.stop(true, true).slideUp(150);
+                    $item.removeClass('menu-open');
+                } else {
+                    $item.addClass('menu-open');
+                    $tree.stop(true, true).slideDown(150);
+                }
+            });
+
+            $('.nav-sidebar').on('mouseleave', '.nav-link', function () {
+                $(this).removeClass('hover').tooltip('hide');
+            });
         });
     </script>
     @{

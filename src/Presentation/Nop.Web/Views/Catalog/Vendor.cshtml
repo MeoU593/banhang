@@ -11,7 +11,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.UNITS)" class="transition hover:text-military-green">Danh sách đơn vị</a>
@@ -20,52 +20,40 @@
     </nav>
 }
 
-<div class="page unit-detail-page">
-<div class="page-body w-full space-y-8">
+<div class="page unit-detail-page public-page-shell public-page-stack">
+<div class="page-body w-full public-page-stack">
     @Html.AntiForgeryToken()
-    <section class="overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div class="flex items-center gap-5">
-                <div class="flex h-28 w-28 items-center justify-center rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur">
+    <section class="public-blue-hero unit-detail-hero">
+        <div class="public-blue-hero-content unit-detail-hero-content">
+            <div class="public-blue-hero-copy flex items-center gap-5">
+                <div class="flex h-28 w-28 items-center justify-center rounded-2xl border border-sky-200 bg-white/70 p-3 shadow-sm backdrop-blur">
                     @if (!string.IsNullOrWhiteSpace(Model.PictureModel.ImageUrl))
                     {
                         <img src="@Model.PictureModel.ImageUrl" alt="@Model.PictureModel.AlternateText" title="@Model.PictureModel.Title" class="h-full w-full rounded-xl object-cover" />
                     }
                 </div>
                 <div>
-                    <h1 class="public-hero-title font-black tracking-tight text-white">@Model.Name</h1>
-                    <p class="mt-1.5 text-xs leading-5 text-slate-200 sm:text-sm">Mã đơn vị: @(string.IsNullOrWhiteSpace(Model.Code) ? "Đang cập nhật" : Model.Code)</p>
+                    <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@Model.Name</h1>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div class="rounded-2xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur">
-                    <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Cấp</p>
-                    <p class="mt-1 text-base font-black sm:text-lg">@Model.Level</p>
+            <div class="public-blue-hero-stats sm:grid-cols-2">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em]">Sản phẩm</p>
+                    <p class="public-stat-value mt-1 font-black">@Model.NumberOfProducts</p>
                 </div>
-                <div class="rounded-2xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur">
-                    <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Sản phẩm</p>
-                    <p class="mt-1 text-base font-black sm:text-lg">@Model.NumberOfProducts</p>
-                </div>
-                <div class="rounded-2xl border border-white/20 bg-white/10 p-3 text-center backdrop-blur col-span-2 sm:col-span-1">
-                    <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Trạng thái</p>
-                    <p class="mt-1 text-sm font-black uppercase">@(Model.Active ? "Hoạt động" : "Tạm dừng")</p>
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em]">Trạng thái</p>
+                    <p class="public-control-text mt-1 font-black uppercase">@(Model.Active ? "Hoạt động" : "Tạm dừng")</p>
                 </div>
             </div>
-        </div>
-
-        <div class="mt-5 flex flex-wrap gap-3">
-            <a href="@Url.RouteUrl(NopRouteNames.General.UNITS)" class="inline-flex h-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20">
-                Quay lại danh sách đơn vị
-            </a>
-            @if (Model.ContactCustomerId.HasValue && Model.AllowCustomersToContactVendors)
-            {
-                <button type="button" id="unit-contact-open" class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 text-sm font-bold text-slate-950 transition hover:bg-amber-400">
-                    <span class="material-symbols-outlined text-[18px]">forum</span>
-                    Liên hệ đơn vị
-                </button>
-            }
         </div>
     </section>
+
+    <div class="flex flex-wrap items-center justify-end gap-3">
+        <a href="@Url.RouteUrl(NopRouteNames.General.UNITS)" class="public-control-text inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm transition hover:border-military-green hover:text-military-green">
+            Quay lại danh sách đơn vị
+        </a>
+    </div>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <section class="xl:col-span-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -75,7 +63,7 @@
             </div>
             @if (string.IsNullOrWhiteSpace(Model.Description))
             {
-                <p class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">Nội dung giới thiệu đơn vị chưa được cập nhật.</p>
+                <p class="public-body-text rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-slate-500">Nội dung giới thiệu đơn vị chưa được cập nhật.</p>
             }
             else
             {
@@ -86,45 +74,33 @@
         </section>
 
         <aside class="xl:col-span-4 space-y-6">
-            <section class="rounded-3xl bg-amber-500 p-6 text-white shadow-lg">
+            <section class="rounded-3xl bg-sky-700 p-6 text-white shadow-lg">
                 <h2 class="public-card-title flex items-center gap-2 font-black uppercase tracking-tight">
                     <span class="material-symbols-outlined">analytics</span>
                     Năng lực hậu cần
                 </h2>
-                <div class="mt-6 space-y-4 text-sm">
-                    <div class="flex items-center justify-between border-b border-amber-300 pb-3">
-                        <span class="uppercase tracking-[0.16em] text-amber-100">Đơn vị trực thuộc</span>
-                        <span class="text-xl font-black">@Model.ChildUnits.Count</span>
+                <div class="mt-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-sky-500 pb-3">
+                        <span class="public-label-text uppercase tracking-[0.16em] text-sky-100">Đơn vị trực thuộc</span>
+                        <span class="public-stat-value font-black">@Model.ChildUnits.Count</span>
                     </div>
-                    <div class="flex items-center justify-between border-b border-amber-300 pb-3">
-                        <span class="uppercase tracking-[0.16em] text-amber-100">Sản phẩm quản lý</span>
-                        <span class="text-xl font-black">@Model.NumberOfProducts</span>
+                    <div class="flex items-center justify-between border-b border-sky-500 pb-3">
+                        <span class="public-label-text uppercase tracking-[0.16em] text-sky-100">Sản phẩm quản lý</span>
+                        <span class="public-stat-value font-black">@Model.NumberOfProducts</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="uppercase tracking-[0.16em] text-amber-100">Trực thuộc</span>
-                        <span class="max-w-[55%] text-right text-xs font-bold">@(string.IsNullOrWhiteSpace(Model.ParentName) ? "BTL TTG" : Model.ParentName)</span>
+                        <span class="public-label-text uppercase tracking-[0.16em] text-sky-100">Trực thuộc</span>
+                        <span class="public-meta-text max-w-[55%] text-right font-bold">@(string.IsNullOrWhiteSpace(Model.ParentName) ? "BTL TTG" : Model.ParentName)</span>
                     </div>
                 </div>
             </section>
 
             <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 class="public-card-title flex items-center gap-2 font-black uppercase tracking-tight text-slate-900">
-                    <span class="material-symbols-outlined text-amber-600">domain</span>
+                    <span class="material-symbols-outlined text-sky-600">domain</span>
                     Hồ sơ đơn vị
                 </h2>
-                <dl class="mt-5 space-y-3 text-sm">
-                    <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                        <dt class="text-slate-500">Mã đơn vị</dt>
-                        <dd class="font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Code) ? "Đang cập nhật" : Model.Code)</dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                        <dt class="text-slate-500">ID</dt>
-                        <dd class="font-bold text-slate-900">@Model.Id</dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
-                        <dt class="text-slate-500">Cấp độ</dt>
-                        <dd class="font-bold text-slate-900">@Model.Level</dd>
-                    </div>
+                <dl class="public-body-text mt-5 space-y-3">
                     <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3">
                         <dt class="text-slate-500">Email</dt>
                         <dd class="max-w-[65%] break-all text-right font-bold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Email) ? "Đang cập nhật" : Model.Email)</dd>
@@ -134,10 +110,10 @@
 
             <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 class="public-card-title flex items-center gap-2 font-black uppercase tracking-tight text-slate-900">
-                    <span class="material-symbols-outlined text-amber-600">contact_support</span>
+                    <span class="material-symbols-outlined text-sky-600">contact_support</span>
                     Liên hệ đơn vị
                 </h2>
-                <div class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+                <div class="public-body-text mt-4 rounded-2xl bg-slate-50 p-4 text-slate-600">
                     <p class="font-semibold text-slate-900">Phụ trách hiện tại</p>
                     <p id="unit-contact-current" class="mt-1">@(string.IsNullOrWhiteSpace(Model.ContactCustomerName) ? "Chưa thiết lập" : Model.ContactCustomerName)</p>
                 </div>
@@ -145,31 +121,31 @@
                 @if (Model.CanManageContactCustomer)
                 {
                     <form id="unit-contact-assignment-form" class="mt-4 space-y-3">
-                        <label for="unit-contact-customer-id" class="block text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Gán phụ trách liên hệ</label>
-                        <select id="unit-contact-customer-id" name="contactCustomerId" class="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-military-green">
+                        <label for="unit-contact-customer-id" class="public-label-text block font-bold uppercase tracking-[0.16em] text-slate-500">Gán phụ trách liên hệ</label>
+                        <select id="unit-contact-customer-id" name="contactCustomerId" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-700 outline-none transition focus:border-military-green">
                             <option value="0">Chưa thiết lập</option>
                             @foreach (var candidate in Model.ContactCandidates)
                             {
                                 <option value="@candidate.Id" selected="@(candidate.Id == Model.ContactCustomerId)">@candidate.DisplayName</option>
                             }
                         </select>
-                        <button type="submit" class="inline-flex h-10 items-center justify-center rounded-xl bg-military-green px-4 text-sm font-bold text-white transition hover:bg-[#23301b]">Lưu phụ trách</button>
-                        <p id="unit-contact-assignment-status" class="text-xs font-semibold text-slate-500"></p>
+                        <button type="submit" class="public-control-text inline-flex h-10 items-center justify-center rounded-xl bg-military-green px-4 font-bold text-white transition hover:bg-[#23301b]">Lưu phụ trách</button>
+                        <p id="unit-contact-assignment-status" class="public-meta-text font-semibold text-slate-500"></p>
                     </form>
                 }
             </section>
         </aside>
     </div>
 
-    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section class="unit-products-section rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
             <h2 class="public-section-title font-black uppercase tracking-tight text-slate-900">Tin hoạt động của đơn vị</h2>
-            <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS, new { VendorId = Model.Id })" class="inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Xem tất cả</a>
+            <a href="@Url.RouteUrl(NopRouteNames.Standard.BLOG_NEWS, new { VendorId = Model.Id })" class="public-control-text inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 font-semibold text-slate-600 transition hover:border-military-green hover:text-military-green">Xem tất cả</a>
         </div>
 
         @if (!Model.ActivityPosts.Any())
         {
-            <p class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">Đơn vị hiện chưa có tin hoạt động.</p>
+            <p class="public-body-text rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-slate-500">Đơn vị hiện chưa có tin hoạt động.</p>
         }
         else
         {
@@ -185,15 +161,15 @@
                             }
                             else
                             {
-                                <div class="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Tin hoạt động</div>
+                                <div class="public-label-text flex h-full w-full items-center justify-center font-semibold uppercase tracking-[0.12em] text-slate-400">Tin hoạt động</div>
                             }
                         </a>
                         <div class="p-4">
-                            <p class="text-xs font-semibold text-slate-500">@post.CreatedOn.ToString("dd/MM/yyyy")</p>
+                            <p class="public-meta-text font-semibold text-slate-500">@post.CreatedOn.ToString("dd/MM/yyyy")</p>
                             <h3 class="public-list-title mt-2 line-clamp-2 font-black text-slate-900">
                                 <a href="@postUrl" class="transition hover:text-military-green">@post.Title</a>
                             </h3>
-                            <div class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">@Html.Raw(!string.IsNullOrWhiteSpace(post.BodyOverview) ? post.BodyOverview : post.Body)</div>
+                            <div class="public-body-text mt-2 line-clamp-2 text-slate-500">@Html.Raw(!string.IsNullOrWhiteSpace(post.BodyOverview) ? post.BodyOverview : post.Body)</div>
                         </div>
                     </article>
                 }
@@ -204,12 +180,12 @@
     <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
             <h2 class="public-section-title font-black uppercase tracking-tight text-slate-900">Đơn vị trực thuộc</h2>
-            <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-600">@Model.ChildUnits.Count đơn vị</span>
+            <span class="public-meta-text inline-flex items-center rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-600">@Model.ChildUnits.Count đơn vị</span>
         </div>
 
         @if (Model.ChildUnits.Count == 0)
         {
-            <p class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">Đơn vị hiện tại chưa có đơn vị trực thuộc.</p>
+            <p class="public-body-text rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-slate-500">Đơn vị hiện tại chưa có đơn vị trực thuộc.</p>
         }
         else
         {
@@ -227,11 +203,11 @@
                                 }
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h3 class="public-list-title truncate font-black text-slate-900">
+                                <h3 class="unit-child-title truncate font-black text-slate-900">
                                     <a href="@childDetailUrl" class="transition hover:text-military-green">@child.Name</a>
                                 </h3>
-                                <p class="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">@(string.IsNullOrWhiteSpace(child.Code) ? "Đơn vị" : child.Code)</p>
-                                <p class="mt-2 text-xs text-slate-500">@child.NumberOfProducts sản phẩm</p>
+                                <p class="public-label-text mt-1 font-semibold uppercase tracking-[0.16em] text-slate-500">Đơn vị trực thuộc</p>
+                                <p class="public-meta-text mt-2 text-slate-500">@child.NumberOfProducts sản phẩm</p>
                             </div>
                         </div>
                     </article>
@@ -255,133 +231,16 @@
     </section>
 </div>
 
-@if (Model.ContactCustomerId.HasValue && Model.AllowCustomersToContactVendors)
-{
-    <div id="unit-contact-chat" class="fixed bottom-5 right-5 z-50 hidden w-[calc(100vw-2.5rem)] max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_28px_80px_-30px_rgba(15,23,42,0.85)]">
-        <div class="flex items-center justify-between bg-slate-900 px-5 py-4 text-white">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-[0.18em] text-amber-300">Liên hệ đơn vị</p>
-                <h2 class="public-card-title font-black">@Model.Name</h2>
-                <p class="mt-1 text-xs text-slate-300">@(string.IsNullOrWhiteSpace(Model.ContactCustomerName) ? "Phụ trách liên hệ" : Model.ContactCustomerName)</p>
-            </div>
-            <button type="button" id="unit-contact-close" class="rounded-full p-1 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="Đóng chat">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        <div id="unit-contact-chat-messages" class="max-h-80 min-h-72 space-y-3 overflow-y-auto bg-slate-50 p-4"></div>
-        <form id="unit-contact-chat-form" class="border-t border-slate-200 bg-white p-4">
-            <div class="flex gap-2">
-                <textarea id="unit-contact-chat-input" class="min-h-11 flex-1 resize-none rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-military-green" rows="2" placeholder="Nhập tin nhắn..."></textarea>
-                <button type="submit" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-military-green text-white transition hover:bg-[#23301b]" aria-label="Gửi tin nhắn">
-                    <span class="material-symbols-outlined">send</span>
-                </button>
-            </div>
-            <p id="unit-contact-chat-status" class="mt-2 text-xs font-semibold text-slate-500"></p>
-        </form>
-    </div>
-}
 </div>
 
 <script asp-location="Footer">
     $(function () {
         const vendorId = @Model.Id;
-        const historyUrl = '@Url.Action("UnitContactHistory", "PrivateMessages")';
-        const sendUrl = '@Url.Action("UnitContactSend", "PrivateMessages")';
         const assignmentUrl = '@Url.Action("UpdateUnitContactCustomer", "Catalog")';
-
-        const $chat = $('#unit-contact-chat');
-        const $messages = $('#unit-contact-chat-messages');
-        const $chatStatus = $('#unit-contact-chat-status');
 
         function setStatus($target, message, isError) {
             $target.text(message || '').toggleClass('text-rose-600', !!isError).toggleClass('text-emerald-700', !isError && !!message);
         }
-
-        function renderMessage(message) {
-            const $row = $('<div>').addClass(message.mine ? 'flex justify-end' : 'flex justify-start');
-            const $bubble = $('<div>').addClass(message.mine
-                ? 'max-w-[82%] rounded-2xl bg-military-green px-3 py-2 text-white'
-                : 'max-w-[82%] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700');
-            $('<p>').addClass('text-sm leading-5').text(message.text).appendTo($bubble);
-            $('<p>').addClass(message.mine ? 'mt-1 text-[11px] text-white/70' : 'mt-1 text-[11px] text-slate-400')
-                .text(new Date(message.createdOnUtc).toLocaleString('vi-VN'))
-                .appendTo($bubble);
-            $row.append($bubble);
-            $messages.append($row);
-        }
-
-        function loadHistory() {
-            if (!$chat.length) {
-                return;
-            }
-
-            const postData = { vendorId };
-            addAntiForgeryToken(postData);
-            setStatus($chatStatus, 'Đang tải hội thoại...', false);
-
-            $.post(historyUrl, postData)
-                .done(function (response) {
-                    $messages.empty();
-                    if (!response || !response.success) {
-                        setStatus($chatStatus, response && response.message ? response.message : 'Không tải được hội thoại.', true);
-                        return;
-                    }
-
-                    if (!response.messages.length) {
-                        $('<div>').addClass('rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500')
-                            .text('Chưa có tin nhắn. Hãy gửi nội dung cần trao đổi với phụ trách đơn vị.')
-                            .appendTo($messages);
-                    } else {
-                        response.messages.forEach(renderMessage);
-                        $messages.scrollTop($messages[0].scrollHeight);
-                    }
-                    setStatus($chatStatus, '', false);
-                })
-                .fail(function () {
-                    setStatus($chatStatus, 'Không tải được hội thoại.', true);
-                });
-        }
-
-        $('#unit-contact-open').on('click', function () {
-            $chat.removeClass('hidden');
-            loadHistory();
-        });
-
-        $('#unit-contact-close').on('click', function () {
-            $chat.addClass('hidden');
-        });
-
-        $('#unit-contact-chat-form').on('submit', function (event) {
-            event.preventDefault();
-            const text = ($('#unit-contact-chat-input').val() || '').trim();
-            if (!text) {
-                setStatus($chatStatus, 'Vui lòng nhập nội dung tin nhắn.', true);
-                return;
-            }
-
-            const postData = { vendorId, message: text };
-            addAntiForgeryToken(postData);
-            setStatus($chatStatus, 'Đang gửi...', false);
-
-            $.post(sendUrl, postData)
-                .done(function (response) {
-                    if (!response || !response.success) {
-                        setStatus($chatStatus, response && response.message ? response.message : 'Không gửi được tin nhắn.', true);
-                        return;
-                    }
-
-                    if ($messages.find('.border-dashed').length) {
-                        $messages.empty();
-                    }
-                    renderMessage(response.message);
-                    $('#unit-contact-chat-input').val('');
-                    $messages.scrollTop($messages[0].scrollHeight);
-                    setStatus($chatStatus, 'Đã gửi tin nhắn.', false);
-                })
-                .fail(function () {
-                    setStatus($chatStatus, 'Không gửi được tin nhắn.', true);
-                });
-        });
 
         $('#unit-contact-assignment-form').on('submit', function (event) {
             event.preventDefault();

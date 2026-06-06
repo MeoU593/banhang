@@ -85,6 +85,8 @@ public partial record CatalogProductsModel : BasePageableModel
     /// </summary>
     public IList<ProductOverviewModel> Products { get; set; }
 
+    public int PostingUnitCount { get; set; }
+
     /// <summary>
     /// Gets or sets a value indicating whether favorite filter is available for current customer
     /// </summary>

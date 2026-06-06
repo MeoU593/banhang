@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Gdpr;
 using Nop.Core.Domain.Orders;
@@ -111,6 +112,11 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
     #endregion
 
     #region Utilities
+
+    protected virtual string GetDisplayCustomerRoleName(CustomerRole customerRole)
+    {
+        return customerRole?.Name;
+    }
 
     /// <summary>
     /// Prepare default item
@@ -245,7 +251,7 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
 
         //prepare available activity log types
         var availableActivityTypes = await _customerActivityService.GetAllActivityTypesAsync();
-        foreach (var activityType in availableActivityTypes)
+        foreach (var activityType in availableActivityTypes.Where(activityType => activityType.Enabled))
             items.Add(new SelectListItem { Value = activityType.Id.ToString(), Text = activityType.Name });
 
         //insert special item for the default value
@@ -416,7 +422,7 @@ public partial class BaseAdminModelFactory : IBaseAdminModelFactory
         //prepare available customer roles
         var availableCustomerRoles = await _customerService.GetAllCustomerRolesAsync();
         foreach (var customerRole in availableCustomerRoles)
-            items.Add(new SelectListItem { Value = customerRole.Id.ToString(), Text = customerRole.Name });
+            items.Add(new SelectListItem { Value = customerRole.Id.ToString(), Text = GetDisplayCustomerRoleName(customerRole) });
 
         //insert special item for the default value
         await PrepareDefaultItemAsync(items, withSpecialDefaultItem, defaultItemText);

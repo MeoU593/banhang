@@ -1,29 +1,29 @@
 ﻿@model AddressModel
 
 <input class="address-id" asp-for="Id" type="hidden"/>
-<div class="edit-address">
-    <div class="inputs">
-        <label asp-for="FirstName" asp-postfix=":"></label>
+<div class="edit-address grid gap-4">
+    <div class="public-form-row space-y-2">
+        <label asp-for="FirstName" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
         <input asp-for="FirstName" />
         <nop-required />
         <span asp-validation-for="FirstName"></span>
     </div>
-    <div class="inputs">
-        <label asp-for="LastName" asp-postfix=":"></label>
+    <div class="public-form-row space-y-2">
+        <label asp-for="LastName" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
         <input asp-for="LastName" />
         <nop-required />
         <span asp-validation-for="LastName"></span>
     </div>
-    <div class="inputs">
-        <label asp-for="Email" asp-postfix=":"></label>
+    <div class="public-form-row space-y-2">
+        <label asp-for="Email" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
         <input asp-for="Email" />
         <nop-required />
         <span asp-validation-for="Email"></span>
     </div>
     @if (Model.CompanyEnabled)
     {
-        <div class="inputs">
-            <label asp-for="Company" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="Company" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="Company" />
             @if (Model.CompanyRequired)
             {
@@ -34,8 +34,8 @@
     }
     @if (Model.CountryEnabled)
     {
-        <div class="inputs">
-            <label asp-for="CountryId" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="CountryId" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <select asp-for="CountryId" asp-items="Model.AvailableCountries"
                     data-trigger="country-select"
                     data-url="@(Url.RouteUrl(NopRouteNames.Ajax.GET_STATES_BY_COUNTRY_ID))"
@@ -48,8 +48,8 @@
 
     @if (Model.CountryEnabled && Model.StateProvinceEnabled)
     {
-        <div class="inputs">
-            <label asp-for="StateProvinceId" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="StateProvinceId" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <select asp-for="StateProvinceId" asp-items="Model.AvailableStates"
                     data-trigger="state-select">
             </select>
@@ -59,8 +59,8 @@
     }
     @if (Model.CountyEnabled)
     {
-        <div class="inputs">
-            <label asp-for="County" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="County" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="County" />
             @if (Model.CountyRequired)
             {
@@ -71,8 +71,8 @@
     }
     @if (Model.CityEnabled)
     {
-        <div class="inputs">
-            <label asp-for="City" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="City" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="City" />
             @if (Model.CityRequired)
             {
@@ -83,8 +83,8 @@
     }
     @if (Model.StreetAddressEnabled)
     {
-        <div class="inputs">
-            <label asp-for="Address1" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="Address1" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="Address1" />
             @if (Model.StreetAddressRequired)
             {
@@ -95,8 +95,8 @@
     }
     @if (Model.StreetAddress2Enabled)
     {
-        <div class="inputs">
-            <label asp-for="Address2" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="Address2" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="Address2" />
             @if (Model.StreetAddress2Required)
             {
@@ -107,8 +107,8 @@
     }
     @if (Model.ZipPostalCodeEnabled)
     {
-        <div class="inputs">
-            <label asp-for="ZipPostalCode" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="ZipPostalCode" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="ZipPostalCode" />
             @if (Model.ZipPostalCodeRequired)
             {
@@ -119,8 +119,8 @@
     }
     @if (Model.PhoneEnabled)
     {
-        <div class="inputs">
-            <label asp-for="PhoneNumber" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="PhoneNumber" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="PhoneNumber" />
             @if (Model.PhoneRequired)
             {
@@ -131,8 +131,8 @@
     }
     @if (Model.FaxEnabled)
     {
-        <div class="inputs">
-            <label asp-for="FaxNumber" asp-postfix=":"></label>
+        <div class="public-form-row space-y-2">
+            <label asp-for="FaxNumber" asp-postfix=":" class="public-control-text block font-bold text-slate-700"></label>
             <input asp-for="FaxNumber" />
             @if (Model.FaxRequired)
             {

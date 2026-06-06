@@ -6,8 +6,8 @@
     var textPromptId = $"{attribute.ControlId}_textprompt";
     var textPrompt = attribute.Name;
 
-    <div class="inputs custom-attributes">
-        <label id="@textPromptId">@textPrompt:</label>
+    <div class="public-form-row custom-attributes space-y-2">
+        <label id="@textPromptId" class="public-control-text block font-bold text-slate-700">@textPrompt:</label>
         
         @switch (attribute.AttributeControlType)
         {

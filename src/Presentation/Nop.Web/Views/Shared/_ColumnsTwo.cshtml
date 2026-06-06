@@ -1,5 +1,7 @@
 ﻿@{
     Layout = "_Root";
+    var hasBreadcrumb = IsSectionDefined("Breadcrumb");
+    ViewData["HasBreadcrumb"] = hasBreadcrumb;
 }
 @{
     //current category ID
@@ -19,16 +21,16 @@
     }
 }
 
-@if (IsSectionDefined("Breadcrumb"))
-{
-    <div class="center-1 w-full px-4 pt-4 sm:px-6 lg:px-8 xl:px-10">
+@section Breadcrumb {
+    @if (hasBreadcrumb)
+    {
         @await RenderSectionAsync("Breadcrumb")
-    </div>
+    }
 }
 
-<div class="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
-<div class="app-content-shell flex flex-col gap-6 lg:flex-row">
-<aside class="side-2 w-full lg:w-60 lg:shrink-0">
+<div class="public-layout-wrap w-full px-4 py-5 sm:px-6 lg:px-8 xl:px-10">
+<div class="app-content-shell public-two-column-shell flex flex-col gap-5 lg:flex-row">
+<aside class="side-2 public-left-column w-full lg:w-60 lg:shrink-0">
     @if (IsSectionDefined("left"))
     {
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnBefore })
@@ -47,7 +49,7 @@
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.LeftSideColumnAfter })
     }
 </aside>
-<section class="center-2 min-w-0 flex-1">
+<section class="center-2 public-center-column min-w-0 flex-1">
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnBefore })
     @RenderBody()
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.MainColumnAfter })

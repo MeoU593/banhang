@@ -7,20 +7,24 @@
     .command-picture-gallery .picture {
         border-radius: 14px;
         overflow: hidden;
-        background: #f1f5f9;
+        background: #ffffff;
+        padding: clamp(1rem, 2vw, 2rem);
     }
 
     .command-picture-gallery .picture img {
         display: block;
         width: 100%;
-        aspect-ratio: 16 / 10;
-        object-fit: cover;
+        max-height: clamp(18rem, 28vw, 26rem);
+        aspect-ratio: 16 / 9;
+        object-fit: contain;
+        background: #ffffff;
     }
 
     .command-picture-gallery .picture-thumbs {
         margin-top: 14px;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, 5rem);
+        justify-content: start;
         gap: 10px;
     }
 
@@ -29,6 +33,7 @@
         border-radius: 10px;
         overflow: hidden;
         background: #fff;
+        width: 5rem;
         transition: border-color 0.2s ease, transform 0.2s ease;
         cursor: pointer;
     }

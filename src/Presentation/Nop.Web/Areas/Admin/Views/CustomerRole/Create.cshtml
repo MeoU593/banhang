@@ -1,19 +1,17 @@
 @model CustomerRoleModel
 
 @{
-    //page title
-    ViewBag.PageTitle = T("Admin.Customers.CustomerRoles.AddNew").Text;
-    //active menu item (system name)
+    ViewBag.PageTitle = "Thêm phân quyền";
     NopHtml.SetActiveMenuItemSystemName("Customer roles");
 }
 
 <form asp-controller="CustomerRole" asp-action="Create" method="post">
     <div class="content-header clearfix">
         <h1 class="float-left">
-            @T("Admin.Customers.CustomerRoles.AddNew") 
+            Thêm phân quyền
             <small>
                 <i class="fas fa-arrow-circle-left"></i>
-                <a asp-action="List">@T("Admin.Customers.CustomerRoles.BackToList")</a>
+                <a asp-action="List">Về danh sách phân quyền</a>
             </small>
         </h1>
         <div class="float-right">

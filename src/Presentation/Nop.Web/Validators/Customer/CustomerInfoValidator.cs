@@ -85,8 +85,6 @@ public partial class CustomerInfoValidator : BaseNopValidator<CustomerInfoModel>
                 return true;
             }).WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.DateOfBirth.MinimumAge"), customerSettings.DateOfBirthMinimumAge);
         }
-        if (customerSettings.CompanyRequired && customerSettings.CompanyEnabled)
-            RuleFor(x => x.Company).NotEmpty().WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.Company.Required"));
         if (customerSettings.StreetAddressRequired && customerSettings.StreetAddressEnabled)
             RuleFor(x => x.StreetAddress).NotEmpty().WithMessageAwait(localizationService.GetResourceAsync("Account.Fields.StreetAddress.Required"));
         if (customerSettings.StreetAddress2Required && customerSettings.StreetAddress2Enabled)

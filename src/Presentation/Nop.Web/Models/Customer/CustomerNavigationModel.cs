@@ -37,7 +37,6 @@ public enum CustomerNavigationEnum
     ProductReviews = 100,
     VendorInfo = 110,
     GdprTools = 120,
-    CheckGiftCardBalance = 130,
     MultiFactorAuthentication = 140,
     RecurringPayments = 150,
 }

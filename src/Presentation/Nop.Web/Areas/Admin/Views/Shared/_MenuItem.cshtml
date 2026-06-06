@@ -1,76 +1,59 @@
-﻿@model Nop.Web.Framework.Menu.AdminMenuItem
+@model Nop.Web.Framework.Menu.AdminMenuItem
 
 @using Nop.Core.Domain.Localization
 @inject LocalizationSettings localizationSettings
 @{
     var supportRtl = (await workContext.GetWorkingLanguageAsync()).Rtl && !localizationSettings.IgnoreRtlPropertyForAdminArea;
-    var isActive = Model.ContainsSystemName(NopHtml.GetActiveMenuItemSystemName());
-}
-@if (!string.IsNullOrEmpty(Model.Url))
-{
-    <li class="nav-item">
-
-        <a href="@Model.Url" @(isActive ? Html.Raw("class=\"nav-link active\"") : Html.Raw("class=\"nav-link\"")) @(Model.OpenUrlInNewTab ? Html.Raw(" target=\"_blank\"") : null)>
-            @if (!string.IsNullOrEmpty(Model.IconClass))
-            {
-                <text>
-                    <i class="nav-icon @Url.Content(Model.IconClass)"></i>
-                </text>
-            }
-
-            <p> @Model.Title</p>
-
-        </a>
-    </li>
-}
-else
-{
+    var activeSystemName = NopHtml.GetActiveMenuItemSystemName();
+    var isMenuOpen = Model.ContainsSystemName(activeSystemName);
+    var isCurrent = string.Equals(Model.SystemName, activeSystemName, StringComparison.OrdinalIgnoreCase);
     var childNodes = Model.ChildNodes.Where(x => x.Visible).ToList();
     var hasChildNodes = childNodes.Any();
-    var liCssClass = "";
+    var liCssClass = "nav-item";
+    var linkCssClass = "nav-link";
 
     if (hasChildNodes)
-    {
-        liCssClass = "nav-item has-treeview";
-    }
+        liCssClass += " has-treeview";
 
-    if (isActive)
-    {
-        if (!string.IsNullOrEmpty(liCssClass))
-            liCssClass += " ";
+    if (isMenuOpen)
+        liCssClass += " menu-open";
 
-        liCssClass += "menu-open";
-    }
+    if (isCurrent)
+        linkCssClass += " active";
+    else if (isMenuOpen)
+        linkCssClass += " active-parent";
+}
 
-    <li @(!String.IsNullOrEmpty(liCssClass) ? Html.Raw("class=\"" + liCssClass + "\"") : null)>
-
-        <a href="#" @(isActive ? Html.Raw("class=\"nav-link active\"") : Html.Raw("class=\"nav-link\""))>
-            @if (!string.IsNullOrEmpty(Model.IconClass))
+<li class="@liCssClass" data-menu-system="@Model.SystemName">
+    <a href="@(string.IsNullOrEmpty(Model.Url) ? "#" : Model.Url)" class="@linkCssClass" title="@Model.Title" data-toggle="tooltip" @(Model.OpenUrlInNewTab ? Html.Raw(" target=\"_blank\"") : null)>
+        @if (!string.IsNullOrEmpty(Model.IconClass))
+        {
+            <text>
+                <i class="nav-icon @Url.Content(Model.IconClass)"></i>
+            </text>
+        }
+        <p>
+            @Model.Title
+            @if (hasChildNodes)
             {
-                <text>
-                    <i class="nav-icon @Url.Content(Model.IconClass)"></i>
-                </text>
-            }
-            <p>
-                @Model.Title
-                @if (supportRtl)
+                if (supportRtl)
                 {
-                    <i class="right fas fa-angle-right"></i>
+                    <i class="right fas fa-angle-right nav-tree-toggle"></i>
                 }
                 else
                 {
-                    <i class="right fas fa-angle-left "></i>
+                    <i class="right fas fa-angle-left nav-tree-toggle"></i>
                 }
-            </p>
-        </a>
-        @if (hasChildNodes)
-        {
-            <ul class="nav nav-treeview">
-                @foreach (var childItem in childNodes)
-                {
-                    @await Html.PartialAsync("_MenuItem", childItem)
-                }
-            </ul>
-        }
-    </li>
-}
+            }
+        </p>
+    </a>
+    @if (hasChildNodes)
+    {
+        <ul class="nav nav-treeview">
+            @foreach (var childItem in childNodes)
+            {
+                @await Html.PartialAsync("_MenuItem", childItem)
+            }
+        </ul>
+    }
+</li>

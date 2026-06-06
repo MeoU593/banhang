@@ -6,7 +6,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="/customer/profile#profile-tab-documents" class="transition hover:text-military-green">Hồ sơ cá nhân</a>
@@ -17,10 +17,14 @@
 
 <div class="page document-edit-page">
     <div class="page-body">
-        <div class="mx-auto max-w-3xl space-y-6 px-4 pb-8 lg:px-0">
-            <section class="overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-                <h1 class="public-hero-title font-black tracking-tight text-white">Chỉnh sửa tài liệu đã đăng</h1>
-                <p class="mt-1.5 text-xs leading-5 text-slate-200 sm:text-sm">Tài khoản thường chỉnh sửa tài liệu đã duyệt sẽ chuyển tài liệu về trạng thái chờ duyệt lại.</p>
+        <div class="public-page-shell mx-auto max-w-3xl space-y-6">
+            <section class="public-blue-hero">
+                <div class="public-blue-hero-content">
+                    <div class="public-blue-hero-copy space-y-1.5">
+                        <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">Chỉnh sửa tài liệu đã đăng</h1>
+                        <p class="public-hero-subtitle public-blue-hero-subtitle max-w-2xl">Tài khoản thường chỉnh sửa tài liệu đã duyệt sẽ chuyển tài liệu về trạng thái chờ duyệt lại.</p>
+                    </div>
+                </div>
             </section>
 
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -29,7 +33,7 @@
                         <span class="material-symbols-outlined text-military-green" style="font-size:24px">edit_document</span>
                         Thông tin tài liệu
                     </h2>
-                    <p class="mt-1 text-sm text-slate-500">Cập nhật nội dung mô tả, phân loại, mức truy cập hoặc thay file đính kèm.</p>
+                    <p class="public-body-text mt-1 text-slate-500">Cập nhật nội dung mô tả, phân loại, mức truy cập hoặc thay file đính kèm.</p>
                 </div>
 
                 <form method="post" action="/tai-lieu/cua-toi/sua/@Model.Id" enctype="multipart/form-data" class="space-y-5 px-6 py-6">

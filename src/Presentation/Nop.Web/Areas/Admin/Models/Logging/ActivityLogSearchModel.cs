@@ -35,6 +35,9 @@ public partial record ActivityLogSearchModel : BaseSearchModel
     [NopResourceDisplayName("Admin.Customers.ActivityLog.Fields.ActivityLogType")]
     public IList<SelectListItem> ActivityLogType { get; set; }
 
+    [NopResourceDisplayName("Admin.Customers.ActivityLog.Fields.CustomerEmail")]
+    public string SearchCustomerEmail { get; set; }
+
     [NopResourceDisplayName("Admin.Customers.ActivityLog.Fields.IpAddress")]
     public string IpAddress { get; set; }
 

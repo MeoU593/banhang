@@ -34,20 +34,35 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
-        <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
-        <span>Tài khoản</span>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <span class="text-slate-700">Hồ sơ cá nhân</span>
     </nav>
 }
 
-<div class="page account-page customer-profile-page space-y-5 px-4 pb-8 lg:px-0">
-    <section class="overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.85)] sm:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
+<style>
+    .customer-profile-page .public-blue-hero {
+        min-height: clamp(5.4rem, 7vw, 7rem) !important;
+        padding: clamp(0.85rem, 1.2vw, 1.15rem) !important;
+    }
+    .customer-profile-page .public-blue-hero-content {
+        gap: 1rem !important;
+    }
+    .customer-profile-page .public-blue-hero-stats {
+        flex-basis: clamp(10rem, 20%, 13rem) !important;
+    }
+    .customer-profile-page .public-blue-hero-stat {
+        min-height: 3.25rem !important;
+        padding: 0.65rem !important;
+    }
+</style>
+
+<div class="page account-page customer-profile-page public-page-shell public-page-stack">
+    <section class="public-blue-hero">
+        <div class="public-blue-hero-content">
             <div class="flex items-center gap-4">
-                <div class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-white/20 text-3xl font-black uppercase" style="background:#0f172a;color:#f6dc9a;">
+                <div class="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-sky-700/20 text-2xl font-black uppercase" style="background:#0f172a;color:#f6dc9a;">
                     <span class="flex h-full w-full items-center justify-center">@getAvatarInitial(fullName)</span>
                     @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
                     {
@@ -55,60 +70,57 @@
                     }
                 </div>
                 <div>
-                    <h1 class="public-hero-title font-black tracking-tight text-white">@fullName</h1>
-                    <p class="mt-1.5 text-xs leading-5 text-white/80 sm:text-sm">@(string.IsNullOrWhiteSpace(Model.Rank) ? "Chưa cập nhật cấp bậc" : Model.Rank) - @(string.IsNullOrWhiteSpace(Model.UnitName) ? "Chưa cập nhật đơn vị" : Model.UnitName)</p>
+                    <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@fullName</h1>
+                    <p class="public-hero-subtitle public-blue-hero-subtitle mt-1.5">@(string.IsNullOrWhiteSpace(Model.Rank) ? "Chưa cập nhật cấp bậc" : Model.Rank) - @(string.IsNullOrWhiteSpace(Model.UnitName) ? "Chưa cập nhật đơn vị" : Model.UnitName)</p>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
-                    <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Tài liệu</p>
-                    <p class="mt-1 text-base font-black sm:text-lg">@Model.PostedDocumentsTotalCount</p>
+            <div class="public-blue-hero-stats customer-profile-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text font-bold uppercase tracking-[0.14em]">Tài liệu</p>
+                    <p class="public-stat-value mt-1 font-black">@Model.PostedDocumentsTotalCount</p>
                 </div>
-                <a class="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-slate-900 transition hover:bg-white/90" asp-route="CustomerEditAccount">
-                    Chỉnh sửa hồ sơ
-                </a>
             </div>
         </div>
     </section>
 
     @if (TempData["ProfileAvatarMessage"] != null)
     {
-        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+        <div class="public-body-text rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-700">
             @TempData["ProfileAvatarMessage"]
         </div>
     }
     @if (TempData["ProfileAvatarError"] != null)
     {
-        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+        <div class="public-body-text rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
             @TempData["ProfileAvatarError"]
         </div>
     }
 
-    <div class="grid grid-cols-12 gap-5">
-        <aside class="col-span-12 space-y-4 lg:col-span-4">
+    <div class="customer-profile-layout grid gap-5">
+        <aside class="customer-profile-tabs space-y-4">
             <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <button type="button" data-tab-target="profile-tab-general" class="profile-tab-btn flex w-full items-center gap-2 border-b border-slate-100 bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-slate-800">
+                <button type="button" data-tab-target="profile-tab-general" class="profile-tab-btn public-control-text flex w-full items-center gap-2 border-b border-slate-100 bg-slate-900 px-4 py-3 text-left font-semibold text-white transition hover:bg-slate-800">
                     <span class="material-symbols-outlined text-[18px]">info</span>
                     Thông tin chung
                 </button>
-                <button type="button" data-tab-target="profile-tab-activity" class="profile-tab-btn flex w-full items-center gap-2 border-b border-slate-100 px-4 py-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                <button type="button" data-tab-target="profile-tab-activity" class="profile-tab-btn public-control-text flex w-full items-center gap-2 border-b border-slate-100 px-4 py-3 text-left font-semibold text-slate-600 transition hover:bg-slate-50">
                     <span class="material-symbols-outlined text-[18px]">history</span>
                     Hoạt động gần đây
                 </button>
-                <button type="button" data-tab-target="profile-tab-documents" class="profile-tab-btn flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                <button type="button" data-tab-target="profile-tab-documents" class="profile-tab-btn public-control-text flex w-full items-center gap-2 px-4 py-3 text-left font-semibold text-slate-600 transition hover:bg-slate-50">
                     <span class="material-symbols-outlined text-[18px]">article</span>
                     Văn bản đã đăng
                 </button>
             </section>
 
             <section class="overflow-hidden rounded-2xl bg-slate-900 p-5 text-white shadow-lg">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-container">Chức vụ hiện tại</p>
-                <p class="mt-2 text-xl font-black">@(string.IsNullOrWhiteSpace(Model.PositionTitle) ? "Sĩ quan" : Model.PositionTitle)</p>
-                <p class="mt-1 text-xs text-slate-300">Phục vụ từ @(Model.EnlistmentDate?.ToString("yyyy") ?? "-")</p>
+                <p class="public-label-text font-semibold uppercase tracking-[0.18em] text-secondary-container">Chức vụ hiện tại</p>
+                <p class="public-section-title mt-2 font-black">@(string.IsNullOrWhiteSpace(Model.PositionTitle) ? "Sĩ quan" : Model.PositionTitle)</p>
+                <p class="public-meta-text mt-1 text-slate-300">Phục vụ từ @(Model.EnlistmentDate?.ToString("yyyy") ?? "-")</p>
             </section>
         </aside>
 
-        <div class="col-span-12 space-y-4 lg:col-span-8">
+        <div class="customer-profile-content space-y-4">
             <section id="profile-tab-general" class="profile-panel space-y-4">
                 <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <h2 class="public-section-title mb-4 flex items-center gap-2 font-black text-slate-900">
@@ -116,12 +128,12 @@
                         Thông tin quân nhân
                     </h2>
                     <div class="grid gap-3 sm:grid-cols-2">
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Họ và tên</p><p class="mt-1 text-sm font-semibold text-slate-900">@fullName</p></div>
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Số hiệu quân nhân</p><p class="mt-1 text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.MilitaryCode) ? "Chưa cập nhật" : Model.MilitaryCode)</p></div>
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Cấp bậc</p><p class="mt-1 text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Rank) ? "Chưa cập nhật" : Model.Rank)</p></div>
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Chức vụ</p><p class="mt-1 text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.PositionTitle) ? "Chưa cập nhật" : Model.PositionTitle)</p></div>
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Đơn vị công tác</p><p class="mt-1 text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.UnitName) ? "Chưa cập nhật" : Model.UnitName)</p></div>
-                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Ngày nhập ngũ</p><p class="mt-1 text-sm font-semibold text-slate-900">@(Model.EnlistmentDate?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Họ và tên</p><p class="public-control-text mt-1 font-semibold text-slate-900">@fullName</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Số hiệu quân nhân</p><p class="public-control-text mt-1 font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.MilitaryCode) ? "Chưa cập nhật" : Model.MilitaryCode)</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Cấp bậc</p><p class="public-control-text mt-1 font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Rank) ? "Chưa cập nhật" : Model.Rank)</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Chức vụ</p><p class="public-control-text mt-1 font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.PositionTitle) ? "Chưa cập nhật" : Model.PositionTitle)</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Đơn vị công tác</p><p class="public-control-text mt-1 font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.UnitName) ? "Chưa cập nhật" : Model.UnitName)</p></div>
+                        <div class="rounded-xl bg-slate-50 px-3 py-2.5"><p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Ngày nhập ngũ</p><p class="public-control-text mt-1 font-semibold text-slate-900">@(Model.EnlistmentDate?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</p></div>
                     </div>
                 </article>
 
@@ -134,22 +146,22 @@
                         <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
                             <span class="material-symbols-outlined text-slate-500">mail</span>
                             <div>
-                                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Email nội bộ</p>
-                                <p class="text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</p>
+                                <p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Email nội bộ</p>
+                                <p class="public-control-text font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
                             <span class="material-symbols-outlined text-slate-500">call</span>
                             <div>
-                                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Số điện thoại</p>
-                                <p class="text-sm font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Phone) ? "Chưa cập nhật" : Model.Phone)</p>
+                                <p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Số điện thoại</p>
+                                <p class="public-control-text font-semibold text-slate-900">@(string.IsNullOrWhiteSpace(Model.Phone) ? "Chưa cập nhật" : Model.Phone)</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
                             <span class="material-symbols-outlined text-slate-500">location_on</span>
                             <div>
-                                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Địa chỉ thường trú</p>
-                                <p class="text-sm font-semibold text-slate-900">@address</p>
+                                <p class="public-label-text font-bold uppercase tracking-[0.14em] text-slate-500">Địa chỉ thường trú</p>
+                                <p class="public-control-text font-semibold text-slate-900">@address</p>
                             </div>
                         </div>
                     </div>
@@ -169,13 +181,13 @@
                             {
                                 <article class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
                                     <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <p class="text-sm font-bold text-slate-900">@(string.IsNullOrWhiteSpace(activity.ActivityTypeName) ? "Hoạt động hệ thống" : activity.ActivityTypeName)</p>
-                                        <span class="text-xs font-semibold text-slate-500">@activity.CreatedOnUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                                        <p class="public-list-title font-bold text-slate-900">@(string.IsNullOrWhiteSpace(activity.ActivityTypeName) ? "Hoạt động hệ thống" : activity.ActivityTypeName)</p>
+                                        <span class="public-meta-text font-semibold text-slate-500">@activity.CreatedOnUtc.ToString("dd/MM/yyyy HH:mm")</span>
                                     </div>
-                                    <p class="mt-1 text-xs text-slate-600">@(string.IsNullOrWhiteSpace(activity.Comment) ? "Không có mô tả chi tiết." : activity.Comment)</p>
+                                    <p class="public-meta-text mt-1 text-slate-600">@(string.IsNullOrWhiteSpace(activity.Comment) ? "Không có mô tả chi tiết." : activity.Comment)</p>
                                     @if (!string.IsNullOrWhiteSpace(activity.IpAddress))
                                     {
-                                        <p class="mt-1 text-xs font-semibold text-slate-500">IP: @activity.IpAddress</p>
+                                        <p class="public-meta-text mt-1 font-semibold text-slate-500">IP: @activity.IpAddress</p>
                                     }
                                 </article>
                             }
@@ -183,7 +195,7 @@
                     }
                     else
                     {
-                        <p class="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">Chưa có hoạt động nào được ghi nhận cho tài khoản này.</p>
+                        <p class="public-body-text rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-slate-500">Chưa có hoạt động nào được ghi nhận cho tài khoản này.</p>
                     }
                 </article>
             </section>
@@ -196,9 +208,9 @@
                                 <span class="material-symbols-outlined">article</span>
                                 Văn bản đã đăng
                             </h2>
-                            <p class="mt-1 text-sm text-slate-500">Quản lý tài liệu bạn đã gửi lên kho tài liệu. Tài liệu chờ duyệt vẫn có thể sửa hoặc xóa.</p>
+                            <p class="public-body-text mt-1 text-slate-500">Quản lý tài liệu bạn đã gửi lên kho tài liệu. Tài liệu chờ duyệt vẫn có thể sửa hoặc xóa.</p>
                         </div>
-                        <a href="/tai-lieu/upload" class="inline-flex items-center gap-1.5 rounded-xl bg-military-green px-4 py-2 text-sm font-bold text-white transition hover:bg-military-green/90">
+                        <a href="/tai-lieu/upload" class="public-control-text inline-flex items-center gap-1.5 rounded-xl bg-military-green px-4 py-2 font-bold text-white transition hover:bg-military-green/90">
                             <span class="material-symbols-outlined text-[17px]">upload_file</span>
                             Tải văn bản lên
                         </a>
@@ -206,14 +218,14 @@
 
                     @if (TempData["ProfileDocumentsMessage"] != null)
                     {
-                        <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                        <div class="public-body-text mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-700">
                             @TempData["ProfileDocumentsMessage"]
                         </div>
                     }
 
                     @if (Model.PostedDocuments?.Any() == true)
                     {
-                        <div class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
+                        <div class="public-meta-text mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-4 py-3 font-semibold text-slate-600">
                             <span>Hiển thị @(((Model.PostedDocumentsPage - 1) * Model.PostedDocumentsPageSize) + 1)-@Math.Min(Model.PostedDocumentsPage * Model.PostedDocumentsPageSize, Model.PostedDocumentsTotalCount) trong số @Model.PostedDocumentsTotalCount tài liệu</span>
                             <span>Trang @Model.PostedDocumentsPage/@Model.PostedDocumentsTotalPages</span>
                         </div>
@@ -228,11 +240,11 @@
                                     <div class="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0 flex-1">
                                             <div class="mb-2 flex flex-wrap items-center gap-2">
-                                                <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] @(document.Published ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")">@(document.Published ? "Đã duyệt" : "Chờ duyệt")</span>
-                                                <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">@document.AccessScopeName</span>
+                                                <span class="public-label-text inline-flex rounded-full px-2.5 py-1 font-black uppercase tracking-[0.12em] @(document.Published ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")">@(document.Published ? "Đã duyệt" : "Chờ duyệt")</span>
+                                                <span class="public-label-text inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-bold uppercase tracking-[0.12em] text-slate-600">@document.AccessScopeName</span>
                                                 @if (document.HasDownload)
                                                 {
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-700">
+                                                    <span class="public-label-text inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 font-bold uppercase tracking-[0.12em] text-blue-700">
                                                         <span class="material-symbols-outlined text-[13px]">attach_file</span>
                                                         Có file
                                                     </span>
@@ -242,10 +254,10 @@
                                             <h3 class="public-list-title font-black text-slate-900">@document.Title</h3>
                                             @if (!string.IsNullOrWhiteSpace(document.Summary))
                                             {
-                                                <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">@document.Summary</p>
+                                                <p class="public-meta-text mt-1 line-clamp-2 text-slate-500">@document.Summary</p>
                                             }
 
-                                            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                            <div class="public-meta-text mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500">
                                                 <span>Mã: <strong class="text-slate-700">@(string.IsNullOrWhiteSpace(document.Code) ? "-" : document.Code)</strong></span>
                                                 <span>Đăng: @document.CreatedOnUtc.ToString("dd/MM/yyyy HH:mm")</span>
                                                 <span>Cập nhật: @document.UpdatedOnUtc.ToString("dd/MM/yyyy HH:mm")</span>
@@ -255,23 +267,20 @@
                                         <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                                             @if (document.CanView)
                                             {
-                                                <a href="@documentUrl" class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200">
+                                                <a href="@documentUrl" class="public-label-text inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 font-bold text-slate-700 transition hover:bg-slate-200">
                                                     <span class="material-symbols-outlined text-[15px]">visibility</span>
                                                     Xem
                                                 </a>
                                             }
-                                            @if (document.CanEdit)
-                                            {
-                                                <a href="/tai-lieu/cua-toi/sua/@document.Id" class="inline-flex items-center gap-1 rounded-lg bg-military-green px-3 py-2 text-xs font-bold text-white transition hover:bg-military-green/90">
-                                                    <span class="material-symbols-outlined text-[15px]">edit</span>
-                                                    Sửa
-                                                </a>
-                                            }
+                                            <a href="/tai-lieu/cua-toi/sua/@document.Id" class="public-label-text inline-flex items-center gap-1 rounded-lg bg-military-green px-3 py-2 font-bold text-white transition hover:brightness-110">
+                                                <span class="material-symbols-outlined text-[15px]">edit</span>
+                                                Sửa
+                                            </a>
                                             @if (document.CanDelete)
                                             {
                                                 <form method="post" action="/tai-lieu/cua-toi/xoa/@document.Id" onsubmit="return confirm('Xóa tài liệu này?')">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-600 transition hover:bg-red-100">
+                                                    <button type="submit" class="public-label-text inline-flex items-center gap-1 rounded-lg bg-red-50 px-3 py-2 font-bold text-red-600 transition hover:bg-red-100">
                                                         <span class="material-symbols-outlined text-[15px]">delete</span>
                                                         Xóa
                                                     </button>
@@ -289,8 +298,8 @@
                                 @for (var pageNumber = 1; pageNumber <= Model.PostedDocumentsTotalPages; pageNumber++)
                                 {
                                     var pageClass = pageNumber == Model.PostedDocumentsPage
-                                        ? "inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-military-green px-3 text-sm font-black text-white"
-                                        : "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 transition hover:border-military-green hover:text-military-green";
+                                        ? "public-control-text inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-military-green px-3 font-black text-white"
+                                        : "public-control-text inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-600 transition hover:border-military-green hover:text-military-green";
                                     <a href="/customer/profile?documentPage=@pageNumber#profile-tab-documents" class="@pageClass">@pageNumber</a>
                                 }
                             </div>
@@ -300,8 +309,8 @@
                     {
                         <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
                             <span class="material-symbols-outlined text-4xl text-slate-300">draft</span>
-                            <p class="mt-2 text-sm font-semibold text-slate-600">Bạn chưa đăng văn bản nào.</p>
-                            <a href="/tai-lieu/upload" class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-military-green px-4 py-2 text-sm font-bold text-white transition hover:bg-military-green/90">
+                            <p class="public-body-text mt-2 font-semibold text-slate-600">Bạn chưa đăng văn bản nào.</p>
+                            <a href="/tai-lieu/upload" class="public-control-text mt-4 inline-flex items-center gap-1.5 rounded-xl bg-military-green px-4 py-2 font-bold text-white transition hover:bg-military-green/90">
                                 <span class="material-symbols-outlined text-[17px]">upload_file</span>
                                 Tải văn bản lên ngay
                             </a>

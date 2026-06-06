@@ -23,6 +23,7 @@ using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Tax;
+using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Factories;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Customers;
@@ -61,6 +62,7 @@ public partial class CustomerController : BaseAdminController
     protected readonly IPermissionService _permissionService;
     protected readonly IStoreContext _storeContext;
     protected readonly ITaxService _taxService;
+    protected readonly IVendorService _vendorService;
     protected readonly IWorkContext _workContext;
     protected readonly TaxSettings _taxSettings;
     private static readonly char[] _separator = [','];
@@ -94,6 +96,7 @@ public partial class CustomerController : BaseAdminController
         IPermissionService permissionService,
         IStoreContext storeContext,
         ITaxService taxService,
+        IVendorService vendorService,
         IWorkContext workContext,
         TaxSettings taxSettings)
     {
@@ -122,6 +125,7 @@ public partial class CustomerController : BaseAdminController
         _permissionService = permissionService;
         _storeContext = storeContext;
         _taxService = taxService;
+        _vendorService = vendorService;
         _workContext = workContext;
         _taxSettings = taxSettings;
     }
@@ -156,6 +160,14 @@ public partial class CustomerController : BaseAdminController
 
         //no errors
         return string.Empty;
+    }
+
+    protected virtual async Task<string> GetVendorNameAsync(int vendorId)
+    {
+        if (vendorId <= 0)
+            return null;
+
+        return (await _vendorService.GetVendorByIdAsync(vendorId))?.Name;
     }
 
     protected virtual async Task<string> ParseCustomCustomerAttributesAsync(IFormCollection form)
@@ -287,9 +299,12 @@ public partial class CustomerController : BaseAdminController
     }
 
     [CheckPermission(StandardPermission.Customers.CUSTOMERS_VIEW)]
-    public virtual async Task<IActionResult> List()
+    public virtual async Task<IActionResult> List(int vendorId = 0)
     {
-        var model = await _customerModelFactory.PrepareCustomerSearchModelAsync(new CustomerSearchModel());
+        var model = await _customerModelFactory.PrepareCustomerSearchModelAsync(new CustomerSearchModel
+        {
+            SearchVendorId = vendorId
+        });
         return View(model);
     }
 
@@ -393,8 +408,11 @@ public partial class CustomerController : BaseAdminController
                 customer.LastName = model.LastName;
             if (_customerSettings.DateOfBirthEnabled)
                 customer.DateOfBirth = model.DateOfBirth;
-            if (_customerSettings.CompanyEnabled)
-                customer.Company = model.Company;
+            var selectedVendorId = model.VendorId;
+            var selectedVendorName = await GetVendorNameAsync(selectedVendorId);
+            customer.VendorId = selectedVendorId;
+            customer.CompanyId = selectedVendorId > 0 ? selectedVendorId : null;
+            customer.Company = selectedVendorName ?? model.Company;
             if (_customerSettings.StreetAddressEnabled)
                 customer.StreetAddress = model.StreetAddress;
             if (_customerSettings.StreetAddress2Enabled)
@@ -597,8 +615,11 @@ public partial class CustomerController : BaseAdminController
                     customer.LastName = model.LastName;
                 if (_customerSettings.DateOfBirthEnabled)
                     customer.DateOfBirth = model.DateOfBirth;
-                if (_customerSettings.CompanyEnabled)
-                    customer.Company = model.Company;
+                var selectedVendorId = model.VendorId;
+                var selectedVendorName = await GetVendorNameAsync(selectedVendorId);
+                customer.VendorId = selectedVendorId;
+                customer.CompanyId = selectedVendorId > 0 ? selectedVendorId : null;
+                customer.Company = selectedVendorName ?? model.Company;
                 if (_customerSettings.StreetAddressEnabled)
                     customer.StreetAddress = model.StreetAddress;
                 if (_customerSettings.StreetAddress2Enabled)
@@ -1337,13 +1358,14 @@ public partial class CustomerController : BaseAdminController
     public virtual async Task<IActionResult> ExportExcelAll(CustomerSearchModel model)
     {
         var customers = await _customerService.GetAllCustomersAsync(customerRoleIds: model.SelectedCustomerRoleIds.ToArray(),
+            vendorId: model.SearchVendorId,
             email: model.SearchEmail,
             username: model.SearchUsername,
             firstName: model.SearchFirstName,
             lastName: model.SearchLastName,
             dayOfBirth: int.TryParse(model.SearchDayOfBirth, out var dayOfBirth) ? dayOfBirth : 0,
             monthOfBirth: int.TryParse(model.SearchMonthOfBirth, out var monthOfBirth) ? monthOfBirth : 0,
-            company: model.SearchCompany,
+            company: model.SearchVendorId > 0 ? null : model.SearchCompany,
             isActive: model.SearchIsActive,
             phone: model.SearchPhone,
             zipPostalCode: model.SearchZipPostalCode);
@@ -1394,13 +1416,14 @@ public partial class CustomerController : BaseAdminController
     public virtual async Task<IActionResult> ExportXmlAll(CustomerSearchModel model)
     {
         var customers = await _customerService.GetAllCustomersAsync(customerRoleIds: model.SelectedCustomerRoleIds.ToArray(),
+            vendorId: model.SearchVendorId,
             email: model.SearchEmail,
             username: model.SearchUsername,
             firstName: model.SearchFirstName,
             lastName: model.SearchLastName,
             dayOfBirth: int.TryParse(model.SearchDayOfBirth, out var dayOfBirth) ? dayOfBirth : 0,
             monthOfBirth: int.TryParse(model.SearchMonthOfBirth, out var monthOfBirth) ? monthOfBirth : 0,
-            company: model.SearchCompany,
+            company: model.SearchVendorId > 0 ? null : model.SearchCompany,
             isActive: model.SearchIsActive,
             phone: model.SearchPhone,
             zipPostalCode: model.SearchZipPostalCode);

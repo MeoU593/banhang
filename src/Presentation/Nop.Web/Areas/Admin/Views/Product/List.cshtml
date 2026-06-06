@@ -120,14 +120,6 @@
                                                 <nop-select asp-for="SearchCategoryId" asp-items="Model.AvailableCategories" />
                                             </div>
                                         </div>
-                                        <div class="form-group row" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchIncludeSubCategories" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-editor asp-for="SearchIncludeSubCategories" />
-                                            </div>
-                                        </div>
                                         <div class="form-group row" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                             <div class="col-md-4">
                                                 <nop-label asp-for="SearchManufacturerId" />
@@ -162,29 +154,6 @@
                                                 <nop-select asp-for="SearchPublishedId" asp-items="Model.AvailablePublishedOptions" />
                                             </div>
                                         </div>
-                                        <div class="form-group row">
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="GoDirectlyToSku" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <div class="input-group input-group-short">
-                                                    <nop-editor asp-for="GoDirectlyToSku" />
-                                                    <span class="input-group-append">
-                                                        <button type="submit" id="go-to-product-by-sku" name="go-to-product-by-sku" class="btn btn-info btn-flat">
-                                                            @T("Admin.Common.Go")
-                                                        </button>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="text-center col-12">
-                                        <button type="button" id="search-products" class="btn btn-primary btn-search">
-                                            <i class="fas fa-magnifying-glass"></i>
-                                            @T("Admin.Common.Search")
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -196,19 +165,17 @@
                             <nop-doc-reference asp-string-resource="@T("Admin.Documentation.Reference.Products", Docs.Products + Utm.OnAdmin)" />
 
                               @await Html.PartialAsync("Table", new DataTablesModel
-                         {
-                             Name = "products-grid",
-                             UrlRead = new DataUrl("ProductList", "Product", null),
-                             SearchButtonId = "search-products",
-                             Length = Model.PageSize,
-                             LengthMenu = Model.AvailablePageSizes,
-                             Filters = new List<FilterParameter>
-                                  {
-                                      new FilterParameter(nameof(Model.SearchProductName)),
-                                      new FilterParameter(nameof(Model.SearchCategoryId)),
-                                      new FilterParameter(nameof(Model.SearchIncludeSubCategories), typeof(bool)),
-                                      new FilterParameter(nameof(Model.SearchManufacturerId)),
-                                      new FilterParameter(nameof(Model.SearchStoreId)),
+                          {
+                              Name = "products-grid",
+                              UrlRead = new DataUrl("ProductList", "Product", null),
+                              Length = Model.PageSize,
+                              LengthMenu = Model.AvailablePageSizes,
+                              Filters = new List<FilterParameter>
+                                   {
+                                       new FilterParameter(nameof(Model.SearchProductName)),
+                                       new FilterParameter(nameof(Model.SearchCategoryId)),
+                                       new FilterParameter(nameof(Model.SearchManufacturerId)),
+                                       new FilterParameter(nameof(Model.SearchStoreId)),
                                       new FilterParameter(nameof(Model.SearchVendorId)),
                                       new FilterParameter(nameof(Model.SearchProductTypeId)),
                                       new FilterParameter(nameof(Model.SearchPublishedId))
@@ -301,12 +268,20 @@
       </section>
     <script>
         $(function() {
-            $("#@Html.IdFor(model => model.GoDirectlyToSku)").keydown(function (event) {
-                if (event.keyCode === 13) {
-                    $("#go-to-product-by-sku").trigger("click");
-                    return false;
-                }
+            var autoFilterTimer;
+            var reloadProductsGrid = function () {
+                window.clearTimeout(autoFilterTimer);
+                $('#products-grid').DataTable().ajax.reload();
+                $('#products-grid .checkboxGroups').prop('checked', false).change();
+                selectedIds = [];
+            };
+
+            $('#@Html.IdFor(model => model.SearchProductName)').on('input', function () {
+                window.clearTimeout(autoFilterTimer);
+                autoFilterTimer = window.setTimeout(reloadProductsGrid, 500);
             });
+
+            $('#@Html.IdFor(model => model.SearchCategoryId), #@Html.IdFor(model => model.SearchManufacturerId), #@Html.IdFor(model => model.SearchStoreId), #@Html.IdFor(model => model.SearchProductTypeId), #@Html.IdFor(model => model.SearchPublishedId)').on('change', reloadProductsGrid);
         });
     </script>
 </form>

@@ -29,7 +29,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
@@ -37,18 +37,20 @@
         <span class="text-slate-700">Thảo luận mới</span>
     </nav>
 }
-<div class="page active-discussions-page px-4 pb-8 lg:px-0">
+<div class="page active-discussions-page public-page-shell public-page-stack">
     @await Html.PartialAsync("_ForumHeader")
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsActivediscussionsAfterHeader, additionalData = Model })
-    <div class="mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-1.5">
-                <h1 class="public-page-title font-black tracking-tight">@T("Forum.ActiveDiscussions")</h1>
-                <p class="max-w-2xl text-sm text-white/80">Cập nhật liên tục các chủ đề đang được trao đổi nhiều nhất trên diễn đàn.</p>
+    <div class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@T("Forum.ActiveDiscussions")</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle max-w-2xl">Cập nhật liên tục các chủ đề đang được trao đổi nhiều nhất trên diễn đàn.</p>
             </div>
-            <div class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur">
-                <p class="text-[11px] uppercase tracking-[0.14em] text-slate-200">Chủ đề</p>
-                <p class="mt-1 text-base font-black sm:text-lg">@Model.TopicTotalRecords</p>
+            <div class="public-blue-hero-stats">
+                <div class="public-blue-hero-stat">
+                    <p class="public-label-text uppercase tracking-[0.14em] text-sky-700">Chủ đề</p>
+                    <p class="public-stat-value mt-1 font-black text-sky-950">@Model.TopicTotalRecords</p>
+                </div>
             </div>
         </div>
     </div>
@@ -57,9 +59,9 @@
             <label class="sr-only" for="active-discussions-searchterms">@T("Forum.Search.SearchKeyword")</label>
             <div class="relative min-w-0 flex-1">
                 <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 material-symbols-outlined text-[18px]">search</span>
-                <input type="text" id="active-discussions-searchterms" name="searchterms" value="@quickSearchTerms" placeholder="@T("Forum.SearchForumsTooltip")" class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:border-military-green focus:bg-white" />
+                <input type="text" id="active-discussions-searchterms" name="searchterms" value="@quickSearchTerms" placeholder="@T("Forum.SearchForumsTooltip")" class="public-control-text h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-12 pr-4 text-slate-700 outline-none transition focus:border-military-green focus:bg-white" />
             </div>
-            <button type="submit" class="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-military-green px-5 text-sm font-semibold text-white transition hover:brightness-110">@T("Forum.SearchButton")</button>
+            <button type="submit" class="public-control-text inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-military-green px-5 font-semibold text-white transition hover:brightness-110">@T("Forum.SearchButton")</button>
         </form>
     </div>
     @await Html.PartialAsync("_ActiveTopics", Model)

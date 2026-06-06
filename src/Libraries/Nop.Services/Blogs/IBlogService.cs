@@ -41,13 +41,14 @@ public partial interface IBlogService
     /// <param name="postTypeId">Filter by blog post type; null if you want to get all records</param>
     /// <param name="vendorIds">Vendor identifiers; null/empty to load all records</param>
     /// <param name="keywords">Filter by keywords (title/body/overview/tags/author); null to load all records</param>
+    /// <param name="author">Filter by author name; null to load all records</param>
     /// <returns>
     /// A task that represents the asynchronous operation
     /// The task result contains the blog posts
     /// </returns>
     Task<IPagedList<BlogPost>> GetAllBlogPostsAsync(int storeId = 0, int languageId = 0,
         DateTime? dateFrom = null, DateTime? dateTo = null,
-        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null);
+        int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false, string title = null, int? postTypeId = null, IList<int> vendorIds = null, string keywords = null, string author = null);
 
     /// <summary>
     /// Gets popular blog posts ordered by public views

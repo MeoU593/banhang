@@ -14,7 +14,7 @@
 }
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <span>Tài khoản</span>
@@ -23,15 +23,19 @@
     </nav>
 }
 <div class="page account-page forum-subscriptions-page">
-    <div class="page-title mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6" style="display:block !important;">
-        <h1 class="public-page-title font-black tracking-tight">@T("Account.ForumSubscriptions")</h1>
-        <p class="mt-2 max-w-2xl text-sm text-white/80">Quản lý danh sách chủ đề và diễn đàn bạn đang theo dõi để cập nhật thông tin nhanh hơn.</p>
+    <div class="page-title public-blue-hero" style="display:block !important;">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@T("Account.ForumSubscriptions")</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle mt-2 max-w-2xl">Quản lý danh sách chủ đề và diễn đàn bạn đang theo dõi để cập nhật thông tin nhanh hơn.</p>
+            </div>
+        </div>
     </div>
     <div class="page-body space-y-5">
         @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.CustomerForumSubscriptionsTop, additionalData = Model })
         @if (Model.ForumSubscriptions.Count > 0)
         {
-            <div class="description rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <div class="public-body-text description rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-600 shadow-sm">
                 @T("Account.ForumSubscriptions.Description")
             </div>
             <script asp-location="Footer">
@@ -57,10 +61,10 @@
                             </colgroup>
                             <thead class="bg-slate-50">
                             <tr>
-                                <th class="select-boxes px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                                <th class="public-label-text select-boxes px-4 py-3 text-left font-bold uppercase tracking-[0.16em] text-slate-500">
                                     <input type="checkbox" id="selectall" aria-labelledby="info-col-caption" />
                                 </th>
-                                <th class="info px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.16em] text-slate-500" id="info-col-caption">
+                                <th class="public-label-text info px-4 py-3 text-left font-bold uppercase tracking-[0.16em] text-slate-500" id="info-col-caption">
                                     @T("Account.ForumSubscriptions.InfoColumn")
                                 </th>
                             </tr>
@@ -76,11 +80,11 @@
                                     <td class="info px-4 py-3 align-top">
                                         @if (item.TopicSubscription)
                                         {
-                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.TOPIC_SLUG, new { Id = item.ForumTopicId, slug = item.Slug }, new { @class = "text-sm font-semibold text-slate-800 transition hover:text-military-green" })
+                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.TOPIC_SLUG, new { Id = item.ForumTopicId, slug = item.Slug }, new { @class = "public-list-title font-semibold text-slate-800 transition hover:text-military-green" })
                                         }
                                         else
                                         {
-                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.FORUM_SLUG, new { Id = item.ForumId, slug = item.Slug }, new { @class = "text-sm font-semibold text-slate-800 transition hover:text-military-green" })
+                                            @Html.RouteLink(item.Title, NopRouteNames.Standard.FORUM_SLUG, new { Id = item.ForumId, slug = item.Slug }, new { @class = "public-list-title font-semibold text-slate-800 transition hover:text-military-green" })
                                         }
                                     </td>
                                 </tr>
@@ -98,18 +102,18 @@
                         </div>
                     }
                     <div class="buttons border-t border-slate-100 p-4">
-                        <button type="submit" class="button-1 delete-selected-fs-button inline-flex h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100">@T("Account.ForumSubscriptions.DeleteSelected")</button>
+                        <button type="submit" class="public-control-text button-1 delete-selected-fs-button inline-flex h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 font-semibold text-rose-700 transition hover:bg-rose-100">@T("Account.ForumSubscriptions.DeleteSelected")</button>
                     </div>
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-500 shadow-sm">
+                <div class="public-meta-text rounded-2xl border border-slate-200 bg-white p-4 text-slate-500 shadow-sm">
                     Chỉ xóa các mục không cần theo dõi để giữ trạng thái thông báo gọn gàng và dễ quản lý.
                 </div>
             </form>
         }
         else
         {
-            <div class="no-data rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm font-medium text-slate-500 shadow-sm">
+            <div class="public-body-text no-data rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center font-medium text-slate-500 shadow-sm">
                 @T("Account.ForumSubscriptions.NoSubscriptions")
             </div>
         }

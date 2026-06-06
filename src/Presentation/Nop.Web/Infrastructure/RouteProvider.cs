@@ -181,6 +181,14 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
             pattern: $"{lang}/don-vi/{{vendorId:min(0)}}",
             defaults: new { controller = "Catalog", action = "Vendor" });
 
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.UNIT_DIRECTORY,
+            pattern: $"{lang}/danh-ba",
+            defaults: new { controller = "Directory", action = "Index" });
+
+        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.USER_GUIDE,
+            pattern: $"{lang}/tai-lieu-huong-dan",
+            defaults: new { controller = "Guide", action = "Index" });
+
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.VENDOR_REVIEWS,
             pattern: $"{lang}/vendor/{{vendorId:min(0)}}/reviews",
             defaults: new { controller = "Catalog", action = "VendorReviews" });
@@ -327,11 +335,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.GDPR_TOOLS,
             pattern: $"{lang}/customer/gdpr",
             defaults: new { controller = "Customer", action = "GdprTools" });
-
-        //customer check gift card balance 
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.General.CHECK_GIFT_CARD_BALANCE,
-            pattern: $"{lang}/customer/checkgiftcardbalance",
-            defaults: new { controller = "Customer", action = "CheckGiftCardBalance" });
 
         //customer multi-factor authentication settings 
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.MULTI_FACTOR_AUTHENTICATION_SETTINGS,
@@ -495,39 +498,6 @@ public partial class RouteProvider : BaseRouteProvider, IRouteProvider
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Ajax.POST_VOTE,
             pattern: "boards/postvote",
             defaults: new { controller = "Boards", action = "PostVote" });
-
-        //private messages
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRIVATE_MESSAGES,
-            pattern: $"{lang}/privatemessages/{{tab?}}",
-            defaults: new { controller = "PrivateMessages", action = "Index" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRIVATE_MESSAGES_PAGED,
-            pattern: $"{lang}/privatemessages/{{tab?}}/page/{{pageNumber:min(0)}}",
-            defaults: new { controller = "PrivateMessages", action = "Index" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRIVATE_MESSAGES_INBOX,
-            pattern: $"{lang}/inboxupdate",
-            defaults: new { controller = "PrivateMessages", action = "InboxUpdate" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.PRIVATE_MESSAGES_SENT,
-            pattern: $"{lang}/sentupdate",
-            defaults: new { controller = "PrivateMessages", action = "SentUpdate" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.SEND_PM,
-            pattern: $"{lang}/sendpm/{{toCustomerId:min(0)}}",
-            defaults: new { controller = "PrivateMessages", action = "SendPM" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.SEND_PM_REPLY,
-            pattern: $"{lang}/sendpm/{{toCustomerId:min(0)}}/{{replyToMessageId:min(0)}}",
-            defaults: new { controller = "PrivateMessages", action = "SendPM" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.VIEW_PM,
-            pattern: $"{lang}/viewpm/{{privateMessageId:min(0)}}",
-            defaults: new { controller = "PrivateMessages", action = "ViewPM" });
-
-        endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.DELETE_PM,
-            pattern: $"{lang}/deletepm/{{privateMessageId:min(0)}}",
-            defaults: new { controller = "PrivateMessages", action = "DeletePM" });
 
         //robots.txt (file result)
         endpointRouteBuilder.MapControllerRoute(name: NopRouteNames.Standard.ROBOTS_TXT,

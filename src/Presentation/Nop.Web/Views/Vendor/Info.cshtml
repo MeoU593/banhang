@@ -12,7 +12,7 @@
 }
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <span>Tài khoản</span>
@@ -83,11 +83,18 @@
         text-transform: uppercase;
     }
 
-    .vendor-command-page .inputs {
+    .vendor-command-page .vendor-form-grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    .vendor-command-page .vendor-field,
+    .vendor-command-page .public-form-row {
         margin-bottom: 14px;
     }
 
-    .vendor-command-page .inputs label {
+    .vendor-command-page .vendor-field label,
+    .vendor-command-page .public-form-row label {
         display: block;
         margin-bottom: 6px;
         color: #475569;
@@ -97,11 +104,14 @@
         letter-spacing: 0.08em;
     }
 
-    .vendor-command-page .inputs input[type="text"],
-    .vendor-command-page .inputs input[type="email"],
-    .vendor-command-page .inputs textarea,
-    .vendor-command-page .inputs select,
-    .vendor-command-page .inputs input[type="file"] {
+    .vendor-command-page .vendor-field input[type="text"],
+    .vendor-command-page .vendor-field input[type="email"],
+    .vendor-command-page .vendor-field textarea,
+    .vendor-command-page .vendor-field select,
+    .vendor-command-page .vendor-field input[type="file"],
+    .vendor-command-page .public-form-row input[type="text"],
+    .vendor-command-page .public-form-row textarea,
+    .vendor-command-page .public-form-row select {
         width: 100%;
         border: 1px solid #cbd5e1;
         border-radius: 10px;
@@ -112,17 +122,21 @@
         box-sizing: border-box;
     }
 
-    .vendor-command-page .inputs textarea {
+    .vendor-command-page .vendor-field textarea,
+    .vendor-command-page .public-form-row textarea {
         min-height: 140px;
     }
 
-    .vendor-command-page .inputs input:focus,
-    .vendor-command-page .inputs textarea:focus,
-    .vendor-command-page .inputs select:focus {
+    .vendor-command-page .vendor-field input:focus,
+    .vendor-command-page .vendor-field textarea:focus,
+    .vendor-command-page .vendor-field select:focus,
+    .vendor-command-page .public-form-row input:focus,
+    .vendor-command-page .public-form-row textarea:focus,
+    .vendor-command-page .public-form-row select:focus {
         outline: none;
-        border-color: #2d3a22;
+        border-color: #b91d20;
         background: #ffffff;
-        box-shadow: 0 0 0 3px rgba(45, 58, 34, 0.12);
+        box-shadow: 0 0 0 3px rgba(185, 29, 32, 0.12);
     }
 
     .vendor-command-page .vendor-picture {
@@ -156,9 +170,9 @@
         height: 44px;
         align-items: center;
         justify-content: center;
-        border: 1px solid #2d3a22 !important;
+        border: 1px solid #2e0001 !important;
         border-radius: 12px;
-        background: #2d3a22 !important;
+        background: #2e0001 !important;
         padding: 0 26px;
         color: #ffffff !important;
         font-size: var(--public-font-control);
@@ -186,25 +200,25 @@
 
             <section class="vendor-section">
                 <h2 class="vendor-section-title">Thông tin cơ bản</h2>
-                <div class="form-fields">
-                    <div class="inputs">
+                <div class="vendor-form-grid">
+                    <div class="vendor-field">
                         <label asp-for="Name" asp-postfix=":" ></label>
                         <input asp-for="Name" />
                         <nop-required />
                         <span asp-validation-for="Name"></span>
                     </div>
-                    <div class="inputs">
+                    <div class="vendor-field">
                         <label asp-for="Email" asp-postfix=":" ></label>
                         <input asp-for="Email" />
                         <nop-required />
                         <span asp-validation-for="Email"></span>
                     </div>
-                    <div class="inputs">
+                    <div class="vendor-field">
                         <label asp-for="Description" asp-postfix=":" ></label>
                         <textarea asp-for="Description"></textarea>
                         <span asp-validation-for="Description"></span>
                     </div>
-                    <div class="inputs">
+                    <div class="vendor-field">
                         <label asp-for="PictureUrl" asp-postfix=":" ></label>
                         <input name="uploadedFile" type="file" accept="image/*" />
                         @if (!string.IsNullOrEmpty(Model.PictureUrl))
@@ -222,7 +236,7 @@
             {
                 <section class="vendor-section">
                     <h2 class="vendor-section-title">Thông tin mở rộng</h2>
-                    <div class="form-fields">
+                    <div class="vendor-form-grid">
                         @await Html.PartialAsync("_VendorAttributes", Model.VendorAttributes)
                     </div>
                 </section>

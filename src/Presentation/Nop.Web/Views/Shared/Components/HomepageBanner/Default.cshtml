@@ -6,12 +6,13 @@
     .homepage-command-banner {
         position: relative;
         overflow: hidden;
-        border-bottom: 1px solid rgba(246, 220, 154, 0.24);
-        color: #f6dc9a;
-        background-color: rgba(45, 58, 34, 0.6);
+        border-bottom: 1px solid rgba(246, 220, 154, 0.18);
+        color: #fff7d6;
+        background-color: #260001;
         background-image:
-            linear-gradient(90deg, rgba(45, 58, 34, 0.92) 0%, rgba(69, 84, 45, 0.82) 34%, rgba(91, 106, 55, 0.74) 50%, rgba(69, 84, 45, 0.82) 66%, rgba(45, 58, 34, 0.92) 100%),
-            repeating-linear-gradient(135deg, rgba(246, 220, 154, 0.08) 0, rgba(246, 220, 154, 0.08) 1px, transparent 1px, transparent 16px);
+            radial-gradient(circle at 50% 8%, rgba(254, 214, 91, 0.16), transparent 34%),
+            linear-gradient(90deg, rgba(38, 0, 1, 0.96) 0%, rgba(74, 0, 4, 0.9) 35%, rgba(17, 24, 39, 0.84) 50%, rgba(74, 0, 4, 0.9) 65%, rgba(38, 0, 1, 0.96) 100%),
+            repeating-linear-gradient(135deg, rgba(254, 243, 199, 0.06) 0, rgba(254, 243, 199, 0.06) 1px, transparent 1px, transparent 16px);
         -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
     }
@@ -24,8 +25,8 @@
         width: 36%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.34;
-        filter: saturate(0.95) contrast(1.03);
+        opacity: 0.28;
+        filter: saturate(0.9) contrast(1.02);
     }
 
     .homepage-command-banner__image--left {
@@ -46,36 +47,78 @@
         position: relative;
         z-index: 2;
         display: flex;
-        min-height: 72px;
+        min-height: calc(var(--public-top-banner-height, 82px) * 1.5);
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 2px;
-        padding: 8px 24px;
+        padding: 0.4% 14%;
         text-decoration: none;
         text-align: center;
     }
 
+    .homepage-command-banner__title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .homepage-command-banner__logo-slot {
+        position: absolute;
+        z-index: 3;
+        top: 50%;
+        display: flex;
+        height: 76%;
+        aspect-ratio: 1;
+        transform: translateY(-50%);
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.22);
+        box-shadow: 0 0.5rem 1.4rem rgba(15, 23, 42, 0.22);
+    }
+
+    .homepage-command-banner__logo-slot--left {
+        left: 2%;
+    }
+
+    .homepage-command-banner__logo-slot--right {
+        right: 2%;
+    }
+
+    .homepage-command-banner__logo {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .homepage-command-banner__logo-fallback {
+        color: #fed65b;
+        font-size: 190%;
+        filter: drop-shadow(0 1px 3px rgba(254, 214, 91, 0.35));
+        font-variation-settings: 'FILL' 1;
+    }
+
     .homepage-command-banner__title-line {
-        font-size: clamp(0.875rem, 1vw, 1.0625rem);
+        font-size: clamp(1.18rem, 0.78vw + 1rem, 1.55rem);
         font-weight: 900;
         text-transform: uppercase;
-        line-height: 1.15;
-        letter-spacing: 0.08em;
-        color: #f6dc9a;
+        line-height: 1.08;
+        letter-spacing: 0.07em;
+        color: #fff7d6;
         text-shadow: 0 2px 10px rgba(15, 23, 42, 0.72);
         white-space: nowrap;
     }
 
     .homepage-command-banner__title-line--sub {
-        color: #ffd166;
-        font-size: clamp(0.9375rem, 1.1vw, 1.1875rem);
+        color: #fed65b;
     }
 
     @@media (max-width: 1279px) {
         .homepage-command-banner__content {
-            padding-left: 20px;
-            padding-right: 20px;
+            padding-left: 14%;
+            padding-right: 14%;
         }
     }
 
@@ -86,7 +129,7 @@
         }
 
         .homepage-command-banner__title-line {
-            font-size: clamp(0.875rem, 2.8vw, 1.0625rem);
+            font-size: var(--public-font-card-title, clamp(0.92rem, 2vw, 1.08rem));
             white-space: normal;
         }
     }
@@ -96,10 +139,17 @@
             display: none;
         }
 
+        .homepage-command-banner__logo-slot {
+            height: 70%;
+        }
+
         .homepage-command-banner__content {
-            min-height: 58px;
-            padding-top: 8px;
-            padding-bottom: 8px;
+            min-height: 102px;
+            padding: 1% 15%;
+        }
+
+        .homepage-command-banner__title-line {
+            font-size: var(--public-font-list-title, clamp(0.82rem, 3.4vw, 1rem));
         }
     }
 </style>
@@ -108,10 +158,20 @@
     <img class="homepage-command-banner__image homepage-command-banner__image--left" src="/images/banner/tank-left-crop.jpeg" alt="Xe tăng" loading="lazy" />
     <img class="homepage-command-banner__image homepage-command-banner__image--right" src="/images/banner/parade-right-crop.jpeg" alt="Duyệt đội ngũ" loading="lazy" />
 
+    <div class="homepage-command-banner__logo-slot homepage-command-banner__logo-slot--left" aria-hidden="true">
+        <img class="homepage-command-banner__logo" src="/images/banner/logo-quan-nhu.svg" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+        <span class="material-symbols-outlined homepage-command-banner__logo-fallback" style="display:none;">military_tech</span>
+    </div>
+
+    <div class="homepage-command-banner__logo-slot homepage-command-banner__logo-slot--right" aria-hidden="true">
+        <img class="homepage-command-banner__logo" src="/images/banner/logo-tang-thiet-giap.svg" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+        <span class="material-symbols-outlined homepage-command-banner__logo-fallback" style="display:none;">shield</span>
+    </div>
+
     <a href="@homepageUrl" class="homepage-command-banner__content" aria-label="Trang chủ">
         <div class="homepage-command-banner__title">
-            <div class="homepage-command-banner__title-line">Cổng thông tin Hậu cần - Quân nhu</div>
-            <div class="homepage-command-banner__title-line homepage-command-banner__title-line--sub">BINH CHỦNG TĂNG THIẾT GIÁP</div>
+            <div class="homepage-command-banner__title-line">Cổng thông tin Cục hậu cần kĩ thuật</div>
+            <div class="homepage-command-banner__title-line homepage-command-banner__title-line--sub">Binh chủng Tăng Thiết Giáp</div>
         </div>
     </a>
 </div>

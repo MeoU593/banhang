@@ -12,7 +12,7 @@
 
 @section Breadcrumb
 {
-    <nav class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500" aria-label="Breadcrumb">
+    <nav class="public-breadcrumb flex flex-wrap items-center gap-2 text-slate-500" aria-label="Breadcrumb">
         <a href="@Url.RouteUrl(NopRouteNames.General.HOMEPAGE)" class="transition hover:text-military-green">Trang chủ</a>
         <span class="material-symbols-outlined text-sm text-slate-400">chevron_right</span>
         <a href="@Url.RouteUrl(NopRouteNames.General.BOARDS)" class="transition hover:text-military-green">Diễn đàn</a>
@@ -20,27 +20,27 @@
         <span class="text-slate-700">@Model.Name</span>
     </nav>
 }
-<div class="page forum-group-page px-4 pb-8 lg:px-0">
+<div class="page forum-group-page public-page-shell public-page-stack">
     @await Html.PartialAsync("_ForumHeader")
     @await Component.InvokeAsync(typeof(WidgetViewComponent), new { widgetZone = PublicWidgetZones.BoardsForumGroupAfterHeader, additionalData = Model })
-    <div class="mb-5 overflow-hidden rounded-2xl border border-[#d6b95a]/30 bg-[linear-gradient(120deg,#29313a_0%,#574500_52%,#8a6a2a_100%)] p-5 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-1.5">
-                <h1 class="public-page-title font-black tracking-tight">@Model.Name</h1>
-                <p class="max-w-2xl text-sm text-white/80">Tổng hợp các diễn đàn thành phần thuộc nhóm chuyên đề này.</p>
+    <div class="public-blue-hero">
+        <div class="public-blue-hero-content">
+            <div class="public-blue-hero-copy space-y-1.5">
+                <h1 class="public-hero-title public-blue-hero-title font-black tracking-tight">@Model.Name</h1>
+                <p class="public-hero-subtitle public-blue-hero-subtitle max-w-2xl">Tổng hợp các diễn đàn thành phần thuộc nhóm chuyên đề này.</p>
             </div>
-            <div class="grid grid-cols-3 gap-2 text-center sm:min-w-[300px]">
-                <div class="rounded-xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur">
-                    <p class="text-base font-black sm:text-lg">@Model.Forums.Count</p>
-                    <p class="text-[10px] uppercase tracking-[0.12em] text-slate-200">Diễn đàn</p>
+            <div class="public-blue-hero-stats sm:min-w-[300px]">
+                <div class="public-blue-hero-stat">
+                    <p class="public-stat-value font-black text-sky-950">@Model.Forums.Count</p>
+                    <p class="public-label-text uppercase tracking-[0.12em] text-sky-700">Diễn đàn</p>
                 </div>
-                <div class="rounded-xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur">
-                    <p class="text-base font-black sm:text-lg">@totalTopics</p>
-                    <p class="text-[10px] uppercase tracking-[0.12em] text-slate-200">Chủ đề</p>
+                <div class="public-blue-hero-stat">
+                    <p class="public-stat-value font-black text-sky-950">@totalTopics</p>
+                    <p class="public-label-text uppercase tracking-[0.12em] text-sky-700">Chủ đề</p>
                 </div>
-                <div class="rounded-xl border border-white/20 bg-white/10 px-3 py-3 backdrop-blur">
-                    <p class="text-base font-black sm:text-lg">@totalPosts</p>
-                    <p class="text-[10px] uppercase tracking-[0.12em] text-slate-200">Bài viết</p>
+                <div class="public-blue-hero-stat">
+                    <p class="public-stat-value font-black text-sky-950">@totalPosts</p>
+                    <p class="public-label-text uppercase tracking-[0.12em] text-sky-700">Bài viết</p>
                 </div>
             </div>
         </div>

@@ -251,8 +251,43 @@ public partial class BlogModelFactory : IBlogModelFactory
         var store = await _storeContext.GetCurrentStoreAsync();
         var vendorIds = command.VendorId > 0 ? new List<int> { command.VendorId } : null;
         var blogPosts = string.IsNullOrEmpty(command.Tag)
-            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize, postTypeId: command.PostTypeId, vendorIds: vendorIds, keywords: command.Q)
+            ? await _blogService.GetAllBlogPostsAsync(store.Id, language.Id, dateFrom, dateTo, command.PageNumber - 1, command.PageSize, postTypeId: command.PostTypeId, vendorIds: vendorIds, keywords: command.Q, author: command.Author)
             : await _blogService.GetAllBlogPostsByTagAsync(store.Id, language.Id, command.Tag, command.PageNumber - 1, command.PageSize, vendorIds: vendorIds);
+
+        var newsStatsPosts = await _blogService.GetAllBlogPostsAsync(
+            store.Id,
+            language.Id,
+            dateFrom,
+            dateTo,
+            pageIndex: 0,
+            pageSize: int.MaxValue,
+            postTypeId: 0,
+            vendorIds: vendorIds,
+            keywords: command.Q,
+            author: command.Author);
+
+        var documentStatsPosts = await _blogService.GetAllBlogPostsAsync(
+            store.Id,
+            language.Id,
+            dateFrom,
+            dateTo,
+            pageIndex: 0,
+            pageSize: int.MaxValue,
+            postTypeId: 1,
+            vendorIds: vendorIds,
+            keywords: command.Q,
+            author: command.Author);
+
+        var authorSourcePosts = await _blogService.GetAllBlogPostsAsync(
+            store.Id,
+            language.Id,
+            dateFrom,
+            dateTo,
+            pageIndex: 0,
+            pageSize: int.MaxValue,
+            postTypeId: command.PostTypeId,
+            vendorIds: vendorIds,
+            keywords: command.Q);
 
         var availableVendors = (await _vendorService.GetAllVendorsAsync(showHidden: false))
             .OrderBy(vendor => vendor.DisplayOrder)
@@ -266,12 +301,28 @@ public partial class BlogModelFactory : IBlogModelFactory
             .ToList();
         availableVendors.Insert(0, new SelectListItem { Text = "Tất cả đơn vị", Value = "0", Selected = command.VendorId <= 0 });
 
+        var selectedAuthor = command.Author?.Trim() ?? string.Empty;
+        var availableAuthors = authorSourcePosts
+            .Select(post => post.AuthorName?.Trim())
+            .Where(author => !string.IsNullOrWhiteSpace(author))
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(author => author)
+            .Select(author => new SelectListItem
+            {
+                Text = author,
+                Value = author,
+                Selected = string.Equals(author, selectedAuthor, StringComparison.CurrentCultureIgnoreCase)
+            })
+            .ToList();
+        availableAuthors.Insert(0, new SelectListItem { Text = "Tất cả tác giả", Value = string.Empty, Selected = string.IsNullOrWhiteSpace(selectedAuthor) });
+
         var model = new BlogPostListModel
         {
             PagingFilteringContext =
             {
                 Q = command.Q,
                 Tag = command.Tag,
+                Author = command.Author,
                 Month = command.Month,
                 PostTypeId = command.PostTypeId,
                 VendorId = command.VendorId,
@@ -279,7 +330,12 @@ public partial class BlogModelFactory : IBlogModelFactory
                 DateTo = command.DateTo
             },
             WorkingLanguageId = language.Id,
+            TotalNewsCount = newsStatsPosts.TotalCount,
+            TotalDocumentCount = documentStatsPosts.TotalCount,
+            NewsPostingUnitCount = newsStatsPosts.Select(post => post.VendorId).Where(vendorId => vendorId > 0).Distinct().Count(),
+            DocumentPostingUnitCount = documentStatsPosts.Select(post => post.VendorId).Where(vendorId => vendorId > 0).Distinct().Count(),
             AvailableVendors = availableVendors,
+            AvailableAuthors = availableAuthors,
             BlogPosts = await blogPosts.SelectAwait(async blogPost =>
             {
                 var blogPostModel = new BlogPostModel();
@@ -300,7 +356,8 @@ public partial class BlogModelFactory : IBlogModelFactory
                 pageSize: 8,
                 postTypeId: 1,
                 vendorIds: vendorIds,
-                keywords: command.Q);
+                keywords: command.Q,
+                author: command.Author);
 
             model.LatestDocumentPosts = await latestDocumentPosts.SelectAwait(async blogPost =>
             {

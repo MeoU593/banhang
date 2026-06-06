@@ -14,6 +14,7 @@ public partial record RegisterModel : BaseNopModel
         AvailableTimeZones = new List<SelectListItem>();
         AvailableCountries = new List<SelectListItem>();
         AvailableStates = new List<SelectListItem>();
+        AvailableVendors = new List<SelectListItem>();
         CustomerAttributes = new List<CustomerAttributeModel>();
         GdprConsents = new List<GdprConsentModel>();
     }
@@ -72,10 +73,10 @@ public partial record RegisterModel : BaseNopModel
         return CommonHelper.ParseDate(DateOfBirthYear, DateOfBirthMonth, DateOfBirthDay);
     }
 
-    public bool CompanyEnabled { get; set; }
-    public bool CompanyRequired { get; set; }
-    [NopResourceDisplayName("Account.Fields.Company")]
-    public string Company { get; set; }
+    public bool UnitEnabled { get; set; }
+    public bool UnitRequired { get; set; }
+    public int VendorId { get; set; }
+    public IList<SelectListItem> AvailableVendors { get; set; }
 
     public bool StreetAddressEnabled { get; set; }
     public bool StreetAddressRequired { get; set; }

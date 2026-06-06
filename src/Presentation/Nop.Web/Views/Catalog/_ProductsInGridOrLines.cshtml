@@ -3,7 +3,7 @@
 <style>
     .catalog-products-refined .catalog-grid {
         display: grid;
-        gap: 20px;
+        gap: clamp(0.875rem, 1.4vw, 1.25rem);
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }
 
@@ -59,12 +59,12 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
+        gap: clamp(0.75rem, 1vw, 1rem);
         border: 1px solid #dbe3ef;
-        border-radius: 14px;
+        border-radius: clamp(0.8rem, 1vw, 1.1rem);
         background: #ffffff;
-        padding: 12px 16px;
-        box-shadow: 0 18px 32px -30px rgba(15, 23, 42, 0.45);
+        padding: clamp(0.75rem, 0.9vw, 1rem) clamp(0.875rem, 1.1vw, 1.25rem);
+        box-shadow: 0 1.2vw 2.2vw -2vw rgba(15, 23, 42, 0.45);
     }
 
     .catalog-products-refined .catalog-pagination-summary {
@@ -78,16 +78,16 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: clamp(0.55rem, 0.7vw, 0.8rem);
     }
 
     .catalog-products-refined .legend-item {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: clamp(0.3rem, 0.45vw, 0.55rem);
         border-radius: 999px;
         background: #f8fafc;
-        padding: 4px 10px;
+        padding: clamp(0.25rem, 0.35vw, 0.375rem) clamp(0.625rem, 0.75vw, 0.875rem);
         color: #475569;
         font-size: var(--public-font-label);
         font-weight: 700;
@@ -121,11 +121,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 34px;
-        height: 34px;
-        padding: 0 10px;
+        min-width: clamp(2rem, 2.2vw, 2.4rem);
+        min-height: clamp(2rem, 2.2vw, 2.4rem);
+        padding: 0 clamp(0.55rem, 0.7vw, 0.8rem);
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
+        border-radius: clamp(0.55rem, 0.7vw, 0.8rem);
         background: transparent;
         color: #475569;
         font-size: var(--public-font-meta);
@@ -157,9 +157,9 @@
 
     .catalog-products-refined .catalog-empty {
         border: 2px dashed #c4c6cc;
-        border-radius: 16px;
+        border-radius: clamp(0.9rem, 1.1vw, 1.25rem);
         background: #f8fafc;
-        padding: 38px 16px;
+        padding: clamp(2rem, 3vw, 3rem) clamp(1rem, 1.2vw, 1.25rem);
         text-align: center;
     }
 
@@ -189,7 +189,7 @@
 
     @@media (max-width: 767px) {
         .catalog-products-refined .catalog-pagination-row {
-            padding: 12px;
+            padding: clamp(0.875rem, 2vw, 1.25rem);
         }
 
         .catalog-products-refined .catalog-pagination-summary {
@@ -200,7 +200,7 @@
 
 @if (!string.IsNullOrEmpty(Model.WarningMessage))
 {
-    <div class="warning mb-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+    <div class="warning public-body-text mb-4 border border-amber-200 bg-amber-50 px-4 py-3 font-medium text-amber-800">
         @Model.WarningMessage
     </div>
 }
@@ -225,9 +225,9 @@
         </div>
 
         <div id="catalog-local-empty" class="catalog-empty hidden">
-            <span class="material-symbols-outlined">inventory_2</span>
-            <div class="text-lg font-bold tracking-tight text-slate-900">Không có sản phẩm trùng khớp bộ lọc</div>
-            <div class="mt-2 text-sm leading-7 text-slate-500">Thử bỏ chọn bớt điều kiện lọc hoặc làm mới bộ lọc để xem lại danh sách.</div>
+            <span class="material-symbols-outlined">restaurant</span>
+            <div class="public-card-title font-bold tracking-tight text-slate-900">Không có sản phẩm trùng khớp bộ lọc</div>
+            <div class="public-body-text mt-2 text-slate-500">Thử bỏ chọn bớt điều kiện lọc hoặc làm mới bộ lọc để xem lại danh sách.</div>
         </div>
 
         @{
@@ -262,9 +262,9 @@ else if (!string.IsNullOrEmpty(Model.NoResultMessage))
 {
     <div class="catalog-products-refined">
         <div class="catalog-empty">
-            <span class="material-symbols-outlined">inventory_2</span>
-            <div class="text-lg font-bold tracking-tight text-slate-900">Không tìm thấy sản phẩm phù hợp</div>
-        <div class="mt-2 text-sm leading-7 text-slate-500">
+            <span class="material-symbols-outlined">restaurant</span>
+            <div class="public-card-title font-bold tracking-tight text-slate-900">Không tìm thấy sản phẩm phù hợp</div>
+        <div class="public-body-text mt-2 text-slate-500">
             @Model.NoResultMessage
         </div>
         </div>
